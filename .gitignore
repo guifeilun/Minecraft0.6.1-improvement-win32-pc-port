@@ -1,0 +1,31 @@
+# Build outputs
+build-xp/
+build/
+*.obj
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.exp
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+_deps/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Data (Mojang copyright)
+# data/images/
+# data/lang/
+# data/sound/
