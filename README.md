@@ -149,7 +149,7 @@ git submodule update --init --recursive
 ```powershell
 .\build-xp.ps1 -Clean
 
-## 控制按键
+### 控制按键
 
 表格
 
