@@ -2,6 +2,31 @@
 
 基于 [JackTulli/Minecraft-PE-0.6.1-Win32-port](https://github.com/JackTulli/Minecraft-PE-0.6.1-Win32-port) 的修改版，添加了一些原版 0.6.1 缺失或未完成的功能
 
+## 该版本目前修改
+### 中文支持
+- 成功移植0.8.1语言系统
+### 钓鱼竿
+
+- 右键抛出浮标，再右键收回
+- 浮标入水后随机咬钩，收竿可钓到生鱼
+- 可钩住生物和方块，收竿时施加拉力
+- 鱼线从鱼竿上端连接到浮标
+- 浮标使用 `particles.png` 第三行第二列的图标
+- 耐久度 65，消耗规则：
+  - 钓到鱼：扣 1 点
+  - 钩到方块：扣 2 点
+  - 钩到实体：扣 3 点
+- 创造模式不消耗耐久
+
+### 下界石英矿石
+
+- 在下界 Y=10~117 之间以矿团形式生成
+- 每区块尝试 16 次，每次矿团 1~14 个方块
+- 挖掘掉落下界石英
+
+### directsound替换，目前不再需要openal.dll
+
+## JackTulli的修改
 ### Redstone
 A functional, mostly vanilla-faithful redstone subsystem built from the
 scaffolding upstream left behind (`Tile::isSignalSource`, `Level::getSignal`,
@@ -114,26 +139,15 @@ XP 不能用新版 VS，仓库提供`build‑xp.ps1`，使用旧版工具链。
 ### 1. 克隆仓库
 
 ```
-git clone https://github.com/JackTulli/Minecraft‑PE‑0.6.1‑Win32‑port.git
-cd Minecraft‑PE‑0.6.1‑Win32‑port
+git clone https://github.com/guifeilun/Minecraft0.6.1-improvement-win32-pc-port.git
+cd Minecraft0.6.1-improvement-win32-pc-port
 git submodule update --init --recursive
 ```
 
-### 2. 准备原版资源（关键！不做这步游戏黑屏 / 无纹理）
+### 编译
 
-1. 获取原版 `minecraftpe‑0.6.1.apk`（你合法持有的版本）
-2. 把 APK 解压，复制里面 `assets/` 整个文件夹，放到程序输出目录。
-3. 运行仓库脚本处理资源，转换安卓纹理格式为 Windows 可用格式。
-
-> 
-> 没有 assets 资源，可执行文件能打开，但黑屏、没有方块贴图、没有声音。
-
-### 3. 执行构建脚本
-
-- 现代 Windows（Win7‑Win11）：右键运行 `build.ps1`
-- Windows XP 目标构建：运行 `build‑xp.ps1`
-
-脚本会自动调用 CMake，生成可执行文件，输出到 `build/bin/Release/`。
+```powershell
+.\build-xp.ps1 -Clean
 
 ## 控制按键
 
