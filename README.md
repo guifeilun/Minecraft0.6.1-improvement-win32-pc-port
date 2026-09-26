@@ -160,20 +160,33 @@ XP 不能用新版 VS，仓库提供`build‑xp.ps1`，使用旧版工具链。
 - libpng（读取 PNG 纹理）
 - OpenAL‑Soft（目前已不再需要）
 
-## 编译步骤
+## 构建
+支持的构建环境：**Windows + Visual Studio 2017 生成工具**，使用
+`v141_xp` 工具集。PowerShell 脚本会处理 vcvars 环境、选择对应的
+Ninja，并将输出程序生成至 `build‑xp\MinecraftPE.exe`。
 
-### 1. 克隆仓库
-
-```
-git clone https://github.com/guifeilun/Minecraft0.6.1-improvement-win32-pc-port.git
-cd Minecraft0.6.1-improvement-win32-pc-port
-git submodule update --init --recursive
-```
-
-### 编译
-
-powershell
+# 在仓库根目录执行
+powershell.exe -ExecutionPolicy Bypass -File .\build-xp.ps1
+# 清理后重新构建
 .\build-xp.ps1 -Clean
+
+依赖要求：
+- 已安装带有 `v141_xp`（Windows XP）工具集的 Visual Studio 2017 生成工具。
+脚本固定使用 `-vcvars_ver=14.16`，避免新版本工具集被静默调用。
+- CMake 3.21 或更高版本。
+- Ninja 已加入系统`PATH`环境变量（也可以修改 `build‑xp.ps1` 内的 `$NinjaDir` 参数）。
+- Git（部分 CMake `FetchContent` 依赖会在配置阶段拉取克隆）。
+
+编译输出文件为 `build‑xp\MinecraftPE.exe`。exe 同级的 `data\` 文件夹存放游戏资源
+（terrain.png、items.png、语言文件等）——构建过程会自动把这些资源复制到 `build‑xp\data\`。
+
+### 在 Windows 2000（扩展内核）上运行
+1. 按上方步骤完成构建。
+2. 将 `build‑xp\MinecraftPE.exe` 以及同级的 `data\` 文件夹复制到目标机器。
+3. 把 `win2k\opengl32.dll`（约24MB）复制到 MinecraftPE.exe 所在目录。
+不要覆盖 C:\WINNT\system32\opengl32.dll ——将 Mesa 版本放在程序目录，仅对本游戏生效。
+4. 可选：启动前设置环境变量 `set GALLIUM_DRIVER=softpipe`，强制使用纯C软件渲染器。
+默认 llvmpipe 为JIT渲染，需要SSE2指令集，遇到兼容性问题时使用该选项。
 
 ### 3控制按键
 
