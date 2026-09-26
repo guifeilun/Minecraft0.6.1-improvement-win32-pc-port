@@ -332,7 +332,7 @@ void Tile::initTiles() {
 	redStoneLamp_off = (new RedstoneLampTile(123, 4 + 11 * 16, /*lit=*/false))->init()->setDestroyTime(0.3f)->setSoundType(SOUND_GLASS)->setCategory(ItemCategory::Mechanisms)->setDescriptionId("redstoneLamp");
 	// On form has no setCategory — it's runtime-only, only the off form
 	// is exposed in the creative inventory.
-	redStoneLamp_on  = (new RedstoneLampTile(124, 9 +  6 * 16, /*lit=*/true ))->init()->setDestroyTime(0.3f)->setLightEmission(1.0f)->setSoundType(SOUND_GLASS)->setDescriptionId("redstoneLamp");
+	redStoneLamp_on  = (new RedstoneLampTile(124, 7 + 14 * 16, /*lit=*/true ))->init()->setDestroyTime(0.3f)->setLightEmission(1.0f)->setSoundType(SOUND_GLASS)->setDescriptionId("redstoneLamp");
 
 	netherrack = (new Tile(87, 7 + 6 * 16, Material::stone))->init()->setDestroyTime(0.4f)->setSoundType(SOUND_STONE)->setDescriptionId("hellrock");
                	quartzOre = (new OreTile(153, 5 + 11 * 16))->init()->setDestroyTime(3.0f)->setExplodeable(5)->setSoundType(SOUND_STONE)->setCategory(ItemCategory::Structures)->setDescriptionId("netherQuartzOre");

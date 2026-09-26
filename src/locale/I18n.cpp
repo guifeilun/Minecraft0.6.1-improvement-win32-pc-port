@@ -11,10 +11,7 @@ I18n::Map I18n::_strings;
 void I18n::loadLanguage( AppPlatform* platform, const std::string& languageCode )
 {
 	_strings.clear();
-	fillTranslations(platform, "lang/en_US.lang", true);
-
-	if (languageCode != "en_US")
-		fillTranslations(platform, "lang/" + languageCode + ".lang", true);
+	fillTranslations(platform, "lang/" + languageCode + ".lang", true);
 }
 
 bool I18n::get( const std::string& id, std::string& out ) {
@@ -32,7 +29,35 @@ std::string I18n::get( const std::string& id )
 	if (cit != _strings.end())
 		return cit->second;
 
-	return id + '<';//lang.getElement(id);
+	return id + '<';
+}
+
+std::vector<std::string> I18n::availableLanguages(AppPlatform* platform) {
+	std::vector<std::string> codes;
+	if (platform)
+		codes = platform->listLanguageCodes();
+	return codes;
+}
+
+std::string I18n::languageDisplayName(AppPlatform* platform, const std::string& code) {
+	if (!platform)
+		return code;
+	BinaryBlob blob = platform->readAssetFile("lang/" + code + ".lang");
+	if (blob.data && blob.size > 0) {
+		std::string data((const char*)blob.data, blob.size);
+		delete[] blob.data;
+		std::stringstream fin(data, std::ios_base::in);
+		std::string line;
+		while (std::getline(fin, line)) {
+			if (line.compare(0, 14, "language.name=") == 0) {
+				std::string name = Util::stringTrim(line.substr(14));
+				if (!name.empty())
+					return name;
+				break;
+			}
+		}
+	}
+	return code;
 }
 
 void I18n::fillTranslations( AppPlatform* platform, const std::string& filename, bool overwrite )
@@ -51,12 +76,8 @@ void I18n::fillTranslations( AppPlatform* platform, const std::string& filename,
 			continue;
 
 		std::string key   = Util::stringTrim(line.substr(0, spos));
-		Map::const_iterator cit = _strings.find(key);
-		if (!overwrite && cit != _strings.end())
-			continue;
-
 		std::string value = Util::stringTrim(line.substr(spos + 1));
-		_strings.insert( std::make_pair(key, value ) );
+		_strings[key] = value;
 	}
 
 	delete[] blob.data;
@@ -64,14 +85,11 @@ void I18n::fillTranslations( AppPlatform* platform, const std::string& filename,
 
 std::string I18n::getDescriptionString( const ItemInstance& item )
 {
-	// Convert to lower. Normally std::transform would be used, but tolower might be
-	// implemented with a macro in certain C-implementations -> messing stuff up
 	const std::string desc = item.getDescriptionId();
 
 	std::string s = desc;
 	std::string trans;
 
-	// Handle special cases
 	if (item.id == Tile::cloth->id)
 		return get(item.getAuxValue()? "desc.wool" : "desc.woolstring");
 	else if (item.id == Tile::fenceGate->id)
@@ -82,24 +100,14 @@ std::string I18n::getDescriptionString( const ItemInstance& item )
 	for (unsigned int i = 0; i < s.length(); ++i)
 		s[i] = ::tolower(s[i]);
 
-	// Replace item./tile. with desc., hopefully it's enough
 	if (s[0] == 't') s = Util::stringReplace(s, "tile.", "desc.");
 	if (s[0] == 'i') s = Util::stringReplace(s, "item.", "desc.");
 	if (I18n::get(s, trans))
 		return trans;
 
-	// Remove all materials from the identifier, since swordWood should
-	// be read as just sword
 	const char* materials[] = {
-		"wood",
-		"iron",
-		"stone",
-		"diamond",
-		"gold",
-		"brick",
-		"emerald",
-		"lapis",
-		"cloth"
+		"wood", "iron", "stone", "diamond", "gold",
+		"brick", "emerald", "lapis", "cloth"
 	};
 
 	Util::removeAll(s, materials, sizeof(materials) / sizeof(const char*));
@@ -107,7 +115,7 @@ std::string I18n::getDescriptionString( const ItemInstance& item )
 		return trans;
 
 	std::string mapping[] = {
-		"tile.workbench",	"craftingtable",
+		"tile.workbench", "craftingtable",
 	};
 	const char numMappings = sizeof(mapping) / sizeof(std::string);
 	for (int i = 0; i < numMappings; i += 2) {

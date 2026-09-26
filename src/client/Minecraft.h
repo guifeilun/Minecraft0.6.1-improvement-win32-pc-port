@@ -56,7 +56,6 @@ public:
 	void setSize(int width, int height);
 	void reloadOptions();
 
-	bool supportNonTouchScreen();
 	bool useTouchscreen();
 	void grabMouse();
 	void releaseMouse();
@@ -71,16 +70,9 @@ public:
 	virtual void selectLevel(const std::string& levelId, const std::string& levelName, const LevelSettings& settings);
 	virtual void setLevel(Level* level, const std::string& message = "", LocalPlayer* forceInsertPlayer = NULL);
 
-	// Trigger an in-place dimension swap on the current level. Tears down the
-	// existing chunks/entities of the source dim, generates the destination
-	// dim around the player's current X/Z, and refreshes the renderer.
-	// Destructive in v1: state from the source dim is not preserved.
 	void switchDimensionForPlayer(int newDimensionId);
 
-	// Called by switchDimensionForPlayer when invoked mid-tick: queues the
-	// swap so it runs between ticks (safer than mutating entity list while
-	// Level::tickEntities is iterating it).
-	int  pendingDimensionSwap;  // -1 = no swap pending
+	int  pendingDimensionSwap;
 
 	void generateLevel( const std::string& message, Level* level );
 	LevelStorageSource* getLevelSource();
@@ -123,7 +115,6 @@ public:
 
 	ICreator* getCreator();
 
-	// void onGraphicsLost() {}
 	void onGraphicsReset();
 
 	bool isLevelGenerated();
@@ -155,7 +146,6 @@ public:
 	int width;
 	int height;
 
-	// Vars that the platform is allowed to use in the future
 	int commandPort;
 	int reserved_d1, reserved_d2;
 	float reserved_f1, reserved_f2;
@@ -163,7 +153,6 @@ public:
 	Options options;
 
 	static bool useAmbientOcclusion;
-	//static bool threadInterrupt;
 
 	volatile bool pause;
 
@@ -210,13 +199,10 @@ public:
 	HitResult hitResult;
 	volatile int progressStagePercentage;
 
-	// This field is initialized in main()
-	// It sets the base path to where worlds can be written (sdcard on android)
 	std::string externalStoragePath;
 	std::string externalCacheStoragePath;
 protected:
 	Timer timer;
-    // @note @attn @warn: this is dangerous as fuck!
 	volatile bool isGeneratingLevel;
 	bool _hasSignaledGeneratingLevelFinished;
 
@@ -235,12 +221,10 @@ private:
 	Screen* scheduledScreen;
 
 	int _licenseId;
-	bool _supportsNonTouchscreen;
+	// _supportsNonTouchscreen deleted
 
 	bool _isCreativeMode;
-	//int _respawnPlayerTicks;
-	Player* _pendingRemovePlayer; // @attn @todo @fix: remove this shait and fix the respawn behaviour
-    // shit* lmao
+	Player* _pendingRemovePlayer;
 
 	PerfRenderer* _perfRenderer;
 	CommandServer* _commandServer;

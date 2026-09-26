@@ -5,6 +5,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 class AppPlatform;
 class ItemInstance;
@@ -18,9 +19,9 @@ public:
 	static bool get(const std::string& id, std::string& out);
     static std::string get(const std::string& id);
 
-    //static std::string get(const std::string& id, Object... args) {
-    //    return lang.getElement(id, args);
-    //}
+	static std::vector<std::string> availableLanguages(AppPlatform* platform);
+	static std::string languageDisplayName(AppPlatform* platform, const std::string& code);
+
 	static std::string getDescriptionString( const ItemInstance& item );
 
 private:

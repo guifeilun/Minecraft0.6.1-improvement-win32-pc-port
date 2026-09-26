@@ -166,6 +166,24 @@ public:
 		}
 	}
 
+	StringVector listLanguageCodes() override {
+		StringVector codes;
+		WIN32_FIND_DATAA findData;
+		HANDLE hFind = FindFirstFileA("data/lang/*.lang", &findData);
+		if (hFind == INVALID_HANDLE_VALUE) {
+			return codes;
+		}
+		do {
+			std::string name = findData.cFileName;
+			size_t dot = name.find_last_of('.');
+			if (dot != std::string::npos) {
+				codes.push_back(name.substr(0, dot));
+			}
+		} while (FindNextFileA(hFind, &findData));
+		FindClose(hFind);
+		return codes;
+	}
+
 	GLFWwindow* window;
 
 private:

@@ -27,9 +27,9 @@ public:
 
 	virtual void mouseClicked(int x, int y, int buttonNum);
 	virtual void mouseReleased(int x, int y, int buttonNum);
+	virtual void mouseWheel(int dx, int dy, int xm, int ym);
 	virtual void keyPressed(int eventKey);
 	virtual void charPressed(char inputChar);
-	
 	virtual void tick();
 
 private:

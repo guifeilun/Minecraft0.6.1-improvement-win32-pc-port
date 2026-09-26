@@ -97,6 +97,7 @@
 #include "renderer/LevelRenderer.h"
 #include "particle/ParticleEngine.h"
 #include "../world/level/Level.h"
+#include "../locale/I18n.h"
 static void checkGlError(const char* tag) {
 #ifdef GLDEBUG
 	while (1) {
@@ -171,7 +172,6 @@ Minecraft::Minecraft() :
 	isLookingForMultiplayer(false),
 	_licenseId(LicenseCodes::WAIT_PLATFORM_NOT_READY),
 	inputHolder(0),
-	_supportsNonTouchscreen(false),
 #ifndef STANDALONE_SERVER
 	screenChooser(this),
 #endif
@@ -1292,24 +1292,12 @@ void Minecraft::releaseMouse()
 }
 
 bool Minecraft::useTouchscreen() {
-#if defined(TARGET_OS_IPHONE)
-	return true;
-#elif defined(RPI)
-	return false;
-#endif
-	return options.getBooleanValue(OPTIONS_USE_TOUCHSCREEN) && !_supportsNonTouchscreen;
-}
-bool Minecraft::supportNonTouchScreen() {
-	return _supportsNonTouchscreen;
+	return options.getBooleanValue(OPTIONS_USE_TOUCHSCREEN);
 }
 void Minecraft::init()
 {
 #ifndef STANDALONE_SERVER
 	checkGlError("Init enter");
-
-	_supportsNonTouchscreen = !platform()->supportsTouchscreen();
-
-	LOGI("IS TOUCHSCREEN? %d\n", options.getBooleanValue(OPTIONS_USE_TOUCHSCREEN));
 
 	textures = new Textures(&options, platform());
 	textures->addDynamicTexture(new WaterTexture());
@@ -1356,7 +1344,7 @@ void Minecraft::init()
 #endif
 
 	options.load();
-
+	I18n::loadLanguage(platform(), options.language);
 	setIsCreativeMode(false); // false means it's Survival Mode
 	reloadOptions();
 }
@@ -1648,6 +1636,7 @@ void Minecraft::_levelGenerated()
 	// Hack to (hopefully) get the players to show (note: in LevelListener
 	// instead, since adding yourself always generates a entityAdded)
 	//EntityRenderDispatcher::getInstance()->onGraphicsReset();
+	setScreen(NULL);
 	_hasSignaledGeneratingLevelFinished = true;
 }
 

@@ -66,7 +66,7 @@ OptionBool beautifulSky("beautifulSky", true);
 
 OptionBool useVignette("useVignette", true);
 
-OptionBool useTouchscreen("useTouchscreen", true);
+OptionBool useTouchscreen("useTouchscreen", false);
 
 OptionBool serverVisible("servervisible", true);
 
@@ -93,8 +93,8 @@ OptionInt menuStyle("menuStyle",0, 0, 2);
 // the standard Java labels by OptionsItem at render time.
 OptionFloat gamma("gamma", 0.5f, 0.0f, 1.0f);
 
-OptionBool windowScale("windowScale", false);
-
+OptionBool windowScale("windowScale", true);
+OptionString languageOpt("language", "en_US");
 OptionInt keyForward("key.forward", Keyboard::KEY_W);
 OptionInt keyLeft("key.left", Keyboard::KEY_A);
 OptionInt keyBack("key.back", Keyboard::KEY_S);
@@ -228,6 +228,7 @@ void Options::initTable() {
 
 	m_options[OPTIONS_AUTOJUMP] = &autoJump;
 	m_options[OPTIONS_LAST_IP] = &lastIp;
+	m_options[OPTIONS_LANGUAGE] = &languageOpt;
 }
 
 void Options::set(OptionId key, const std::string& value) {
@@ -289,63 +290,8 @@ void Options::load() {
 			minecraft->optionUpdated(OPTIONS_BRIGHTNESS,
 				((OptionFloat*)(*opt))->get());
 		}
-/*
-        // //LOGI("reading key: %s (%s)\n", key.c_str(), value.c_str());
-        
-		// // Multiplayer
-		// // if (key == OptionStrings::Multiplayer_Username) username = value;
-		// if (key == OptionStrings::Multiplayer_ServerVisible) {
-		// 	m_options[OPTIONS_SERVER_VISIBLE] = readBool(value);
-		// }
-
-		// // Controls
-        // if (key == OptionStrings::Controls_Sensitivity) {
-		// 	float sens = readFloat(value);
-
-		// 	// sens is in range [0,1] with default/center at 0.5 (for aesthetics)
-        //     // We wanna map it to something like [0.3, 0.9] BUT keep 0.5 @ ~0.5...
-        //     m_options[OPTIONS_SENSITIVITY] = 0.3f + std::pow(1.1f * sens, 1.3f) * 0.42f;
-        // }
-
-		// if (key == OptionStrings::Controls_InvertMouse) {
-		// 	m_options[OPTIONS_INVERT_Y_MOUSE] = readBool(value);
-		// }
-
-		// if (key == OptionStrings::Controls_IsLefthanded) {
-		// 	m_options[OPTIONS_IS_LEFT_HANDED] = readBool(value);
-		// }
-		
-		// if (key == OptionStrings::Controls_UseTouchJoypad) {
-		// 	m_options[OPTIONS_IS_JOY_TOUCH_AREA] = readBool(value) && minecraft->useTouchscreen();
-		// }
-
-		// // Feedback
-		// if (key == OptionStrings::Controls_FeedbackVibration) {
-		// 	m_options[OPTIONS_DESTROY_VIBRATION] = readBool(value);
-		// }
-
-		// // Graphics
-		// if (key == OptionStrings::Graphics_Fancy) {
-		// 	m_options[OPTIONS_FANCY_GRAPHICS] = readBool(value);
-		// }
-
-		// // Graphics extras
-		// if (key == OptionStrings::Graphics_Vsync) {
-		// 	m_options[OPTIONS_VSYNC] = readBool(value);
-		// }
-
-		// if (key == OptionStrings::Graphics_GUIScale) {
-		// 	m_options[OPTIONS_GUI_SCALE] = readInt(value) % 5;
-		// }
-
-		// // Game
-		// if (key == OptionStrings::Game_DifficultyLevel) {
-		// 	readInt(value, difficulty);
-		// 	// Only support peaceful and normal right now
-		// 	if (difficulty != Difficulty::PEACEFUL && difficulty != Difficulty::NORMAL)
-		// 		difficulty = Difficulty::NORMAL;
-		// }*/
 	}
+	language = getStringValue(OPTIONS_LANGUAGE);
 }
 
 void Options::save() {

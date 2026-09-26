@@ -3,6 +3,7 @@
 #include "StartMenuScreen.h"
 #include "UsernameScreen.h"
 #include "DialogDefinitions.h"
+#include "LanguageScreen.h"
 #include "../../Minecraft.h"
 #include "../../../AppPlatform.h"
 #include "CreditsScreen.h"
@@ -69,7 +70,7 @@ void OptionsScreen::init() {
 	categoryButtons.push_back(new Touch::TButton(4, "Controls"));
 	categoryButtons.push_back(new Touch::TButton(5, "Graphics"));
 	categoryButtons.push_back(new Touch::TButton(6, "Tweaks"));
-
+	categoryButtons.push_back(new Touch::TButton(7, "Language"));
 	btnCredits = new Touch::TButton(11, "Credits");
 
 	buttons.push_back(bHeader);
@@ -115,13 +116,11 @@ void OptionsScreen::setupPositions() {
 	}
 
 	for (std::vector<OptionsGroup*>::iterator it = optionPanes.begin(); it != optionPanes.end(); ++it) {
-
 		if (categoryButtons.size() > 0 && categoryButtons[0] != NULL) {
-
 			(*it)->x = categoryButtons[0]->width;
 			(*it)->y = bHeader->height;
 			(*it)->width = width - categoryButtons[0]->width;
-
+			(*it)->height = height - bHeader->height;
 			(*it)->setupPositions();
 		}
 	}
@@ -157,6 +156,9 @@ void OptionsScreen::buttonClicked(Button* button) {
 	else if (button->id > 1 && button->id < 7) {
 		int categoryButton = button->id - categoryButtons[0]->id;
 		selectCategory(categoryButton);
+	}
+	else if (button->id == 7) {
+		minecraft->setScreen(new LanguageScreen());
 	}
 	else if (button == btnCredits) {
 		minecraft->setScreen(new CreditsScreen());
@@ -219,9 +221,6 @@ void OptionsScreen::generateOptionScreens() {
 
 	// // Graphics Pane
 	optionPanes[3]->addOptionItem(OPTIONS_FANCY_GRAPHICS, minecraft)
-		// .addOptionItem(&Option::VIEW_BOBBING, minecraft)
-		// .addOptionItem(&Option::AMBIENT_OCCLUSION, minecraft)
-		// .addOptionItem(&Option::ANAGLYPH, minecraft)
 		.addOptionItem(OPTIONS_LIMIT_FRAMERATE, minecraft)
 		.addOptionItem(OPTIONS_VSYNC, minecraft)
 		.addOptionItem(OPTIONS_VIEW_DISTANCE, minecraft)
@@ -262,6 +261,11 @@ void OptionsScreen::mouseReleased(int x, int y, int buttonNum) {
 		currentOptionsGroup->mouseReleased(minecraft, x, y, buttonNum);
 
 	super::mouseReleased(x, y, buttonNum);
+}
+
+void OptionsScreen::mouseWheel(int dx, int dy, int xm, int ym) {
+	if (currentOptionsGroup != NULL)
+		currentOptionsGroup->scrollByPixels((float)dy * 20.0f);
 }
 
 void OptionsScreen::keyPressed(int eventKey) {

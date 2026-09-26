@@ -102,7 +102,7 @@ public:
 	virtual void uploadPlatformDependentData(int id, void* data) {}
 	virtual BinaryBlob readAssetFile(const std::string& filename) { return BinaryBlob(); }
 	virtual void _tick() {}
-
+	virtual StringVector listLanguageCodes() { return StringVector(); }
 	virtual int getScreenWidth() { return 854; }
 	virtual int getScreenHeight() { return 480; }
     virtual float getPixelsPerMillimeter() { return 10; }
