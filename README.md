@@ -172,7 +172,7 @@ git submodule update --init --recursive
 
 ### 编译
 
-```powershell
+powershell
 .\build-xp.ps1 -Clean
 
 ### 3控制按键
@@ -203,3 +203,9 @@ git submodule update --init --recursive
 4. 存档兼容：只能读取 PE0.6.1 原版存档；更高版本存档不能载入。
 5. 偶尔退出游戏发生内存泄漏，程序崩溃。
 6. XP 系统下，音频初始化失败概率较高。
+
+## 致谢
+
+- 原项目：[JackTulli/Minecraft-PE-0.6.1-Win32-port](https://github.com/JackTulli/Minecraft-PE-0.6.1-Win32-port)
+- 钓鱼竿参考：4J Studios 主机版实现
+- 多语言系统参考：[电灯泡LamPbulB](https://github.com/coj211/MCCE)
