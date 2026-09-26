@@ -126,40 +126,6 @@ branches (20.x, 26.x) won't load on Win2K with the extended kernel — 17.3.7
 is the last release `pal1000` built explicitly against the older Windows
 ABI.
 
-## 支持系统
-
-- Windows XP（32 位 / 64 位）
-- Windows 7
-- Windows 8 / 8.1
-- Windows 10
-- Windows 11
-
-> 
-> 32 位与 64 位系统均可运行；XP 需要用专门的构建脚本。
-
-## 依赖项编译要求
-
-### Windows（普通现代系统）
-
-1. CMake 3.18 或更新
-2. Visual Studio 2019 / 2022（带 C++ 桌面开发组件）
-3. Git
-4. Python3（用于资源处理脚本）
-
-### Windows XP 编译
-
-XP 不能用新版 VS，仓库提供`build‑xp.ps1`，使用旧版工具链。
-
-> 
-> 注意：XP 编译目标只能生成 XP 兼容二进制，在新系统也能运行。
-
-### 外部库
-
-- glad（OpenGL 加载器，仓库已内置）
-- zlib（压缩库）
-- libpng（读取 PNG 纹理）
-- OpenAL‑Soft（目前已不再需要）
-
 ## 构建
 支持的构建环境：**Windows + Visual Studio 2017 生成工具**，使用
 `v141_xp` 工具集。PowerShell 脚本会处理 vcvars 环境、选择对应的
