@@ -3,8 +3,20 @@
 基于 [JackTulli/Minecraft-PE-0.6.1-Win32-port](https://github.com/JackTulli/Minecraft-PE-0.6.1-Win32-port) 的修改版，添加了一些原版 0.6.1 缺失或未完成的功能
 
 ## 该版本目前修改
-### 中文支持
-- 成功移植0.8.1语言系统
+
+### 多语言支持
+
+- 移植0.8.1语言系统
+- 设置界面左侧新增 **Language** 按钮
+- 语言界面自动扫描 `data/lang/*.lang`，显示所有可用语言
+- 语言名称从 `.lang` 文件里的 `language.name=` 读取
+- 切换语言后立即生效，并保存到 `options.txt` 的 `options.language`
+- 下次启动自动加载上次选择的语言
+- 已内置 `en_US.lang`（英文）和 `zh_CN.lang`（简体中文）
+- 添加新语言教程
+1. 在 `data/lang/` 下新建 `<code>.lang`，比如 `fr_FR.lang`
+2. 文件顶部加：
+
 ### 钓鱼竿
 
 - 右键抛出浮标，再右键收回
@@ -25,6 +37,20 @@
 - 挖掘掉落下界石英
 
 ### directsound替换，目前不再需要openal.dll
+
+### 设置界面滚动
+
+- 选项太多时支持鼠标拖动滚动
+- 支持鼠标滚轮滚动
+- 滚动范围自动计算，带边界限制
+- 使用 `glScissor` 裁剪，内容不会溢出可视区域
+
+### 鼠标绑定修复
+
+- 刚创建世界时自动抓取鼠标，绑定视角
+- 关闭界面后自动恢复鼠标绑定
+
+### 删除启动时usetouchscreen检测，修复usetouchscreen全部功能，现已支持触屏
 
 ## JackTulli的修改
 ### Redstone
@@ -149,7 +175,7 @@ git submodule update --init --recursive
 ```powershell
 .\build-xp.ps1 -Clean
 
-### 控制按键
+### 3控制按键
 
 表格
 
