@@ -5,7 +5,7 @@ language.code=en_US
 
 gui.done=Done
 gui.cancel=Cancel
-gui.toMenu=Back to title screen
+gui.toMenu=Back Menu
 gui.up=Up
 gui.down=Down
 gui.yes=Yes
@@ -93,7 +93,7 @@ multiplayer.title=Play Multiplayer
 multiplayer.connect=Connect
 multiplayer.info1=Minecraft Multiplayer is currently not finished, but there
 multiplayer.info2=is some buggy early testing going on.
-multiplayer.ipinfo=Enter the IP of a server to connect to it:
+multiplayer.ipinfo=Join by IP
 
 multiplayer.downloadingTerrain=Downloading terrain
 

@@ -15,6 +15,7 @@
 #include "../../../../AppPlatform.h"
 #include "../../../../LicenseCodes.h"
 #include "../../../../util/Mth.h"
+#include "../../../../locale/I18n.h"
 
 #include "../DialogDefinitions.h"
 #include "../SimpleChooseLevelScreen.h"
@@ -27,9 +28,9 @@ namespace Touch {
 
 // Some kind of default settings, might be overridden in ::init
 StartMenuScreen::StartMenuScreen()
-:	bHost(    2, "Start Game"),
-	bJoin(    3, "Join Game"),
-	bOptions( 4, "Options"),
+:	bHost(    2, I18n::get("menu.singleplayer")),   // ← 改
+	bJoin(    3, I18n::get("menu.multiplayer")),    // ← 改
+	bOptions( 4, I18n::get("menu.options")),        // ← 改
 	bQuit(    5, "")
 {
 	ImageDef def;
@@ -112,11 +113,9 @@ void StartMenuScreen::setupPositions() {
 	int buttonWidth = bHost.width;
 	float spacing = (width - (3.0f * buttonWidth)) / 4;
 
-	//#ifdef ANDROID
 	bHost.y =	 yBase;
 	bJoin.y =	 yBase;
 	bOptions.y = yBase;
-	//#endif
 
 	// Center buttons
 	bJoin.x		= 0*buttonWidth + (int)(1*spacing);
@@ -128,7 +127,7 @@ void StartMenuScreen::setupPositions() {
 	bQuit.y = 0;
 
 	copyrightPosX = width - minecraft->font->width(copyright) - 1;
-	versionPosX = (width - minecraft->font->width(version)) / 2;// - minecraft->font->width(version) - 2;
+	versionPosX = (width - minecraft->font->width(version)) / 2;
 }
 
 void StartMenuScreen::buttonClicked(::Button* button) {
@@ -197,9 +196,8 @@ void StartMenuScreen::render( int xm, int ym, float a )
 			t.vertexUV(x-wh, y+0, blitOffset, 0, 0);
 		t.draw();
 
-		drawString(font, version, versionPosX, (int)(y+h)+2, /*50,*/ 0xffcccccc);//0x666666);
+		drawString(font, version, versionPosX, (int)(y+h)+2, 0xffcccccc);
 		drawString(font, copyright, copyrightPosX, height - 10, 0xffffff);
-		// Kolyah35 upstream credit + github-link blit removed.
 	}
 	Screen::render(xm, ym, a);
     glDisable2(GL_BLEND);
@@ -216,4 +214,3 @@ bool StartMenuScreen::handleBackEvent( bool isDown ) {
 }
 
 } // namespace Touch
-

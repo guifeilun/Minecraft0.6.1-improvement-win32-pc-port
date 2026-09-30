@@ -11,6 +11,7 @@
 #include "../../../../world/item/Item.h"
 #include "../../../../world/item/ItemCategory.h"
 #include "../../../../world/item/ItemInstance.h"
+#include "../../../../locale/I18n.h"
 #include "../../../../world/level/tile/Tile.h"
 #include "platform/input/Mouse.h"
 #include "platform/input/Keyboard.h"
@@ -466,9 +467,9 @@ void DesktopCreativeScreen::render(int xm, int ym, float a) {
 
     // Title.
     {
-        const char* label = "Creative Inventory";
-        int lw = (int)minecraft->font->width(std::string(label));
-        minecraft->font->drawShadow(std::string(label),
+        std::string label = I18n::get("container.creative");
+        int lw = (int)minecraft->font->width(label);
+        minecraft->font->drawShadow(label,
             (float)(bgX + (bgW - lw) / 2),
             (float)(bgY - 12), CLR_TEXT);
     }

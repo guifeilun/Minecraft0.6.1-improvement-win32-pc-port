@@ -401,13 +401,8 @@ void LocalPlayer::calculateFlight(float xa, float ya, float za) {
         za *= sprintBoost;
     }
 
-#ifdef ANDROID
-    if (Keyboard::isKeyDown(103)) ya = .2f * flySpeed;
-    if (Keyboard::isKeyDown(102)) ya = -.2f * flySpeed;
-#else
-    if (Keyboard::isKeyDown(Keyboard::KEY_E)) ya = .2f * flySpeed;
-    if (Keyboard::isKeyDown(Keyboard::KEY_Q)) ya = -.2f * flySpeed;
-#endif
+    if (input->wantUp)   ya =  .2f * flySpeed;
+    if (input->wantDown) ya = -.2f * flySpeed;
 
     flyX = 10 * smoothFlyX.getNewDeltaValue(xa, .35f * sensivity);
     flyY = 10 * smoothFlyY.getNewDeltaValue(ya, .35f * sensivity);
@@ -816,8 +811,12 @@ void LocalPlayer::startCrafting(int x, int y, int z, int tableSize) {
 
 void LocalPlayer::startStonecutting(int x, int y, int z) {
 #ifndef STANDALONE_SERVER
-	if (!minecraft->isCreativeMode())
-		minecraft->setScreen( new StonecutterScreen() );
+    if (!minecraft->isCreativeMode()) {
+        if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) != 0)
+            minecraft->setScreen(new DesktopCraftingScreen(3));
+        else
+            minecraft->setScreen(new StonecutterScreen());
+    }
 #endif
 }
 

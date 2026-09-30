@@ -20,6 +20,7 @@
 #include "SimpleChooseLevelScreen.h"
 #include "../../renderer/Textures.h"
 #include "../../../SharedConstants.h"
+#include "../../../locale/I18n.h"                 // ← 改：加 I18n
 
 // Some kind of default settings, might be overridden in ::init
 StartMenuScreen::StartMenuScreen()
@@ -37,15 +38,15 @@ StartMenuScreen::~StartMenuScreen()
 void StartMenuScreen::init()
 {
 	if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) == 2){
-		bHost = new Button(    2, 0, 0, 200, 20, "Singleplayer");
-		bJoin = new Button(    3, 0, 0, 200, 20, "Multiplayer");
-		bOptions = new Button( 4, 0, 0, 200, 20, "Options...");
-		bQuit = new Button( 5, 0, 0, 200, 20, "Ouit Game");
+		bHost    = new Button(2, 0, 0, 200, 20, I18n::get("menu.singleplayer"));  // ← 改
+		bJoin    = new Button(3, 0, 0, 200, 20, I18n::get("menu.multiplayer"));   // ← 改
+		bOptions = new Button(4, 0, 0, 200, 20, I18n::get("menu.options"));       // ← 改
+		bQuit    = new Button(5, 0, 0, 200, 20, I18n::get("menu.quit"));          // ← 改
 	} else {
-		bHost = new Button(    2, 0, 0, 160, 24, "Start Game");
-		bJoin = new Button(    3, 0, 0, 160, 24, "Join Game");
-		bOptions = new Button( 4, 0, 0, 160, 24, "Options");
-		bQuit = new Button( 5, 0, 0, 160, 24, "Ouit Game");
+		bHost    = new Button(2, 0, 0, 160, 24, I18n::get("menu.singleplayer"));  // ← 改
+		bJoin    = new Button(3, 0, 0, 160, 24, I18n::get("menu.multiplayer"));   // ← 改
+		bOptions = new Button(4, 0, 0, 160, 24, I18n::get("menu.options"));       // ← 改
+		bQuit    = new Button(5, 0, 0, 160, 24, I18n::get("menu.quit"));          // ← 改
 	}
 	bJoin->active = bHost->active = bOptions->active = true;
 
@@ -66,19 +67,6 @@ void StartMenuScreen::init()
 		buttons.push_back(bOptions);
 		tabButtons.push_back(bOptions);
 	#endif
-
-    //// add quit button (top right X icon) – match OptionsScreen style
-    //{
-    //    ImageDef def;
-    //    def.name = "gui/touchgui.png";
-    //    def.width = 34;
-    //    def.height = 26;
-    //    def.setSrc(IntRectangle(150, 0, (int)def.width, (int)def.height));
-    //    bQuit.setImageDef(def, true);
-    //    bQuit.scaleWhenPressed = false;
-    //    buttons.push_back(&bQuit);
-    //    // don't include in tab navigation
-    //}
 
 	copyright = "\xffMojang AB";//. Do not distribute!";
 
@@ -126,10 +114,6 @@ void StartMenuScreen::setupPositions() {
 	bJoin->x = (width - bJoin->width) / 2;
 	bOptions->x = (width - bOptions->width) / 2;
 	bQuit->x = (width - bQuit->width) / 2;
-
-    //// position quit icon at top-right (use image-defined size)
-    //bQuit.x = width - bQuit.width;
-    //bQuit.y = 0;
 }
 
 void StartMenuScreen::tick() {
@@ -181,7 +165,6 @@ void StartMenuScreen::render( int xm, int ym, float a )
 
 		const float x = (float)width / 2;
 		const float y = height/16;
-		//const float scale = Mth::Min(
 		const float wh = Mth::Min((float)width/2.0f, (float)data->w / 2);
 		const float scale = 2.0f * wh / (float)data->w;
 		const float h = scale * (float)data->h;
@@ -204,8 +187,6 @@ void StartMenuScreen::render( int xm, int ym, float a )
 
 	drawString(font, version, width - font->width(version) - 2, height - 10, 0xffcccccc);//0x666666);
 	drawString(font, copyright, 2, height - 20, 0xffffff);
-	// Kolyah35 upstream credit + github-link blit removed — this fork has
-	// drifted far enough from that base that the attribution no longer fits.
 	Screen::render(xm, ym, a);
 }
 

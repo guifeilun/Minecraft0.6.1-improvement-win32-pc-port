@@ -68,7 +68,7 @@ private:
     // and a representative item id whose icon is drawn into the tab — keeps
     // the row narrow enough to fit on small windows without truncation.
     struct Tab {
-        const char* label;
+        std::string label;
         int category;
         int iconItemId;
         int x;

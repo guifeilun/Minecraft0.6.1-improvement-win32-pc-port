@@ -110,12 +110,12 @@ typedef struct FlyingItem {
 static std::vector<FlyingItem> flyingItems;
 
 ChestScreen::ChestScreen(Player* player, ChestTileEntity* chest)
-:	super(new ContainerMenu(chest, chest->runningId)), //@huge @attn
+:	super(new ContainerMenu(chest, chest->runningId)),
 	inventoryPane(NULL),
 	chestPane(NULL),
 	btnClose(4, ""),
-	bHeader (5, "Inventory"),
-	bHeaderChest (6, "Chest"),
+	bHeader     (5, I18n::get("container.inventory")),
+	bHeaderChest(6, I18n::get("container.chest")),
 	guiBackground(NULL),
 	guiSlot(NULL),
 	guiSlotMarked(NULL),
@@ -124,8 +124,6 @@ ChestScreen::ChestScreen(Player* player, ChestTileEntity* chest)
 	chest(chest),
 	selectedSlot(-1),
 	doRecreatePane(false)
-	//guiSlotItem(NULL),
-	//guiSlotItemSelected(NULL)
 {
 }
 

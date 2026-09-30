@@ -67,7 +67,6 @@ private:
     void recomputeResult();
     int findSlotAt(int x, int y);
     void onSlotClick(int slotIdx, int buttonNum, bool shift);
-    void giveResultOnce(bool toCursor);
     void shiftClickFrom(int slotIdx);
     bool tryDistributeStack(ItemInstance& stack, int rangeBegin, int rangeEnd);
     void returnGridItems();

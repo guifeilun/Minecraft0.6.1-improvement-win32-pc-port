@@ -4,6 +4,7 @@
 #include "../../Minecraft.h"
 #include "../../player/LocalPlayer.h"
 #include "../../../platform/time.h"
+#include "../../../locale/I18n.h"
 
 static const int WAIT_TICKS = 30;
 
@@ -18,9 +19,9 @@ InBedScreen::~InBedScreen() {
 
 void InBedScreen::init() {
 	if (/* minecraft->useTouchscreen() */ true) {
-		bWakeUp = new Touch::TButton(1, "Leave Bed");
+		bWakeUp = new Touch::TButton(1, I18n::get("multiplayer.stopSleeping"));
 	} else {
-		bWakeUp = new Button(1, "Leave Bed");
+		bWakeUp = new Button(1, I18n::get("multiplayer.stopSleeping"));
 	}
 	buttons.push_back(bWakeUp);
 

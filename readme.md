@@ -3,8 +3,20 @@
 基于 [JackTulli/Minecraft-PE-0.6.1-Win32-port](https://github.com/JackTulli/Minecraft-PE-0.6.1-Win32-port) 的修改版，添加了一些原版 0.6.1 缺失或未完成的功能
 
 ## 该版本目前修改
-### 中文支持
-- 成功移植0.8.1语言系统
+
+### 多语言支持
+
+- 移植0.8.1语言系统
+- 设置界面左侧新增 **Language** 按钮
+- 语言界面自动扫描 `data/lang/*.lang`，显示所有可用语言
+- 语言名称从 `.lang` 文件里的 `language.name=` 读取
+- 切换语言后立即生效，并保存到 `options.txt` 的 `options.language`
+- 下次启动自动加载上次选择的语言
+- 已内置 `en_US.lang`（英文）和 `zh_CN.lang`（简体中文）
+- 添加新语言教程
+1. 在 `data/lang/` 下新建 `<code>.lang`，比如 `fr_FR.lang`
+2. 文件顶部加：
+
 ### 钓鱼竿
 
 - 右键抛出浮标，再右键收回
@@ -25,6 +37,20 @@
 - 挖掘掉落下界石英
 
 ### directsound替换，目前不再需要openal.dll
+
+### 设置界面滚动
+
+- 选项太多时支持鼠标拖动滚动
+- 支持鼠标滚轮滚动
+- 滚动范围自动计算，带边界限制
+- 使用 `glScissor` 裁剪，内容不会溢出可视区域
+
+### 鼠标绑定修复
+
+- 刚创建世界时自动抓取鼠标，绑定视角
+- 关闭界面后自动恢复鼠标绑定
+
+### 删除启动时usetouchscreen检测，修复usetouchscreen全部功能，现已支持触屏
 
 ## JackTulli的修改
 ### Redstone
@@ -100,56 +126,35 @@ branches (20.x, 26.x) won't load on Win2K with the extended kernel — 17.3.7
 is the last release `pal1000` built explicitly against the older Windows
 ABI.
 
-## 支持系统
+## 构建
+支持的构建环境：**Windows + Visual Studio 2017 生成工具**，使用
+`v141_xp` 工具集。PowerShell 脚本会处理 vcvars 环境、选择对应的
+Ninja，并将输出程序生成至 `build‑xp\MinecraftPE.exe`。
 
-- Windows XP（32 位 / 64 位）
-- Windows 7
-- Windows 8 / 8.1
-- Windows 10
-- Windows 11
-
-> 
-> 32 位与 64 位系统均可运行；XP 需要用专门的构建脚本。
-
-## 依赖项编译要求
-
-### Windows（普通现代系统）
-
-1. CMake 3.18 或更新
-2. Visual Studio 2019 / 2022（带 C++ 桌面开发组件）
-3. Git
-4. Python3（用于资源处理脚本）
-
-### Windows XP 编译
-
-XP 不能用新版 VS，仓库提供`build‑xp.ps1`，使用旧版工具链。
-
-> 
-> 注意：XP 编译目标只能生成 XP 兼容二进制，在新系统也能运行。
-
-### 外部库
-
-- glad（OpenGL 加载器，仓库已内置）
-- zlib（压缩库）
-- libpng（读取 PNG 纹理）
-- OpenAL‑Soft（目前已不再需要）
-
-## 编译步骤
-
-### 1. 克隆仓库
-
-```
-git clone https://github.com/guifeilun/Minecraft0.6.1-improvement-win32-pc-port.git
-cd Minecraft0.6.1-improvement-win32-pc-port
-git submodule update --init --recursive
-```
-
-### 编译
-
-```powershell
+# 在仓库根目录执行
+powershell.exe -ExecutionPolicy Bypass -File .\build-xp.ps1
+# 清理后重新构建
 .\build-xp.ps1 -Clean
 
-### 控制按键
+依赖要求：
+- 已安装带有 `v141_xp`（Windows XP）工具集的 Visual Studio 2017 生成工具。
+脚本固定使用 `-vcvars_ver=14.16`，避免新版本工具集被静默调用。
+- CMake 3.21 或更高版本。
+- Ninja 已加入系统`PATH`环境变量（也可以修改 `build‑xp.ps1` 内的 `$NinjaDir` 参数）。
+- Git（部分 CMake `FetchContent` 依赖会在配置阶段拉取克隆）。
+
+编译输出文件为 `build‑xp\MinecraftPE.exe`。exe 同级的 `data\` 文件夹存放游戏资源
+（terrain.png、items.png、语言文件等）——构建过程会自动把这些资源复制到 `build‑xp\data\`。
+
+### 在 Windows 2000（扩展内核）上运行
+1. 按上方步骤完成构建。
+2. 将 `build‑xp\MinecraftPE.exe` 以及同级的 `data\` 文件夹复制到目标机器。
+3. 把 `win2k\opengl32.dll`（约24MB）复制到 MinecraftPE.exe 所在目录。
+不要覆盖 C:\WINNT\system32\opengl32.dll ——将 Mesa 版本放在程序目录，仅对本游戏生效。
+4. 可选：启动前设置环境变量 `set GALLIUM_DRIVER=softpipe`，强制使用纯C软件渲染器。
+默认 llvmpipe 为JIT渲染，需要SSE2指令集，遇到兼容性问题时使用该选项。
+
+### 3控制按键
 
 表格
 
@@ -171,9 +176,15 @@ git submodule update --init --recursive
 
 ## 当前已知 Bug
 
-1. 音乐播放偶尔卡顿、循环异常（修复完毕）
+1. 音乐播放偶尔卡顿、循环异常（OpenAL 音频层移植缺陷）
 2. 部分粒子效果渲染错乱（火焰、爆炸粒子）
 3. 水面渲染有瑕疵，透明方块有 Z‑fighting（贴图闪烁重叠）
 4. 存档兼容：只能读取 PE0.6.1 原版存档；更高版本存档不能载入。
 5. 偶尔退出游戏发生内存泄漏，程序崩溃。
-6. XP 系统下，音频初始化失败概率较高。(目前版本应该已经修复)
+6. XP 系统下，音频初始化失败概率较高。
+
+## 致谢
+
+- 原项目：[JackTulli/Minecraft-PE-0.6.1-Win32-port](https://github.com/JackTulli/Minecraft-PE-0.6.1-Win32-port)
+- 钓鱼竿参考：4J Studios 主机版实现
+- 多语言系统参考：[电灯泡LamPbulB](https://github.com/coj211/MCCE)

@@ -6,16 +6,15 @@
 #include "LanguageScreen.h"
 #include "../../Minecraft.h"
 #include "../../../AppPlatform.h"
-#include "CreditsScreen.h"
 
 #include "../components/ImageButton.h"
 #include "../components/OptionsGroup.h"
 #include "platform/input/Keyboard.h"
+#include "../../../locale/I18n.h"
 
 OptionsScreen::OptionsScreen()
 	: btnClose(NULL),
 	bHeader(NULL),
-	btnCredits(NULL),
 	selectedCategory(0) {
 }
 
@@ -28,11 +27,6 @@ OptionsScreen::~OptionsScreen() {
 	if (bHeader != NULL) {
 		delete bHeader;
 		bHeader = NULL;
-	}
-
-	if (btnCredits != NULL) {
-		delete btnCredits;
-		btnCredits = NULL;
 	}
 
 	for (std::vector<Touch::TButton*>::iterator it = categoryButtons.begin(); it != categoryButtons.end(); ++it) {
@@ -53,7 +47,7 @@ OptionsScreen::~OptionsScreen() {
 }
 
 void OptionsScreen::init() {
-	bHeader = new Touch::THeader(0, "Options");
+	bHeader = new Touch::THeader(0, I18n::get("options.title"));
 
 	btnClose = new ImageButton(1, "");
 
@@ -65,17 +59,15 @@ void OptionsScreen::init() {
 	def.setSrc(IntRectangle(150, 0, (int)def.width, (int)def.height));
 	btnClose->setImageDef(def, true);
 
-	categoryButtons.push_back(new Touch::TButton(2, "General"));
-	categoryButtons.push_back(new Touch::TButton(3, "Game"));
-	categoryButtons.push_back(new Touch::TButton(4, "Controls"));
-	categoryButtons.push_back(new Touch::TButton(5, "Graphics"));
-	categoryButtons.push_back(new Touch::TButton(6, "Tweaks"));
-	categoryButtons.push_back(new Touch::TButton(7, "Language"));
-	btnCredits = new Touch::TButton(11, "Credits");
+	categoryButtons.push_back(new Touch::TButton(2, I18n::get("options.group.general")));
+	categoryButtons.push_back(new Touch::TButton(3, I18n::get("options.group.game")));
+	categoryButtons.push_back(new Touch::TButton(4, I18n::get("options.group.controls")));
+	categoryButtons.push_back(new Touch::TButton(5, I18n::get("options.group.graphics")));
+	categoryButtons.push_back(new Touch::TButton(6, I18n::get("options.group.tweaks")));
+	categoryButtons.push_back(new Touch::TButton(7, I18n::get("options.language")));
 
 	buttons.push_back(bHeader);
 	buttons.push_back(btnClose);
-	buttons.push_back(btnCredits);
 
 	for (std::vector<Touch::TButton*>::iterator it = categoryButtons.begin(); it != categoryButtons.end(); ++it) {
 		buttons.push_back(*it);
@@ -108,12 +100,6 @@ void OptionsScreen::setupPositions() {
 	bHeader->y = 0;
 	bHeader->width = width - btnClose->width;
 	bHeader->height = btnClose->height;
-
-	// Credits button (bottom-right)
-	if (btnCredits != NULL) {
-		btnCredits->x = width - btnCredits->width;
-		btnCredits->y = height - btnCredits->height;
-	}
 
 	for (std::vector<OptionsGroup*>::iterator it = optionPanes.begin(); it != optionPanes.end(); ++it) {
 		if (categoryButtons.size() > 0 && categoryButtons[0] != NULL) {
@@ -160,9 +146,6 @@ void OptionsScreen::buttonClicked(Button* button) {
 	else if (button->id == 7) {
 		minecraft->setScreen(new LanguageScreen());
 	}
-	else if (button == btnCredits) {
-		minecraft->setScreen(new CreditsScreen());
-	}
 }
 
 void OptionsScreen::selectCategory(int index) {
@@ -206,6 +189,7 @@ void OptionsScreen::generateOptionScreens() {
 		.addOptionItem(OPTIONS_SOUND_VOLUME, minecraft)
 		.addOptionItem(OPTIONS_SMOOTH_CAMERA, minecraft)
 		.addOptionItem(OPTIONS_DESTROY_VIBRATION, minecraft)
+		.addOptionItem(OPTIONS_IS_FLYING, minecraft)
 		.addOptionItem(OPTIONS_IS_LEFT_HANDED, minecraft);
 
 	// // Controls Pane

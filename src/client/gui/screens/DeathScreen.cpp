@@ -4,6 +4,7 @@
 #include "../../Minecraft.h"
 #include "../../player/LocalPlayer.h"
 #include "../../../platform/time.h"
+#include "../../../locale/I18n.h"
 
 static const int WAIT_TICKS = 30;
 
@@ -24,14 +25,14 @@ DeathScreen::~DeathScreen()
 void DeathScreen::init()
 {
 	if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) == 0) {
-		bRespawn = new Touch::TButton(1, "Respawn!");
-		bTitle = new Touch::TButton(2, "Main menu");
+		bRespawn = new Touch::TButton(1, I18n::get("deathScreen.respawn"));
+		bTitle = new Touch::TButton(2, I18n::get("menu.returnToMenu"));
 	} else if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) == 1) {
-		bRespawn = new Button(1, "Respawn!");
-		bTitle = new Button(2, "Main menu");
+		bRespawn = new Touch::TButton(1, I18n::get("deathScreen.respawn"));
+		bTitle = new Touch::TButton(2, I18n::get("menu.returnToMenu"));
 	} else {
-		bRespawn = new Button(1, 0, 0, 200, 20, "Respawn");
-		bTitle = new Button(2, 0, 0, 200, 20, "Title menu");
+		bRespawn = new Button(1, 0, 0, 200, 20, I18n::get("deathScreen.respawn"));
+		bTitle = new Button(2, 0, 0, 200, 20, I18n::get("menu.returnToMenu"));
 	}
 	buttons.push_back(bRespawn);
 	buttons.push_back(bTitle);

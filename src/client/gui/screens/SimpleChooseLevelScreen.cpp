@@ -8,6 +8,7 @@
 #include "../../../platform/time.h"
 #include "../../../platform/input/Keyboard.h"
 #include "../../../platform/log.h"
+#include "../../../locale/I18n.h"                  // ← 改：加 I18n
 
 SimpleChooseLevelScreen::SimpleChooseLevelScreen(const std::string& levelName)
 :   bHeader(0),
@@ -19,8 +20,8 @@ SimpleChooseLevelScreen::SimpleChooseLevelScreen(const std::string& levelName)
     hasChosen(false),
     gamemode(GameType::Survival),
     cheatsEnabled(false),
-    tLevelName(0, "World name"),
-    tSeed(1, "World seed")
+    tLevelName(0, I18n::get("selectWorld.enterName")),   // ← 改
+    tSeed(1, I18n::get("selectWorld.enterSeed"))          // ← 改
 {
 }
 
@@ -35,18 +36,11 @@ SimpleChooseLevelScreen::~SimpleChooseLevelScreen()
 
 void SimpleChooseLevelScreen::init()
 {
-    // make sure the base class loads the existing level list; the
-    // derived screen uses ChooseLevelScreen::getUniqueLevelName(), which
-    // depends on `levels` being populated.  omitting this used to result
-    // in duplicate IDs ("creating the second world would load the
-    // first") when the name already existed.
     ChooseLevelScreen::init();
 
-    tLevelName.text = "New world";
+    tLevelName.text = I18n::get("selectWorld.newWorld");   // ← 改
 
-    // header + close button
-    bHeader = new Touch::THeader(0, "Create World");
-    // create the back/X button as ImageButton like CreditsScreen
+    bHeader = new Touch::THeader(0, I18n::get("selectWorld.create"));  // ← 改
     bBack = new ImageButton(2, "");
     {
         ImageDef def;
@@ -57,13 +51,13 @@ void SimpleChooseLevelScreen::init()
         bBack->setImageDef(def, true);
     }
     if (/* minecraft->useTouchscreen() */ true) {
-        bGamemode = new Touch::TButton(1, "Survival mode");
-        bCheats  = new Touch::TButton(4, "Cheats: Off");
-        bCreate  = new Touch::TButton(3, "Create");
+        bGamemode = new Touch::TButton(1, I18n::get("gameMode.survival"));  // ← 改
+        bCheats  = new Touch::TButton(4, "Cheats: Off");                    // ← 保持
+        bCreate  = new Touch::TButton(3, I18n::get("selectWorld.create"));  // ← 改
     } else {
-        bGamemode = new Button(1, "Survival mode");
-        bCheats  = new Button(4, "Cheats: Off");
-        bCreate  = new Button(3, "Create");
+        bGamemode = new Button(1, I18n::get("gameMode.survival"));          // ← 改
+        bCheats  = new Button(4, "Cheats: Off");                            // ← 保持
+        bCreate  = new Button(3, I18n::get("selectWorld.create"));          // ← 改
     }
 
     buttons.push_back(bHeader);
@@ -85,11 +79,9 @@ void SimpleChooseLevelScreen::setupPositions()
 {
     int buttonHeight = bBack->height;
 
-    // position back button in upper-right
     bBack->x = width - bBack->width;
     bBack->y = 0;
 
-    // header occupies remaining top bar
     if (bHeader) {
         bHeader->x = 0;
         bHeader->y = 0;
@@ -97,7 +89,6 @@ void SimpleChooseLevelScreen::setupPositions()
         bHeader->height = buttonHeight;
     }
 
-    // layout the form elements below the header
     int centerX = width / 2;
     const int padding = 5;
 
@@ -118,11 +109,10 @@ void SimpleChooseLevelScreen::setupPositions()
     bGamemode->x = centerX - totalButtonWidth / 2;
     bCheats->x = bGamemode->x + buttonWidth + buttonSpacing;
 
-    // compute vertical centre for buttons in remaining space
     {
         int bottomPad = 20;
-        int availTop = buttonHeight + 20 + 30 + 10; // just below seed
-        int availBottom = height - bottomPad - bCreate->height - 10; // leave some gap before create
+        int availTop = buttonHeight + 20 + 30 + 10;
+        int availBottom = height - bottomPad - bCreate->height - 10;
         int availHeight = availBottom - availTop;
         if (availHeight < 0) availHeight = 0;
         int y = availTop + (availHeight - bGamemode->height) / 2;
@@ -138,7 +128,6 @@ void SimpleChooseLevelScreen::setupPositions()
 
 void SimpleChooseLevelScreen::tick()
 {
-    // let any textboxes handle their own blinking/input
     for (auto* tb : textBoxes)
         tb->tick(minecraft);
 }
@@ -165,11 +154,9 @@ void SimpleChooseLevelScreen::render( int xm, int ym, float a )
     glDisable2(GL_BLEND);
 }
 
-// mouse clicks should also manage textbox focus explicitly
 void SimpleChooseLevelScreen::mouseClicked(int x, int y, int buttonNum)
 {
     if (buttonNum == MouseAction::ACTION_LEFT) {
-        // determine if the click landed on either textbox or its label above
         int lvlTop = tLevelName.y - (Font::DefaultLineHeight + 4);
         int lvlBottom = tLevelName.y + tLevelName.height;
         int lvlLeft = tLevelName.x;
@@ -191,13 +178,11 @@ void SimpleChooseLevelScreen::mouseClicked(int x, int y, int buttonNum)
             tSeed.setFocus(minecraft);
             tLevelName.loseFocus(minecraft);
         } else {
-            // click outside both fields -> blur both
             tLevelName.loseFocus(minecraft);
             tSeed.loseFocus(minecraft);
         }
     }
 
-    // allow normal button and textbox handling too
     Screen::mouseClicked(x, y, buttonNum);
 }
 
@@ -208,13 +193,15 @@ void SimpleChooseLevelScreen::buttonClicked( Button* button )
 
     if (button == bGamemode) {
         gamemode ^= 1;
-        bGamemode->msg = (gamemode == GameType::Survival) ? "Survival mode" : "Creative mode";
+        bGamemode->msg = (gamemode == GameType::Survival)                    // ← 改
+            ? I18n::get("gameMode.survival")
+            : I18n::get("gameMode.creative");
         return;
     }
 
     if (button == bCheats) {
         cheatsEnabled = !cheatsEnabled;
-        bCheats->msg = cheatsEnabled ? "Cheats: On" : "Cheats: Off";
+        bCheats->msg = cheatsEnabled ? "Cheats: On" : "Cheats: Off";         // ← 保持
         return;
     }
 
@@ -249,7 +236,6 @@ void SimpleChooseLevelScreen::keyPressed(int eventKey)
         minecraft->screenChooser.setScreen(SCREEN_STARTMENU);
         return;
     }
-    // let base class handle navigation and text box keys
     Screen::keyPressed(eventKey);
 }
 

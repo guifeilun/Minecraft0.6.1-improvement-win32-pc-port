@@ -14,7 +14,7 @@
 #include <set>
 #include "../../renderer/Textures.h"
 #include "SimpleChooseLevelScreen.h"
-
+#include "../../../locale/I18n.h"
 static float Max(float a, float b) {
 	return a>b? a : b;
 }
@@ -37,7 +37,6 @@ int WorldSelectionList::getNumberOfItems() {
 }
 
 void WorldSelectionList::selectItem( int item, bool doubleClick ) {
-	//LOGI("sel: %d, item %d\n", selectedItem, item);
 	if (selectedItem < 0 || (selectedItem != item))
 		return;
 	
@@ -71,9 +70,6 @@ void WorldSelectionList::renderItem( int i, int x, int y, int h, Tesselator& t )
 
 	minecraft->textures->loadAndBindTexture(_imageNames[i]);
 	t.color(0.3f, 1.0f, 0.2f);
-
-	//float x0 = (float)x;
-	//float x1 = (float)x + (float)itemWidth;
 
 	const float IY = (float)y - 8;
 	t.begin();
@@ -113,7 +109,7 @@ void WorldSelectionList::commit() {
 
 		std::stringstream ss;
 		ss << level.name << "/preview.png";
-		TextureId id = Textures::InvalidId;//minecraft->textures->loadTexture(ss.str(), false);
+		TextureId id = Textures::InvalidId;
 
 		if (id != Textures::InvalidId) {
 			_imageNames.push_back( ss.str() );
@@ -148,7 +144,6 @@ void WorldSelectionList::tick()
 	if (Mouse::isButtonDown(MouseAction::ACTION_LEFT) || dragState == 0)
 		return;
 
-	// Handle the tween (when in "mode 1")
 	selectedItem = -1; 
 	if (mode == 1) {
 		if (++td.cur == td.dur) {
@@ -162,7 +157,6 @@ void WorldSelectionList::tick()
 		return;
 	}
 
-	// It's still going fast, let it run
 	float speed = Mth::abs(xInertia);
 	bool slowEnoughToBeBothered = speed < 5.0f;
 	if (!slowEnoughToBeBothered) {
@@ -178,12 +172,10 @@ void WorldSelectionList::tick()
 		int index = getItemAtXPositionRaw((int)(pxo - 10*xInertia));
 		int indexPos = index*itemWidth;
 
-		// Pick closest
 		float diff = (float)indexPos - pxo;
 		if (diff < -itemWidth/2) {
 			diff += itemWidth;
 			index++;
-			//indexPos += itemWidth;
 		}
 		if (Mth::abs(diff) < 1 && speed < 0.1f) {
 			selectedItem = getItemAtPosition(width/2, height/2);
@@ -195,7 +187,6 @@ void WorldSelectionList::tick()
 		td.cur = 0;
 		td.dur = (float) Mth::Min(7, 1 + (int)(Mth::abs(diff) * 0.25f));
 		mode = 1;
-		//LOGI("inited-t %d\n", dragState);
 		tweenInited();
 	}
 }
@@ -218,16 +209,16 @@ bool WorldSelectionList::capXPosition() {
 void WorldSelectionList::tweenInited() {
 	float x0 = quadraticInOut(td.cur,   td.dur, td.start, td.stop);
 	float x1 = quadraticInOut(td.cur+1, td.dur, td.start, td.stop);
-	xInertia = x0-x1; // yes, it's all backwards and messed up..
+	xInertia = x0-x1;
 }
 
 //
 // Select World Screen
 //
 SelectWorldScreen::SelectWorldScreen()
-:	bDelete (1, "Delete"),
-	bCreate (2, "Create new"),
-	bBack   (3, "Back"),
+:	bDelete (1, I18n::get("selectWorld.delete")),   // ← 改
+	bCreate (2, I18n::get("selectWorld.create")),
+	bBack   (3, I18n::get("gui.toMenu")),            // ← 改
 	bWorldView(4, ""),
 	worldsList(NULL),
 	_hasStartedLevel(false)
@@ -243,7 +234,6 @@ SelectWorldScreen::~SelectWorldScreen()
 void SelectWorldScreen::buttonClicked(Button* button)
 {
 	if (button->id == bCreate.id) {
-		// open in-game world-creation screen instead of using platform dialog
 		if (!_hasStartedLevel) {
 		std::string name = getUniqueLevelName("world");
 		minecraft->setScreen(new SimpleChooseLevelScreen(name));
@@ -261,7 +251,6 @@ void SelectWorldScreen::buttonClicked(Button* button)
 		minecraft->screenChooser.setScreen(SCREEN_STARTMENU);
 	}
 	if (button->id == bWorldView.id) {
-		// Try to "click" the item in the middle
 		worldsList->selectItem( worldsList->getItemAtPosition(width/2, height/2), false );
 	}
 }
@@ -297,13 +286,10 @@ void SelectWorldScreen::tick()
 		return;
 	}
 
-	// copy the currently selected item
 	LevelSummary selectedWorld;
-	//bool hasSelection = false;
 	if (isIndexValid(worldsList->selectedItem))
 	{
 		selectedWorld = worldsList->levels[worldsList->selectedItem];
-		//hasSelection = true;
 	}
 
 	bDelete.active = isIndexValid(worldsList->selectedItem);
@@ -330,14 +316,11 @@ void SelectWorldScreen::init()
 void SelectWorldScreen::setupPositions() {
 	int yBase = height - 28;
 
-	//#ifdef ANDROID
 	bCreate.y =	yBase;
 	bBack.y   = yBase;
 	bDelete.y = yBase;
 
 	bBack.width = bDelete.width = bCreate.width = 84;
-	//bDelete.h = bCreate.h = bBack.h = 24;
-	//#endif
 
 	// Center buttons
 	bDelete.x   = width / 2 - 4 - bDelete.width - bDelete.width / 2;
@@ -347,42 +330,20 @@ void SelectWorldScreen::setupPositions() {
 
 void SelectWorldScreen::render( int xm, int ym, float a )
 {
-	//Performance::watches.get("sws-full").start();
-	//Performance::watches.get("sws-renderbg").start();
 	renderBackground();
-	//Performance::watches.get("sws-renderbg").stop();
-	//Performance::watches.get("sws-worlds").start();
 
 	worldsList->setComponentSelected(bWorldView.selected);
-	// #ifdef PLATFORM_DESKTOP
 
-	// desktop: render the list normally (mouse wheel handled separately below)
 	if (_mouseHasBeenUp)
 		worldsList->render(xm, ym, a);
 	else {
 		worldsList->render(0, 0, a);
 		_mouseHasBeenUp = !Mouse::getButtonState(MouseAction::ACTION_LEFT);
 	}
-	// #else
-	// 	if (_mouseHasBeenUp)
-	// 	worldsList->render(xm, ym, a);
-	// 	else {
-	// 		worldsList->render(0, 0, a);
-	// 		_mouseHasBeenUp = !Mouse::getButtonState(MouseAction::ACTION_LEFT);
-	// 	}
-	// #endif
 
-	//Performance::watches.get("sws-worlds").stop();
-	//Performance::watches.get("sws-screen").start();
 	Screen::render(xm, ym, a);
-	//Performance::watches.get("sws-screen").stop();
 
-	//Performance::watches.get("sws-string").start();
-	drawCenteredString(minecraft->font, "Select world", width / 2, 8, 0xffffffff);
-	//Performance::watches.get("sws-string").stop();
-
-	//Performance::watches.get("sws-full").stop();
-	//Performance::watches.printEvery(128);
+	drawCenteredString(minecraft->font, I18n::get("selectWorld.title"), width / 2, 8, 0xffffffff);
 }
 
 void SelectWorldScreen::loadLevelSource()
@@ -450,9 +411,12 @@ void SelectWorldScreen::keyPressed( int eventKey )
 // Delete World Screen
 //
 DeleteWorldScreen::DeleteWorldScreen(const LevelSummary& level)
-:	ConfirmScreen(NULL, "Are you sure you want to delete this world?",
-						"'" + level.name + "' will be lost forever!",
-						"Delete", "Cancel", 0),
+:	ConfirmScreen(NULL,
+						I18n::get("selectWorld.deleteQuestion"),                                 // ← 改
+						"'" + level.name + "' " + I18n::get("selectWorld.deleteWarning"),        // ← 改
+						I18n::get("selectWorld.deleteButton"),                                   // ← 改
+						I18n::get("gui.cancel"),                                                 // ← 改
+						0),
 	_level(level)
 {
 	tabButtonIndex = 1;

@@ -211,25 +211,6 @@ int ChestTile::getTexture( int face )
 	return tex;
 }
 
-bool ChestTile::mayPlace( Level* level, int x, int y, int z, unsigned char face )
-{
-	int chestCount = 0;
-
-	if (level->getTile(x - 1, y, z) == id) chestCount++;
-	if (level->getTile(x + 1, y, z) == id) chestCount++;
-	if (level->getTile(x, y, z - 1) == id) chestCount++;
-	if (level->getTile(x, y, z + 1) == id) chestCount++;
-
-	//@fullchest
-	if (chestCount > 0) return false;
-
-	//if (isFullChest(level, x - 1, y, z)) return false;
-	//if (isFullChest(level, x + 1, y, z)) return false;
-	//if (isFullChest(level, x, y, z - 1)) return false;
-	//if (isFullChest(level, x, y, z + 1)) return false;
-	return true;
-}
-
 void ChestTile::neighborChanged( Level* level, int x, int y, int z, int type )
 {
 	super::neighborChanged(level, x, y, z, type);

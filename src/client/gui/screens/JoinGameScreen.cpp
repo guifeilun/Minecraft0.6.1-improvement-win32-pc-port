@@ -3,11 +3,11 @@
 #include "ProgressScreen.h"
 #include "../Font.h"
 #include "../../../network/RakNetInstance.h"
-
+#include "../../../locale/I18n.h"
 JoinGameScreen::JoinGameScreen()
-:	bJoin(  2, "Join Game"),
-	bDirect(4, "Direct Connect"),
-	bBack(  3, "Back"),
+:	bJoin(  2, I18n::get("multiplayer.connect")),
+	bDirect(4, I18n::get("selectServer.direct")),
+	bBack(  3, I18n::get("gui.toMenu")),
 	gamesList(NULL)
 {
 	bJoin.active = false;
@@ -165,7 +165,7 @@ void JoinGameScreen::render( int xm, int ym, float a )
 		int n = ((int)(5.5f * getTimeS()) % 4);
 		drawCenteredString(minecraft->font, spinnerTexts[n], spinnerX, 8, 0xffffffff);
 	} else {
-		std::string s = "WiFi is disabled";
+		std::string s = I18n::get("multiplayer.ipinfo");
 		const int yy = height / 2 - 8;
 		drawCenteredString(minecraft->font, s, width / 2, yy, 0xffffffff);
 	}

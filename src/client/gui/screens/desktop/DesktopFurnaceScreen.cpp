@@ -3,6 +3,7 @@
 #include "../../../Minecraft.h"
 #include "../../../player/LocalPlayer.h"
 #include "../../../renderer/entity/ItemRenderer.h"
+#include "../../../renderer/Tesselator.h"
 #include "../../Font.h"
 #include "../../Gui.h"
 #include "../../../../world/entity/player/Player.h"
@@ -11,6 +12,7 @@
 #include "../../../../world/level/tile/entity/FurnaceTileEntity.h"
 #include "../../../../world/item/Item.h"
 #include "../../../../world/item/ItemInstance.h"
+#include "../../../../locale/I18n.h"
 #include "platform/input/Mouse.h"
 #include "platform/input/Keyboard.h"
 
@@ -187,7 +189,7 @@ void DesktopFurnaceScreen::render(int xm, int ym, float a) {
     fill(bgX - 1, bgY - 1, bgX + bgW + 1, bgY + bgH + 1, COLOR_FRAME);
     fill(bgX,     bgY,     bgX + bgW,     bgY + bgH,     COLOR_BG);
 
-    minecraft->font->drawShadow(std::string("Furnace"), (float)(bgX + 8), (float)(bgY + 6), COLOR_TEXT);
+    minecraft->font->drawShadow(I18n::get("container.furnace"), (float)(bgX + 8), (float)(bgY + 6), COLOR_TEXT);
 
     for (int i = 0; i < (int)slots.size(); ++i)
         renderSlotBg(slots[i].x, slots[i].y);
@@ -229,20 +231,35 @@ void DesktopFurnaceScreen::render(int xm, int ym, float a) {
             (float)(s.x + SLOT_PAD), (float)(s.y + SLOT_PAD + 1), true);
         minecraft->gui.renderSlotText(live, (float)(s.x + SLOT_PAD - 3), (float)(s.y + SLOT_PAD - 3), true, true);
     }
-
     int hov = findSlotAt(xm, ym);
     if (hov >= 0) {
         const Slot& s = slots[hov];
         fill(s.x + SLOT_PAD, s.y + SLOT_PAD, s.x + SLOT_SIZE - SLOT_PAD, s.y + SLOT_SIZE - SLOT_PAD, COLOR_HOVER);
     }
-
     if (!cursorItem.isNull()) {
         ItemRenderer::renderGuiItem(minecraft->font, minecraft->textures, &cursorItem,
             (float)(xm - SLOT_INNER / 2), (float)(ym - SLOT_INNER / 2 + 1), true);
         minecraft->gui.renderSlotText(&cursorItem,
             (float)(xm - SLOT_INNER / 2 - 3), (float)(ym - SLOT_INNER / 2 - 3), true, true);
     }
-
+    Tesselator& t = Tesselator::instance;
+    t.beginOverride();
+    for (int i = 0; i < (int)slots.size(); ++i) {
+        const Slot& s = slots[i];
+        if (s.slotIndex < 0) continue;
+        ItemInstance* live = s.container->getItem(s.slotIndex);
+        if (!live || live->isNull()) continue;
+        if (live->isDamaged()) {
+            ItemRenderer::renderGuiItemDecorations(live, (float)(s.x + 1), (float)(s.y + 1));
+        }
+    }
+    if (!cursorItem.isNull() && cursorItem.isDamaged()) {
+        ItemRenderer::renderGuiItemDecorations(&cursorItem,
+            (float)(xm - SLOT_INNER / 2 + 1), (float)(ym - SLOT_INNER / 2 + 1));
+    }
+    glDisable2(GL_TEXTURE_2D);
+    t.endOverrideAndDraw();
+    glEnable2(GL_TEXTURE_2D);
     if (hov >= 0 && cursorItem.isNull()) {
         const Slot& s = slots[hov];
         if (s.slotIndex >= 0) {

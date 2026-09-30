@@ -3,6 +3,7 @@
 #include "../../../Minecraft.h"
 #include "../../../player/LocalPlayer.h"
 #include "../../../renderer/entity/ItemRenderer.h"
+#include "../../../renderer/Tesselator.h"
 #include "../../Font.h"
 #include "../../Gui.h"
 #include "../../../../world/entity/player/Player.h"
@@ -11,6 +12,7 @@
 #include "../../../../world/level/tile/entity/ChestTileEntity.h"
 #include "../../../../world/item/Item.h"
 #include "../../../../world/item/ItemInstance.h"
+#include "../../../../locale/I18n.h"
 #include "platform/input/Mouse.h"
 #include "platform/input/Keyboard.h"
 
@@ -173,10 +175,12 @@ void DesktopChestScreen::render(int xm, int ym, float a) {
     fill(bgX - 1, bgY - 1, bgX + bgW + 1, bgY + bgH + 1, COLOR_FRAME);
     fill(bgX,     bgY,     bgX + bgW,     bgY + bgH,     COLOR_BG);
 
-    minecraft->font->drawShadow(std::string("Chest"), (float)(bgX + 8), (float)(bgY + 6), COLOR_TEXT);
+    minecraft->font->drawShadow(I18n::get("container.chest"), (float)(bgX + 8), (float)(bgY + 6), COLOR_TEXT);
 
     for (int i = 0; i < (int)slots.size(); ++i)
         renderSlotBg(slots[i].x, slots[i].y);
+
+    Tesselator& t = Tesselator::instance;
 
     for (int i = 0; i < (int)slots.size(); ++i) {
         const Slot& s = slots[i];
@@ -201,6 +205,25 @@ void DesktopChestScreen::render(int xm, int ym, float a) {
             (float)(xm - SLOT_INNER / 2 - 3), (float)(ym - SLOT_INNER / 2 - 3), true, true);
     }
 
+    t.beginOverride();
+    for (int i = 0; i < (int)slots.size(); ++i) {
+        const Slot& s = slots[i];
+        if (s.slotIndex < 0) continue;
+        ItemInstance* live = s.container->getItem(s.slotIndex);
+        if (!live || live->isNull()) continue;
+        if (live->isDamaged()) {
+            ItemRenderer::renderGuiItemDecorations(live, (float)(s.x + 1), (float)(s.y + 1));
+        }
+    }
+    if (!cursorItem.isNull() && cursorItem.isDamaged()) {
+        ItemRenderer::renderGuiItemDecorations(&cursorItem,
+            (float)(xm - SLOT_INNER / 2 + 1), (float)(ym - SLOT_INNER / 2 + 1));
+    }
+    glDisable2(GL_TEXTURE_2D);
+    t.endOverrideAndDraw();
+    glEnable2(GL_TEXTURE_2D);
+
+    // tooltip
     if (hov >= 0 && cursorItem.isNull()) {
         const Slot& s = slots[hov];
         if (s.slotIndex >= 0) {
@@ -257,7 +280,6 @@ void DesktopChestScreen::mouseClicked(int x, int y, int buttonNum) {
 void DesktopChestScreen::onSlotClick(int idx, int buttonNum, bool shift) {
     Slot& s = slots[idx];
 
-    // Empty hotbar sentinel: place into a free inventory slot + create link.
     if (s.slotIndex < 0) {
         if (cursorItem.isNull()) return;
         if (idx < hotbarSlotsBegin || idx >= hotbarSlotsEnd) return;
@@ -325,7 +347,7 @@ void DesktopChestScreen::onSlotClick(int idx, int buttonNum, bool shift) {
                 cursorItem = slotItem;
             }
         }
-    } else {  // ACTION_RIGHT
+    } else {
         if (cursorItem.isNull() && !slotItem.isNull()) {
             int take = (slotItem.count + 1) / 2;
             cursorItem = slotItem;
@@ -391,13 +413,9 @@ void DesktopChestScreen::shiftClickFrom(int idx) {
     if (!live || live->isNull()) return;
     ItemInstance moving = *live;
 
-    // Java rules:
-    //  - From chest -> player inventory (hotbar first, then main inv)
-    //  - From player hotbar/inv -> chest
     int destBegin = -1, destEnd = -1;
     bool fromChest = (idx >= chestSlotsBegin && idx < chestSlotsEnd);
     if (fromChest) {
-        // First try hotbar, then main inv
         ItemInstance moving1 = moving;
         tryDistributeStack(moving1, hotbarSlotsBegin, hotbarSlotsEnd);
         if (!moving1.isNull())
@@ -410,7 +428,6 @@ void DesktopChestScreen::shiftClickFrom(int idx) {
         return;
     }
 
-    // From player side: send to chest
     destBegin = chestSlotsBegin;
     destEnd   = chestSlotsEnd;
     ItemInstance remainder = moving;

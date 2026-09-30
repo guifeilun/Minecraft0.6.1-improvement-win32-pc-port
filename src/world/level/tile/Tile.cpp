@@ -334,7 +334,7 @@ void Tile::initTiles() {
 	// is exposed in the creative inventory.
 	redStoneLamp_on  = (new RedstoneLampTile(124, 7 + 14 * 16, /*lit=*/true ))->init()->setDestroyTime(0.3f)->setLightEmission(1.0f)->setSoundType(SOUND_GLASS)->setDescriptionId("redstoneLamp");
 
-	netherrack = (new Tile(87, 7 + 6 * 16, Material::stone))->init()->setDestroyTime(0.4f)->setSoundType(SOUND_STONE)->setDescriptionId("hellrock");
+	netherrack = (new Tile(87, 7 + 6 * 16, Material::stone))->init()->setDestroyTime(0.4f)->setSoundType(SOUND_STONE)->setCategory(ItemCategory::Structures)->setDescriptionId("hellrock");
                	quartzOre = (new OreTile(153, 5 + 11 * 16))->init()->setDestroyTime(3.0f)->setExplodeable(5)->setSoundType(SOUND_STONE)->setCategory(ItemCategory::Structures)->setDescriptionId("netherQuartzOre");
 	//hellSand = (new HellSandTile(88, 8 + 6 * 16, Material::sand))->init()->setDestroyTime(0.5f)->setSoundType(SOUND_SAND)->setDescriptionId("hellsand");
 
@@ -347,7 +347,7 @@ void Tile::initTiles() {
 	// slot), so the portal rendered as nether brick. We now use 15 + 11*16 =
 	// 191, an unused magenta placeholder slot in data/images/terrain.png into
 	// which a procedurally-generated purple swirl was written.
-	portalTile  = (new PortalTile(90, 15 + 11 * 16))->init()->setDestroyTime(0.0f)->setLightEmission(0.75f)->setSoundType(SOUND_GLASS)->setDescriptionId("portal");
+	portalTile  = (new PortalTile(90, 15 + 11 * 16))->init()->setDestroyTime(0.1f)->setLightEmission(0.75f)->setSoundType(SOUND_GLASS)->setCategory(ItemCategory::Structures)->setDescriptionId("portal");
 	invisible_bedrock = (new InvisibleTile(95, 0, Material::stone))->init()->setDestroyTime(-1)->setExplodeable(6000000);//->setSoundType(SOUND_SILENT);
 	trapdoor = (new TrapDoorTile(96, Material::wood))->init()->setDestroyTime(3.0f)->setSoundType(SOUND_WOOD)->setCategory(ItemCategory::Structures)->setDescriptionId("trapdoor");//->sendTileData();
 

@@ -4,7 +4,7 @@
 #include "../../Font.h"
 #include "../../../Minecraft.h"
 #include "../../../renderer/Textures.h"
-
+#include "../../../../locale/I18n.h"
 namespace Touch {
 
 //
@@ -62,9 +62,9 @@ void AvailableGamesList::renderItem( int i, int x, int y, int h, Tesselator& t )
 // Join Game screen
 //
 JoinGameScreen::JoinGameScreen()
-:	bJoin(  2, "Join Game"),
-	bBack(  3, "Back"),
-	bJoinByIp(4, "Join By IP"),
+:	bJoin(  2, I18n::get("multiplayer.connect")),
+	bBack(  3, I18n::get("gui.toMenu")),
+	bJoinByIp(4, I18n::get("multiplayer.ipinfo")),
 	bHeader(0, ""),
 	gamesList(NULL)
 {

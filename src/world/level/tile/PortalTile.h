@@ -23,7 +23,7 @@ public:
 
     bool isCubeShaped() { return false; }
     bool isSolidRender() { return false; }
-    bool mayPick()       { return false; }
+    bool mayPick()       { return true; }
     bool mayPlace(Level*, int, int, int) { return false; }
 
     AABB* getAABB(Level* level, int x, int y, int z) {

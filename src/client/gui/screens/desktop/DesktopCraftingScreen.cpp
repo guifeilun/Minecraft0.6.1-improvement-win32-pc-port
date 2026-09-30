@@ -12,6 +12,7 @@
 #include "../../../../world/entity/player/Player.h"
 #include "../../../../world/item/Item.h"
 #include "../../../../world/item/ItemInstance.h"
+#include "../../../../locale/I18n.h"
 #include "../../../../world/item/ArmorItem.h"
 #include "../../../../world/item/crafting/Recipe.h"
 #include "../../../../world/item/crafting/Recipes.h"
@@ -267,8 +268,8 @@ void DesktopCraftingScreen::render(int xm, int ym, float a) {
     fill(bgX,     bgY,     bgX + bgW,     bgY + bgH,     COLOR_BG);
 
     // Title
-    const char* title = (gridSize == 3) ? "Crafting" : "Inventory";
-    minecraft->font->drawShadow(std::string(title), (float)(bgX + 8), (float)(bgY + 6), COLOR_TEXT);
+    std::string title = (gridSize == 3) ? I18n::get("container.crafting") : I18n::get("container.inventory");
+    minecraft->font->drawShadow(title, (float)(bgX + 8), (float)(bgY + 6), COLOR_TEXT);
 
     // Slot backgrounds
     for (int i = 0; i < (int)slots.size(); ++i)
@@ -304,14 +305,12 @@ void DesktopCraftingScreen::render(int xm, int ym, float a) {
             minecraft->gui.renderSlotText(it, (float)(s.x + SLOT_PAD - 3), (float)(s.y + SLOT_PAD - 3), true, true);
         }
     }
-
     // Hover highlight
     int hov = findSlotAt(xm, ym);
     if (hov >= 0) {
         const Slot& s = slots[hov];
         fill(s.x + SLOT_PAD, s.y + SLOT_PAD, s.x + SLOT_SIZE - SLOT_PAD, s.y + SLOT_SIZE - SLOT_PAD, COLOR_HOVER);
     }
-
     // Cursor item
     if (!cursorItem.isNull()) {
         ItemRenderer::renderGuiItem(minecraft->font, minecraft->textures, &cursorItem,
@@ -319,7 +318,33 @@ void DesktopCraftingScreen::render(int xm, int ym, float a) {
         minecraft->gui.renderSlotText(&cursorItem,
             (float)(xm - SLOT_INNER / 2 - 3), (float)(ym - SLOT_INNER / 2 - 3), true, true);
     }
-
+    Tesselator& t = Tesselator::instance;
+    t.beginOverride();
+    for (int i = 0; i < (int)slots.size(); ++i) {
+        const Slot& s = slots[i];
+        ItemInstance* it = NULL;
+        if (s.isResult) {
+            it = resultItem.isNull() ? NULL : &resultItem;
+        } else if (s.container == NULL) {
+            if (minecraft->player) {
+                ItemInstance* tmp = minecraft->player->getArmor(s.slotIndex);
+                if (tmp && !tmp->isNull()) it = tmp;
+            }
+        } else if (s.slotIndex >= 0) {
+            ItemInstance* tmp = s.container->getItem(s.slotIndex);
+            if (tmp && !tmp->isNull()) it = tmp;
+        }
+        if (it && it->isDamaged()) {
+            ItemRenderer::renderGuiItemDecorations(it, (float)(s.x + 1), (float)(s.y + 1));
+        }
+    }
+    if (!cursorItem.isNull() && cursorItem.isDamaged()) {
+        ItemRenderer::renderGuiItemDecorations(&cursorItem,
+            (float)(xm - SLOT_INNER / 2 + 1), (float)(ym - SLOT_INNER / 2 + 1));
+    }
+    glDisable2(GL_TEXTURE_2D);
+    t.endOverrideAndDraw();
+    glEnable2(GL_TEXTURE_2D);
     // Tooltip for hovered slot (only if cursor has nothing)
     if (hov >= 0 && cursorItem.isNull()) {
         const Slot& s = slots[hov];

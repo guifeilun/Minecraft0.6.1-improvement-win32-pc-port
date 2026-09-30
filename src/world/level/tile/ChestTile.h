@@ -24,8 +24,6 @@ public:
     bool isCubeShaped();
 
     int getRenderShape();
-
-	bool mayPlace(Level* level, int x, int y, int z, unsigned char face);
 	void setPlacedBy(Level* level, int x, int y, int z, Mob* by);
 
 	void onPlace(Level* level, int x, int y, int z);

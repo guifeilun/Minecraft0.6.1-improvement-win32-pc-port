@@ -8,6 +8,7 @@
 #include "client/Options.h"
 #include "client/gui/components/Button.h"
 #include "client/gui/screens/OptionsScreen.h"
+#include "../../../locale/I18n.h"
 
 PauseScreen::PauseScreen(bool wasBackPaused)
 	:	saveStep(0),
@@ -49,25 +50,25 @@ PauseScreen::~PauseScreen() {
 
 void PauseScreen::init() {
 	if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) == 0) {
-		bContinue = new Touch::TButton(1, "Back to game");
-		bOptions = new Touch::TButton(5, "Options");
-		bQuit = new Touch::TButton(2, "Quit to title");
-		bQuitAndSaveLocally = new Touch::TButton(3, "Quit and copy map");
+		bContinue = new Touch::TButton(1, I18n::get("menu.returnToGame"));
+		bOptions = new Touch::TButton(5, I18n::get("menu.options"));
+		bQuit = new Touch::TButton(2, I18n::get("menu.quit"));
+		bQuitAndSaveLocally = new Touch::TButton(3, I18n::get("menu.returnToMenu"));
 		bServerVisibility = new Touch::TButton(4, "");
 		//		bThirdPerson = new Touch::TButton(5, "Toggle 3:rd person view");
 	} else if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) == 1) {
-		bContinue = new Button(1, "Back to game");
-		bOptions = new Button(5, "Options");
-		bQuit = new Button(2, "Quit to title");
-		bQuitAndSaveLocally = new Button(3, "Quit and copy map");
+		bContinue = new Button(1, I18n::get("menu.returnToGame"));
+		bOptions = new Button(5, I18n::get("menu.options"));
+		bQuit = new Button(2, I18n::get("menu.quit"));
+		bQuitAndSaveLocally = new Button(3, I18n::get("menu.returnToMenu"));
 		bServerVisibility = new Button(4, "");
 		//		bThirdPerson = new Button(5, "Toggle 3:rd person view");
 	} else {
-		bContinue = new Button(1, 0, 0, 200, 20, "Back to game");
+		bContinue = new Button(1, 0, 0, 200, 20, I18n::get("menu.returnToGame"));
 		bServerVisibility = new Button(4, 0, 0, 200, 20, "");
-		bOptions = new Button(5, 0, 0, 200, 20, "Options...");
-		bQuit = new Button(2, 0, 0, 200, 20, "Save and quit to title");
-		bQuitAndSaveLocally = new Button(3, 0, 0, 200, 20, "Copy and quit map");
+		bOptions = new Button(5, 0, 0, 200, 20, I18n::get("menu.options"));
+		bQuit = new Button(2, 0, 0, 200, 20, I18n::get("menu.quit"));
+		bQuitAndSaveLocally = new Button(3, 0, 0, 200, 20, I18n::get("menu.returnToMenu"));
 		//		bThirdPerson = new Button(5, "Toggle 3:rd person view");
 	}
 
@@ -179,7 +180,7 @@ void PauseScreen::render(int xm, int ym, float a) {
 	//	drawString(font, "Saving level..", 8, height - 16, br << 16 | br << 8 | br);
 	//}
 
-	drawCenteredString(font, "Game menu", width / 2, 24, 0xffffff);
+	drawCenteredString(font, I18n::get("options.title"), width / 2, 24, 0xffffff);
 
 	super::render(xm, ym, a);
 }
@@ -223,7 +224,6 @@ void PauseScreen::updateServerVisibilityText()
 		return;
 
 	ServerSideNetworkHandler* ss = (ServerSideNetworkHandler*) minecraft->netCallback;
-	bServerVisibility->msg = ss->allowsIncomingConnections()?
-		"Server is visible"
-		:   "Server is invisible";
+	bServerVisibility->msg = I18n::get("options.servervisible") + ": " +
+		(ss->allowsIncomingConnections() ? I18n::get("options.on") : I18n::get("options.off"));
 }
