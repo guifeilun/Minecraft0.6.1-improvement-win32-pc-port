@@ -4,6 +4,15 @@
 
 ## 该版本目前修改
 
+### 无限世界
+
+- 创建世界界面新增**世界类型**按钮：`世界类型：普通` / `世界类型：无限`
+- **有限世界**（旧 256×256）和**无限世界**（程序生成，无边界）可自由切换
+- 无限世界区块按 32×32 分 region 存储，文件命名 `chunks.r.<rx>.<rz>.dat`
+- 有限世界保持原有 `chunks.dat` 单文件存储，旧存档完全兼容
+- 出生点：无限世界从 (8, 8) 开始搜索，有限世界保持原逻辑
+- 走远、存档、重进，位置和地形都保留
+
 ### 多语言支持
 
 - 移植 0.8.1 语言系统
@@ -13,6 +22,7 @@
 - 切换语言后立即生效，并保存到 `options.txt` 的 `options.language`
 - 下次启动自动加载上次选择的语言
 - 已内置 `en_US.lang`（英文）和 `zh_CN.lang`（简体中文）
+- 硬编码 UI 字符串迁移到 I18n，覆盖几乎全部菜单
 
 添加新语言教程：
 
@@ -47,6 +57,9 @@
 - 每区块尝试 16 次，每次矿团 1~14 个方块
 - 挖掘掉落下界石英
 
+### 合成表
+- 更新合成表，现在各种物品均可合成
+
 ### DirectSound 音频后端
 
 - 用 DirectSound 替换原 OpenAL 音频层
@@ -59,6 +72,7 @@
 - 支持鼠标滚轮滚动
 - 滚动范围自动计算，带边界限制
 - 使用 `glScissor` 裁剪，内容不会溢出可视区域
+- 加入isflying选项
 
 ### 鼠标绑定修复
 
@@ -107,11 +121,6 @@
 ### 删除 Credits 界面
 
 - 从设置界面移除
-
-### 硬编码 UI 字符串迁移到 I18n
-
-- 覆盖：OptionsScreen、PauseScreen、DeathScreen、InBedScreen、StartMenuScreen、UsernameScreen、SelectWorldScreen、SimpleChooseLevelScreen、JoinGameScreen、JoinByIPScreen、ChestScreen、FurnaceScreen、DesktopCraftingScreen、TouchStartMenuScreen、TouchSelectWorldScreen、TouchJoinGameScreen 等
-- `.lang` 里没有对应 key 的字符串（如 `"Cheats: On"`、`"World name:"` 等）保留硬编码
 
 ## JackTulli 的修改
 
