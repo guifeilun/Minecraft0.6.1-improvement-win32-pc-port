@@ -75,6 +75,10 @@ public:
 	bool		getAllowCheats() const;
 	void		setAllowCheats(bool allow);
 
+	int			getWorldType() const;
+	void		setWorldType(int type);
+	bool		isInfinite() const;
+
 public:
 	PlayerData playerData;
 	int playerDataVersion;
@@ -93,6 +97,7 @@ private:
 	int storageVersion;
 	bool spawnMobs;
 	bool allowCheats;
+	int worldType;
 	//@note: This version is never written or loaded to disk. The only purpose
 	//       is to use it in the level generator on server and clients.
 	int generatorVersion;

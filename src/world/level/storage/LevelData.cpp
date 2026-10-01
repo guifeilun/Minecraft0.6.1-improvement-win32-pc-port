@@ -13,7 +13,7 @@ LevelData::LevelData()
 	playerDataVersion(-1),
 	storageVersion(0),
 	gameType(GameType::Default),	spawnMobs(false),
-	allowCheats(false),	loadedPlayerTag(NULL)
+	allowCheats(false),	worldType(WorldType::Old),	loadedPlayerTag(NULL)
 {
 	//LOGI("ctor 1: %p\n", this);
 	spawnMobs = (gameType == GameType::Survival);
@@ -22,9 +22,10 @@ LevelData::LevelData()
 LevelData::LevelData( const LevelSettings& settings, const std::string& levelName, int generatorVersion /*= -1*/ )
 :	seed(settings.getSeed()),
 	gameType(settings.getGameType()),	allowCheats(settings.getAllowCheats()),	levelName(levelName),
-	xSpawn(128),
+	worldType(settings.getWorldType()),
+	xSpawn(settings.getWorldType() == WorldType::Infinite ? 0 : 128),
 	ySpawn(64),
-	zSpawn(128),
+	zSpawn(settings.getWorldType() == WorldType::Infinite ? 0 : 128),
 	lastPlayed(0),
 	time(0),
 	dimension(Dimension::NORMAL),
@@ -62,6 +63,7 @@ LevelData::LevelData( const LevelData& rhs )
 	generatorVersion(rhs.generatorVersion),
 	spawnMobs(rhs.spawnMobs),
 	allowCheats(rhs.allowCheats),
+	worldType(rhs.worldType),
 	loadedPlayerTag(NULL),
 	playerData(rhs.playerData)
 {
@@ -85,6 +87,7 @@ LevelData& LevelData::operator=( const LevelData& rhs )
 		dimension	= rhs.dimension;
 		spawnMobs	= rhs.spawnMobs;
 		allowCheats	= rhs.allowCheats;
+		worldType	= rhs.worldType;
 		playerData  = rhs.playerData;
 		playerDataVersion	= rhs.playerDataVersion;
 		generatorVersion	= rhs.generatorVersion;
@@ -171,6 +174,7 @@ void LevelData::setTagData( CompoundTag* tag, CompoundTag* playerTag )
 	tag->putLong("LastPlayed", getEpochTimeS());
 	tag->putString("LevelName", levelName);
 	tag->putInt("StorageVersion", storageVersion);
+	tag->putInt("WorldType", worldType);
 	tag->putInt("Platform", 2);
 	// Active dim id (NORMAL / NETHER / NORMAL_DAYCYCLE). Without this the
 	// save reverts to NORMAL on reload — the player gets dropped at their
@@ -197,6 +201,10 @@ void LevelData::getTagData( const CompoundTag* tag )
 	sizeOnDisk = (int)tag->getLong("SizeOnDisk");
 	levelName = tag->getString("LevelName");
 	storageVersion = tag->getInt("StorageVersion");
+
+	if (tag->contains("WorldType", Tag::TAG_Int)) {
+		worldType = tag->getInt("WorldType");
+	}
 
 	spawnMobs = (gameType == GameType::Survival);
 
@@ -383,4 +391,19 @@ bool LevelData::getAllowCheats() const
 void LevelData::setAllowCheats( bool allow )
 {
 	allowCheats = allow;
+}
+
+int LevelData::getWorldType() const
+{
+	return worldType;
+}
+
+void LevelData::setWorldType( int type )
+{
+	worldType = type;
+}
+
+bool LevelData::isInfinite() const
+{
+	return worldType == WorldType::Infinite;
 }

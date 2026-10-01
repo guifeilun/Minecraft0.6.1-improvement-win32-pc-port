@@ -26,451 +26,442 @@ Recipes::Recipes()
 	ArmorRecipes::addRecipes(this);
 	ClothDyeRecipes::addRecipes(this);
 
-	addShapedRecipe(ItemInstance(Item::paper, 3), //
-		"###", //
+	addShapedRecipe(ItemInstance(Item::paper, 3),
+		"###",
 
 		definition('#', Item::reeds));
 
-	addShapedRecipe(ItemInstance(Item::book, 1), //
-		"#", //
-		"#", //
-		"#", //
+	addShapedRecipe(ItemInstance(Item::book, 1),
+		"#",
+		"#",
+		"#",
 
 		definition('#', Item::paper));
 
-	addShapedRecipe(ItemInstance(Tile::fence, 2), //
-		"###", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::fence, 2),
+		"###",
+		"###",
 
 		definition('#', Item::stick));
 
-	addShapedRecipe(ItemInstance(Tile::netherFence, 6), //
-		"###", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::netherFence, 6),
+		"###",
+		"###",
 
 		definition('#', Tile::netherBrick));
 
-	addShapedRecipe(ItemInstance(Tile::fenceGate, 1), //
-		"#W#", //
-		"#W#", //
+	addShapedRecipe(ItemInstance(Tile::fenceGate, 1),
+		"#W#",
+		"#W#",
 
 		definition('#', Item::stick, 'W', Tile::wood));
 
-	//addShapedRecipe(ItemInstance(Tile::recordPlayer, 1), //
-	//	"###", //
-	//	"#X#", //
-	//	"###", //
+	addShapedRecipe(ItemInstance(Tile::recordPlayer, 1),
+		"###",
+		"#X#",
+		"###",
 
-	//	definition('#', Tile::wood, 'X', Item::emerald));
+		definition('#', Tile::wood, 'X', Item::emerald));
 
-	//addShapedRecipe(ItemInstance(Tile::musicBlock, 1), //
-	//	"###", //
-	//	"#X#", //
-	//	"###", //
+	addShapedRecipe(ItemInstance(Tile::musicBlock, 1),
+		"###",
+		"#X#",
+		"###",
 
-	//	definition('#', Tile::wood, 'X', Item::redStone));
+		definition('#', Tile::wood, 'X', Item::redStone));
 
-	addShapedRecipe(ItemInstance(Tile::bookshelf, 1), //
-		"###", //
-		"XXX", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::bookshelf, 1),
+		"###",
+		"XXX",
+		"###",
 
 		definition('#', Tile::wood, 'X', Item::book));
 
-	addShapedRecipe(ItemInstance(Tile::snow, 1), //
-		"##", //
-		"##", //
+	addShapedRecipe(ItemInstance(Tile::snow, 1),
+		"##",
+		"##",
 
 		definition('#', Item::snowBall));
 
-	addShapedRecipe(ItemInstance(Tile::clay, 1), //
-		"##", //
-		"##", //
+	addShapedRecipe(ItemInstance(Tile::clay, 1),
+		"##",
+		"##",
 
 		definition('#', Item::clay));
 
-	addShapedRecipe(ItemInstance(Tile::redBrick, 1), //
-		"##", //
-		"##", //
+	addShapedRecipe(ItemInstance(Tile::redBrick, 1),
+		"##",
+		"##",
 
 		definition('#', Item::brick));
 
-	addShapedRecipe(ItemInstance(Tile::lightGem, 1), //
-		"##", //
-		"##", //
+	addShapedRecipe(ItemInstance(Tile::lightGem, 1),
+		"##",
+		"##",
 
 		definition('#', Item::yellowDust));
 
-	addShapedRecipe(ItemInstance(Tile::cloth, 1), //
-		"##", //
-		"##", //
+	addShapedRecipe(ItemInstance(Tile::cloth, 1),
+		"##",
+		"##",
 
 		definition('#', Item::string));
 
-	addShapedRecipe(ItemInstance(Tile::tnt, 1), //
-		"X#X", //
-		"#X#", //
-		"X#X", //
+	addShapedRecipe(ItemInstance(Tile::tnt, 1),
+		"X#X",
+		"#X#",
+		"X#X",
 
 		definition(	'X', Item::sulphur,
 					'#', Tile::sand));
 
-	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::COBBLESTONE_SLAB), //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::COBBLESTONE_SLAB),
+		"###",
 
 		definition('#', Tile::stoneBrick));
 
-	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::STONE_SLAB), //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::STONE_SLAB),
+		"###",
 
 		definition('#', Tile::rock));
 
-	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::SAND_SLAB), //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::SAND_SLAB),
+		"###",
 		definition('#', Tile::sandStone));
 
-	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::WOOD_SLAB), //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::WOOD_SLAB),
+		"###",
 
 		definition('#', Tile::wood));
 
-	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::BRICK_SLAB), //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::BRICK_SLAB),
+		"###",
 
 		definition('#', Tile::redBrick));
 
-	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::SMOOTHBRICK_SLAB), //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::SMOOTHBRICK_SLAB),
+		"###",
 		definition('#', Tile::stoneBrickSmooth));
 
-	addShapedRecipe(ItemInstance(Tile::ladder, 2), //
-		"# #", //
-		"###", //
-		"# #", //
+	addShapedRecipe(ItemInstance(Tile::ladder, 2),
+		"# #",
+		"###",
+		"# #",
 
 		definition('#', Item::stick));
 
-	addShapedRecipe(ItemInstance(Item::door_wood, 1), //
-		"##", //
-		"##", //
-		"##", //
+	addShapedRecipe(ItemInstance(Item::door_wood, 1),
+		"##",
+		"##",
+		"##",
 
 		definition('#', Tile::wood));
 
-	addShapedRecipe(ItemInstance(Tile::trapdoor, 2), //
-		"###", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::trapdoor, 2),
+		"###",
+		"###",
 
 		definition('#', Tile::wood));
 
-	addShapedRecipe(ItemInstance(Item::door_iron, 1), //
-		"##", //
-		"##", //
-		"##", //
+	addShapedRecipe(ItemInstance(Item::door_iron, 1),
+		"##",
+		"##",
+		"##",
 
 		definition('#', Item::ironIngot));
 
-	addShapedRecipe(ItemInstance(Item::sign, 1), //
-		"###", //
-		"###", //
-		" X ", //
+	addShapedRecipe(ItemInstance(Item::sign, 1),
+		"###",
+		"###",
+		" X ",
 
 		definition('#', Tile::wood, 'X', Item::stick));
 
-	addShapedRecipe(ItemInstance(Item::cake, 1), //
-		"AAA", //
-		"BEB", //
-		"CCC", //
+	addShapedRecipe(ItemInstance(Item::cake, 1),
+		"AAA",
+		"BEB",
+		"CCC",
 
-		definition(	'A', Item::milk,//
-					'B', Item::sugar,//
+		definition(	'A', Item::milk,
+					'B', Item::sugar,
 					'C', Item::wheat, 'E', Item::egg));
 
-	addShapedRecipe(ItemInstance(Item::sugar, 1), //
-		"#", //
+	addShapedRecipe(ItemInstance(Item::sugar, 1),
+		"#",
 
 		definition('#', Item::reeds));
 
-	addShapedRecipe(ItemInstance(Tile::wood, 4), //
-		"#", //
+	addShapedRecipe(ItemInstance(Tile::wood, 4),
+		"#",
 
 		definition('#', Tile::treeTrunk));
 
-	addShapedRecipe(ItemInstance(Item::stick, 4), //
-		"#", //
-		"#", //
+	addShapedRecipe(ItemInstance(Item::stick, 4),
+		"#",
+		"#",
 
 		definition('#', Tile::wood));
 
-	addShapedRecipe(ItemInstance(Tile::torch, 4), //
-		"X", //
-		"#", //
+	addShapedRecipe(ItemInstance(Tile::torch, 4),
+		"X",
+		"#",
 
-		definition(	'X', Item::coal,//
-					'#', Item::stick));
-	// torch made of charcoal
-	addShapedRecipe(ItemInstance(Tile::torch, 4), //
-		"X", //
-		"#", //
-
-		definition( 'X', ItemInstance(Item::coal, 1, CoalItem::CHAR_COAL),//
+		definition(	'X', Item::coal,
 					'#', Item::stick));
 
-	addShapedRecipe(ItemInstance(Item::bowl, 4), //
-		"# #", //
-		" # ", //
+	addShapedRecipe(ItemInstance(Tile::torch, 4),
+		"X",
+		"#",
+
+		definition( 'X', ItemInstance(Item::coal, 1, CoalItem::CHAR_COAL),
+					'#', Item::stick));
+
+	addShapedRecipe(ItemInstance(Item::bowl, 4),
+		"# #",
+		" # ",
 
 		definition('#', Tile::wood));
 
-	//addShapedRecipe(ItemInstance(Item::glassBottle, 3), //
-	//	"# #", //
-	//	" # ", //
-
-	//	'#', Tile::glass);
-
-	addShapedRecipe(ItemInstance(Tile::rail, 16), //
-		"X X", //
-		"X#X", //
-		"X X", //
+	addShapedRecipe(ItemInstance(Tile::rail, 16),
+		"X X",
+		"X#X",
+		"X X",
 
 		definition(	'X', Item::ironIngot,
 					'#', Item::stick));
 
-	addShapedRecipe(ItemInstance(Tile::goldenRail, 6), //
-		"X X", //
-		"X#X", //
-		"XRX", //
+	addShapedRecipe(ItemInstance(Tile::goldenRail, 6),
+		"X X",
+		"X#X",
+		"XRX",
 
 		definition(	'X', Item::goldIngot,
 					'R', Item::redStone,
 					'#', Item::stick));
 
-	// Detector rail's vanilla recipe needs Tile::pressurePlate_stone, which
-	// doesn't exist yet (no redstone system). Substituting a stick keeps it
-	// craftable until pressure plates land.
-	addShapedRecipe(ItemInstance(Tile::detectorRail, 6), //
-		"X X", //
-		"X#X", //
-		"XRX", //
+	addShapedRecipe(ItemInstance(Tile::detectorRail, 6),
+		"X X",
+		"X#X",
+		"XRX",
 
 		definition(	'X', Item::ironIngot,
 					'R', Item::redStone,
-					'#', Item::stick));
+					'#', Tile::pressurePlate_stone));
 
-	addShapedRecipe(ItemInstance(Item::minecart, 1), //
-		"# #", //
-		"###", //
+	addShapedRecipe(ItemInstance(Item::minecart, 1),
+		"# #",
+		"###",
 
 		definition('#', Item::ironIngot));
 
-	//addShapedRecipe(ItemInstance(Item::cauldron, 1), //
-	//	"# #", //
-	//	"# #", //
-	//	"###", //
-
-	//	'#', Item::ironIngot);
-
-	//addShapedRecipe(ItemInstance(Item::brewingStand, 1), //
-	//	" B ", //
-	//	"###", //
-
-	//	'#', Tile::stoneBrick, 'B', Item::blazeRod);
-
-	addShapedRecipe(ItemInstance(Tile::litPumpkin, 1), //
-		"A", //
-		"B", //
+	addShapedRecipe(ItemInstance(Tile::litPumpkin, 1),
+		"A",
+		"B",
 
 		definition('A', Tile::pumpkin, 'B', Tile::torch));
 
-	addShapedRecipe(ItemInstance(Item::minecart_chest, 1), //
-		"A", //
-		"B", //
+	addShapedRecipe(ItemInstance(Item::minecart_chest, 1),
+		"A",
+		"B",
 
 		definition('A', Tile::chest, 'B', Item::minecart));
 
-	addShapedRecipe(ItemInstance(Item::minecart_furnace, 1), //
-		"A", //
-		"B", //
+	addShapedRecipe(ItemInstance(Item::minecart_furnace, 1),
+		"A",
+		"B",
 
 		definition('A', Tile::furnace, 'B', Item::minecart));
 
-	addShapedRecipe(ItemInstance(Item::boat, 1), //
-		"# #", //
-		"###", //
+	addShapedRecipe(ItemInstance(Item::boat, 1),
+		"# #",
+		"###",
 
 		definition('#', Tile::wood));
 
-	addShapedRecipe(ItemInstance(Item::bucket_empty, 1), //
-		"# #", //
-		" # ", //
+	addShapedRecipe(ItemInstance(Item::bucket_empty, 1),
+		"# #",
+		" # ",
 
 		definition('#', Item::ironIngot));
 
-	addShapedRecipe(ItemInstance(Item::flintAndSteel, 1), //
-		"A ", //
-		" B", //
+	addShapedRecipe(ItemInstance(Item::flintAndSteel, 1),
+		"A ",
+		" B",
 
 		definition('A', Item::ironIngot, 'B', Item::flint));
 
-	addShapedRecipe(ItemInstance(Item::bread, 1), //
-		"###", //
+	addShapedRecipe(ItemInstance(Item::bread, 1),
+		"###",
 
 		definition('#', Item::wheat));
 
-	addShapedRecipe(ItemInstance(Tile::stairs_wood, 4), //
-		"#  ", //
-		"## ", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stairs_wood, 4),
+		"#  ",
+		"## ",
+		"###",
 
 		definition('#', Tile::wood));
 
-	addShapedRecipe(ItemInstance(Item::fishingRod, 1), //
-		"  #", //
-		" #X", //
-		"# X", //
+	addShapedRecipe(ItemInstance(Item::fishingRod, 1),
+		"  #",
+		" #X",
+		"# X",
 
 		definition('#', Item::stick, 'X', Item::string));
 
-	addShapedRecipe(ItemInstance(Tile::stairs_stone, 4), //
-		"#  ", //
-		"## ", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stairs_stone, 4),
+		"#  ",
+		"## ",
+		"###",
 
 		definition('#', Tile::stoneBrick));
 
-	addShapedRecipe(ItemInstance(Tile::stairs_brick, 4), //
-		"#  ", //
-		"## ", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stairs_brick, 4),
+		"#  ",
+		"## ",
+		"###",
 		definition('#', Tile::redBrick));
 
-	addShapedRecipe(ItemInstance(Tile::stairs_stoneBrickSmooth, 4), //
-		"#  ", //
-		"## ", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stairs_stoneBrickSmooth, 4),
+		"#  ",
+		"## ",
+		"###",
 
 		definition('#', Tile::stoneBrickSmooth));
 
-	addShapedRecipe(ItemInstance(Tile::stairs_netherBricks, 4), //
-		"#  ", //
-		"## ", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stairs_netherBricks, 4),
+		"#  ",
+		"## ",
+		"###",
 
 		definition('#', Tile::netherBrick));
 
-	addShapedRecipe(ItemInstance(Item::painting, 1), //
-		"###", //
-		"#X#", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::stairs_sandStone, 4),
+		"#  ",
+		"## ",
+		"###",
+
+		definition('#', Tile::sandStone));
+
+	addShapedRecipe(ItemInstance(Tile::stairs_quartz, 4),
+		"#  ",
+		"## ",
+		"###",
+
+		definition('#', Tile::quartzBlock));
+
+	addShapedRecipe(ItemInstance(Item::painting, 1),
+		"###",
+		"#X#",
+		"###",
 
 		definition('#', Item::stick, 'X', Tile::cloth));
 
-	addShapedRecipe(ItemInstance(Item::apple_gold, 1), //
-		"###", //
-		"#X#", //
-		"###", //
+	addShapedRecipe(ItemInstance(Item::apple_gold, 1),
+		"###",
+		"#X#",
+		"###",
 
 		definition('#', Tile::goldBlock, 'X', Item::apple));
 
-	addShapedRecipe(ItemInstance(Tile::lever, 1), //
-		"X", //
-		"#", //
+	addShapedRecipe(ItemInstance(Tile::lever, 1),
+		"X",
+		"#",
 
-		definition('#', Tile::rock, 'X', Item::stick));
+		definition('#', Tile::stoneBrick, 'X', Item::stick));
 
-	addShapedRecipe(ItemInstance(Tile::notGate_on, 1), //
-		"X", //
-		"#", //
+	addShapedRecipe(ItemInstance(Tile::notGate_on, 1),
+		"X",
+		"#",
 
 		definition('#', Item::stick, 'X', Item::redStone));
 
-	//addShapedRecipe(ItemInstance(Item::diode, 1), //
-	//	"#X#", //
-	//	"III", //
+	addShapedRecipe(ItemInstance(Item::diode, 1),
+		"#X#",
+		"III",
 
-	//	definition('#', Tile::notGate_on, 'X', Item::redStone, 'I', Tile::rock));
+		definition('#', Tile::notGate_on, 'X', Item::redStone, 'I', Tile::rock));
 
-
-	addShapedRecipe(ItemInstance(Item::clock, 1), //
-		" # ", //
-		"#X#", //
-		" # ", //
+	addShapedRecipe(ItemInstance(Item::clock, 1),
+		" # ",
+		"#X#",
+		" # ",
 
 		definition('#', Item::goldIngot, 'X', Item::redStone));
 
-	addShapedRecipe(ItemInstance(Item::compass, 1), //
-		" # ", //
-		"#X#", //
-		" # ", //
+	addShapedRecipe(ItemInstance(Item::compass, 1),
+		" # ",
+		"#X#",
+		" # ",
 
 		definition('#', Item::ironIngot, 'X', Item::redStone));
 
-	//addShapedRecipe(ItemInstance(Item::map, 1), //
-	//	"###", //
-	//	"#X#", //
-	//	"###", //
-
-	//	'#', Item::paper, 'X', Item::compass);
-
-	addShapedRecipe(ItemInstance(Tile::button, 1), //
-		"#", //
-		"#", //
+	addShapedRecipe(ItemInstance(Tile::button, 1),
+		"#",
+		"#",
 
 		definition('#', Tile::rock));
 
-
-	addShapedRecipe(ItemInstance(Tile::pressurePlate_stone, 1), //
-		"##", //
+	addShapedRecipe(ItemInstance(Tile::pressurePlate_stone, 1),
+		"##",
 
 		definition('#', Tile::rock));
 
-	addShapedRecipe(ItemInstance(Tile::pressurePlate_wood, 1), //
-		"##", //
+	addShapedRecipe(ItemInstance(Tile::pressurePlate_wood, 1),
+		"##",
 
 		definition('#', Tile::wood));
 
-	addShapedRecipe(ItemInstance(Tile::dispenser, 1), //
-		"###", //
-		"#X#", //
-		"#R#", //
+	addShapedRecipe(ItemInstance(Tile::dispenser, 1),
+		"###",
+		"#X#",
+		"#R#",
 
-		definition('#', Tile::rock, 'X', Item::bow, 'R', Item::redStone));
+		definition('#', Tile::stoneBrick, 'X', Item::bow, 'R', Item::redStone));
 
-	addShapedRecipe(ItemInstance(Tile::pistonBase, 1), //
-		"TTT", //
-		"#X#", //
-		"#R#", //
+	addShapedRecipe(ItemInstance(Tile::pistonBase, 1),
+		"TTT",
+		"#X#",
+		"#R#",
 
-		definition('#', Tile::rock, 'X', Item::ironIngot, 'R', Item::redStone, 'T', Tile::wood));
+		definition('#', Tile::stoneBrick, 'X', Item::ironIngot, 'R', Item::redStone, 'T', Tile::wood));
 
-	addShapedRecipe(ItemInstance(Tile::pistonStickyBase, 1), //
-		"S", //
-		"P", //
+	addShapedRecipe(ItemInstance(Tile::pistonStickyBase, 1),
+		"S",
+		"P",
 
 		definition('S', Item::slimeBall, 'P', Tile::pistonBase));
 
-	addShapedRecipe(ItemInstance(Item::bed, 1), //
-		"###", //
-		"XXX", //
+	addShapedRecipe(ItemInstance(Item::bed, 1),
+		"###",
+		"XXX",
 		definition('#', Tile::cloth, 'X', Tile::wood));
 
-	addShapedRecipe(ItemInstance(Tile::enchantTable, 1), //
-		" B ", //
-		"D#D", //
-		"###", //
+	addShapedRecipe(ItemInstance(Tile::enchantTable, 1),
+		" B ",
+		"D#D",
+		"###",
 
 		definition('#', Tile::obsidian, 'B', Item::book, 'D', Item::emerald));
 
-	// Eye of ender (and brewingStand / cauldron / map / glassBottle / records)
-	// recipes need items that aren't registered yet (Item::enderPearl,
-	// Item::blazePowder, Item::blazeRod, Item::glassBottle, records) — they
-	// stay commented for now and will be wired up when those items land.
-	//addShapelessRecipe(ItemInstance(Item::eyeOfEnder, 1), //
-	//	Item::enderPearl, Item::blazePowder);
-	addShapedRecipe(ItemInstance(Tile::netherReactor, 1), //
-		"X#X", //
-		"X#X", //
-		"X#X", //
+	addShapedRecipe(ItemInstance(Tile::cauldron, 1),
+		"# #",
+		"# #",
+		"###",
+
+		definition('#', Item::ironIngot));
+
+	addShapedRecipe(ItemInstance(Tile::redStoneLamp_off, 1),
+		" R ",
+		"RGR",
+		" R ",
+
+		definition('R', Item::redStone, 'G', Tile::lightGem));
+
+	addShapedRecipe(ItemInstance(Tile::netherReactor, 1),
+		"X#X",
+		"X#X",
+		"X#X",
 
 		definition('#', Item::emerald, 'X', Item::ironIngot));
 
@@ -518,7 +509,6 @@ void Recipes::addShapedRecipe( const ItemInstance& result, const RowList& rows, 
 			ids[i] = it->second;
 	}
 
-	// <ids> are deleted in ShapedRecipe
 	recipes.push_back(new ShapedRecipe(width, height, ids, result));
 }
 

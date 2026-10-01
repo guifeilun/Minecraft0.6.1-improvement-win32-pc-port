@@ -25,6 +25,19 @@ const char* const fnLevelDat    = "level.dat";
 const char* const fnPlayerDat   = "player.dat";
 
 //
+// Helpers for infinite worlds
+//
+static inline int floorDivBy32(int v)
+{
+	return v < 0 ? (v - 31) / 32 : v / 32;
+}
+
+static inline int64_t regionKey(int rx, int rz)
+{
+	return ((int64_t)(uint32_t)rx << 32) | (uint32_t)rz;
+}
+
+//
 // Helpers for converting old levels to newer
 //
 class LevelConverters
@@ -109,6 +122,19 @@ ExternalFileLevelStorage::~ExternalFileLevelStorage()
 		delete it->second;
 	}
 	regionFiles.clear();
+
+	for (std::map<int, std::map<int64_t, RegionFile*> >::iterator dit = regionFilesInfinite.begin();
+	     dit != regionFilesInfinite.end(); ++dit)
+	{
+		for (std::map<int64_t, RegionFile*>::iterator it = dit->second.begin();
+		     it != dit->second.end(); ++it)
+		{
+			delete it->second;
+		}
+		dit->second.clear();
+	}
+	regionFilesInfinite.clear();
+
 	delete loadedLevelData;
 }
 
@@ -144,13 +170,45 @@ RegionFile* ExternalFileLevelStorage::getRegionFile()
 	return rf;
 }
 
+// For infinite worlds. 32x32 chunks per region file, keyed on region coords.
+RegionFile* ExternalFileLevelStorage::getOrOpenRegion(int dimId, int cx, int cz)
+{
+	int rx = floorDivBy32(cx);
+	int rz = floorDivBy32(cz);
+	int64_t key = regionKey(rx, rz);
+
+	std::map<int64_t, RegionFile*>& dimMap = regionFilesInfinite[dimId];
+	std::map<int64_t, RegionFile*>::iterator it = dimMap.find(key);
+	if (it != dimMap.end())
+		return it->second;
+
+	// Include dim id in filename so Nether regions don't collide with
+	// overworld regions.
+	char buf[96];
+	if (dimId == 0 || dimId == 10) {
+		snprintf(buf, sizeof(buf), "chunks.r.%d.%d.dat", rx, rz);
+	} else if (dimId == 1) {
+		snprintf(buf, sizeof(buf), "chunks_nether.r.%d.%d.dat", rx, rz);
+	} else {
+		snprintf(buf, sizeof(buf), "chunks_dim%d.r.%d.%d.dat", dimId, rx, rz);
+	}
+	std::string path = levelPath + "/" + buf;
+	RegionFile* rf = new RegionFile(path, true);
+	if (!rf->open())
+	{
+		LOGI("Failed to open infinite region file %s\n", path.c_str());
+		delete rf;
+		rf = NULL;
+	}
+	dimMap[key] = rf;
+	return rf;
+}
+
 void ExternalFileLevelStorage::setActiveDimensionId(int id)
 {
 	if (id == activeDimensionId) return;
 	// Drain unsavedChunkList while activeDimensionId still points at the
-	// correct region file. Each save() routes through getRegionFile() which
-	// keys on activeDimensionId, so swapping the id before flushing would
-	// write the old dim's chunks into the new dim's file.
+	// correct region file.
 	for (UnsavedChunkList::iterator it = unsavedChunkList.begin();
 	     it != unsavedChunkList.end(); ++it)
 	{
@@ -338,12 +396,15 @@ bool ExternalFileLevelStorage::readPlayerData(const std::string& filename, Level
 			if (fread(&dest.playerData, 1, sizeof(dest.playerData), fp) != size)
 				break;
 
-			// Fix coordinates
+			// Fix coordinates — only clamp x/z for finite (Old) worlds.
+			// Infinite worlds have no boundaries, so don't snap the player.
 			Vec3& pos = dest.playerData.pos;
-			if (pos.x < 0.5f) pos.x = 0.5f;
-			if (pos.z < 0.5f) pos.z = 0.5f;
-			if (pos.x > (LEVEL_WIDTH - 0.5f)) pos.x = LEVEL_WIDTH - 0.5f;
-			if (pos.z > (LEVEL_DEPTH - 0.5f)) pos.z = LEVEL_DEPTH - 0.5f;
+			if (!dest.isInfinite()) {
+				if (pos.x < 0.5f) pos.x = 0.5f;
+				if (pos.z < 0.5f) pos.z = 0.5f;
+				if (pos.x > (LEVEL_WIDTH - 0.5f)) pos.x = LEVEL_WIDTH - 0.5f;
+				if (pos.z > (LEVEL_DEPTH - 0.5f)) pos.z = LEVEL_DEPTH - 0.5f;
+			}
 			if (pos.y < 0) pos.y = 64;
 
 			dest.playerDataVersion = version;
@@ -401,8 +462,25 @@ void ExternalFileLevelStorage::tick()
 
 void ExternalFileLevelStorage::save(Level* level, LevelChunk* levelChunk)
 {
-	RegionFile* regionFile = getRegionFile();
-	if (!regionFile) return;
+	int cx = levelChunk->x;
+	int cz = levelChunk->z;
+	int lx = cx, lz = cz; // local coords within the region file
+
+	RegionFile* rf;
+	if (level->isInfinite())
+	{
+		rf = getOrOpenRegion(activeDimensionId, cx, cz);
+		if (!rf) return;
+		int rx = floorDivBy32(cx);
+		int rz = floorDivBy32(cz);
+		lx = cx - rx * 32;
+		lz = cz - rz * 32;
+	}
+	else
+	{
+		rf = getRegionFile();
+		if (!rf) return;
+	}
 
 	// Write chunk
 	RakNet::BitStream chunkData;
@@ -414,21 +492,33 @@ void ExternalFileLevelStorage::save(Level* level, LevelChunk* levelChunk)
 
 	chunkData.Write((const char*)levelChunk->updateMap, CHUNK_COLUMNS);
 
-	regionFile->writeChunk(levelChunk->x, levelChunk->z, chunkData);
-
-	// Write entities
+	rf->writeChunk(lx, lz, chunkData);
 
 	//LOGI("Saved chunk (%d, %d)\n", levelChunk->x, levelChunk->z);
-
 }
 
 LevelChunk* ExternalFileLevelStorage::load(Level* level, int x, int z)
 {
-	RegionFile* regionFile = getRegionFile();
-	if (!regionFile) return NULL;
+	int lx = x, lz = z; // local coords within the region file
+
+	RegionFile* rf;
+	if (level->isInfinite())
+	{
+		rf = getOrOpenRegion(activeDimensionId, x, z);
+		if (!rf) return NULL;
+		int rx = floorDivBy32(x);
+		int rz = floorDivBy32(z);
+		lx = x - rx * 32;
+		lz = z - rz * 32;
+	}
+	else
+	{
+		rf = getRegionFile();
+		if (!rf) return NULL;
+	}
 
 	RakNet::BitStream* chunkData = NULL;
-	if (!regionFile->readChunk(x, z, &chunkData))
+	if (!rf->readChunk(lx, lz, &chunkData))
 	{
 		//LOGI("Failed to read data for %d, %d\n", x, z);
 		return NULL;
@@ -446,47 +536,10 @@ LevelChunk* ExternalFileLevelStorage::load(Level* level, int x, int z)
 		chunkData->Read((char*)levelChunk->blockLight.data, CHUNK_BLOCK_COUNT / 2);
 	}
 	chunkData->Read((char*)levelChunk->updateMap, CHUNK_COLUMNS);
-	// This will be difficult to maintain.. Storage version could be per chunk
-	// too (but probably better to just read all -> write all, so that all
-	// chunks got same version anyway)
-	//if (loadedStorageVersion >= ChunkVersion_Entity) {
-	//	int dictSize;
-	//	chunkData->Read(dictSize);
-
-	//	RakDataInput dis(*chunkData);
-	//	Tag* tmp = Tag::readNamedTag(&dis);
-	//	if (tmp && tmp->getId() == Tag::TAG_Compound) {
-	//		CompoundTag* tag = (CompoundTag*) tmp;
-
-	//		delete tmp;
-	//	}
-	//}
 
 	delete [] chunkData->GetData();
 	delete chunkData;
 
-	//bool dbg = (x == 7 && z == 9);
-
-	//int t = 0;
-	//for (int i = 0; i < CHUNK_COLUMNS; ++i) {
-	//	char bits = levelChunk->updateMap[i];
-	//	t += (bits != 0);
-	//	int xx = x * 16 + i%16;
-	//	int zz = z * 16 + i/16;
-	//	if (dbg && xx == 125 && zz == 152) {
-	//		LOGI("xz: %d, %d: %d\n", xx, zz, bits);
-	//		for (int j = 0; j < 8; ++j) {
-	//			if (bits & (1 << j)) {
-	//				LOGI("%d - %d\n", j << 4, ((j+1) << 4) - 1);
-	//			}
-	//		}
-	//	}
-	//}
-
-	//
-	// Convert LevelChunks here if necessary
-	//
-	//LOGI("level version: %d: upd: %d - (%d, %d)\n", loadedStorageVersion, t, x, z);
 	bool changed = false;
 
 	// Loaded level has old Cloth types (one Tile* per color)
@@ -602,12 +655,6 @@ void ExternalFileLevelStorage::loadEntities(Level* level, LevelChunk* chunk) {
 					}
 					CompoundTag* et = (CompoundTag*)_et;
 					if (Entity* e = EntityFactory::loadEntity(et, level)) {
-						// Filter mismatched mobs that snuck in from old saves
-						// (pre per-dim entity files). The Nether only has
-						// pigmen; the overworld never does. Without this,
-						// loading an old single-file entities.dat that was
-						// last written in the Nether dumps the pigmen into
-						// the overworld on load.
 						int typeId = e->getEntityTypeId();
 						bool keep = true;
 						if (typeId == MobTypes::PigZombie) {
@@ -704,6 +751,19 @@ void ExternalFileLevelStorage::saveAll( Level* level, std::vector<LevelChunk*>& 
     ChunkStorage::saveAll(level, levelChunks);
 	int numChunks = savePendingUnsavedChunks(-1);
     LOGI("Saving %d additional chunks.\n", numChunks);
+}
+
+void ExternalFileLevelStorage::finishPreload()
+{
+	for (std::map<int, RegionFile*>::iterator it = regionFiles.begin();
+	     it != regionFiles.end(); ++it)
+		if (it->second) it->second->freeMemoryCache();
+
+	for (std::map<int, std::map<int64_t, RegionFile*> >::iterator dit = regionFilesInfinite.begin();
+	     dit != regionFilesInfinite.end(); ++dit)
+		for (std::map<int64_t, RegionFile*>::iterator it = dit->second.begin();
+		     it != dit->second.end(); ++it)
+			if (it->second) it->second->freeMemoryCache();
 }
 
 #endif /*DEMO_MODE*/

@@ -9,9 +9,6 @@
 static float clampRot(float r) {
 	return Mth::clamp(r, -100000.0f, 100000.0f);
 }
-static float clampXZ(float r) {
-	return Mth::clamp(r, 4.0f, 252.0f);
-}
 static float clampY(float r) {
 	return Mth::clamp(r, 4.0f, 126.0f);
 }
@@ -21,9 +18,9 @@ public:
 	void loadPlayer(Player* p) const {
 		p->setPos(0, 0, 0);
 
-		p->x = p->xo = p->xOld = clampXZ(pos.x);
+		p->x = p->xo = p->xOld = pos.x;
 		p->y = p->yo = p->yOld = clampY (pos.y);
-		p->z = p->zo = p->zOld = clampXZ(pos.z);
+		p->z = p->zo = p->zOld = pos.z;
 
 		float motionX = motion.x;
 		float motionY = motion.y;

@@ -218,7 +218,7 @@ public:
 
 	void prepare();
 	bool isNew() { return _isNew; }
-
+	bool isInfinite() const { return levelData.isInfinite(); }
 	int getSeaLevel();
     
 	bool mayPlace(int tileId, int x, int y, int z, bool ignoreEntities, unsigned char face);

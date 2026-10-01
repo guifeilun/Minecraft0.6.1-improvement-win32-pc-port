@@ -1,5 +1,6 @@
 #include "RegionFile.h"
 #include "../../../platform/log.h"
+#include <cstring>
 
 const int SECTOR_BYTES = 4096;
 const int SECTOR_INTS = SECTOR_BYTES / 4;
@@ -32,6 +33,17 @@ RegionFile::RegionFile(const std::string& basePath, const std::string& fileName)
 	filename = basePath;
 	filename += "/";
 	filename += fileName;
+
+	offsets = new int[SECTOR_INTS];
+
+	emptyChunk = new int[SECTOR_INTS];
+	memset(emptyChunk, 0, SECTOR_INTS * sizeof(int));
+}
+
+RegionFile::RegionFile(const std::string& fullFilePath, bool /*isFullPath*/)
+:	file(NULL)
+{
+	filename = fullFilePath;
 
 	offsets = new int[SECTOR_INTS];
 
@@ -77,6 +89,18 @@ bool RegionFile::open()
 				}
 			}
 		}
+
+		// Mark every physical sector that isn't claimed by offsets[]
+		// as free, so the allocator can reuse holes left behind by
+		// chunks that were rewritten in a previous session.
+		fseek(file, 0, SEEK_END);
+		long fileSize = ftell(file);
+		int totalSectors = (int)(fileSize / SECTOR_BYTES);
+		for (int i = 1; i < totalSectors; i++)
+		{
+			if (sectorFree.find(i) == sectorFree.end())
+				sectorFree[i] = true;
+		}
 	}
 	else
 	{
@@ -118,24 +142,88 @@ bool RegionFile::readChunk(int x, int z, RakNet::BitStream** destChunkData)
 	}
 
 	int sectorNum = offset >> 8;
-
-	fseek(file, sectorNum * SECTOR_BYTES, SEEK_SET);
 	int length = 0;
-	fread(&length, sizeof(int), 1, file);
 
-	assert(length < ((offset & 0xff) * SECTOR_BYTES));
-	length -= sizeof(int);
-	if (length <= 0) {
-		//*destChunkData = NULL;
-		//return false;
+	if (!_fileCache.empty())
+	{
+		// Fast path: read directly from the in-memory cache.
+		size_t byteOffset = (size_t)sectorNum * SECTOR_BYTES;
+		if (byteOffset + sizeof(int) > _fileCache.size())
+		{
+			LOGI("ERROR: RegionFile cache underrun at sector %d\n", sectorNum);
+			return false;
+		}
+		memcpy(&length, &_fileCache[byteOffset], sizeof(int));
+		assert(length < ((offset & 0xff) * SECTOR_BYTES));
+		length -= sizeof(int);
+
+		unsigned char* data = new unsigned char[length > 0 ? length : 1];
+		if (length > 0)
+		{
+			size_t dataOffset = byteOffset + sizeof(int);
+			if (dataOffset + (size_t)length > _fileCache.size())
+			{
+				LOGI("ERROR: RegionFile cache data underrun for chunk (%d,%d)\n", x, z);
+				delete[] data;
+				return false;
+			}
+			memcpy(data, &_fileCache[dataOffset], length);
+		}
+		*destChunkData = new RakNet::BitStream(data, length > 0 ? length : 0, false);
+	}
+	else
+	{
+		// Slow path: seek + read from file.
+		fseek(file, sectorNum * SECTOR_BYTES, SEEK_SET);
+		fread(&length, sizeof(int), 1, file);
+
+		assert(length < ((offset & 0xff) * SECTOR_BYTES));
+		length -= sizeof(int);
+		if (length <= 0) {
+			//*destChunkData = NULL;
+			//return false;
+		}
+
+		unsigned char* data = new unsigned char[length];
+		logAssert(fread(data, 1, length, file), length);
+		*destChunkData = new RakNet::BitStream(data, length, false);
+		//delete [] data;
 	}
 
-	unsigned char* data = new unsigned char[length];
-	logAssert(fread(data, 1, length, file), length);
-	*destChunkData = new RakNet::BitStream(data, length, false);
-	//delete [] data;
-
 	return true;
+}
+
+bool RegionFile::preloadToMemory()
+{
+	if (!file)
+		return false;
+
+	// Determine file size
+	if (fseek(file, 0, SEEK_END) != 0)
+		return false;
+	long fileSize = ftell(file);
+	if (fileSize <= 0)
+		return false;
+	rewind(file);
+
+	_fileCache.resize((size_t)fileSize);
+	size_t bytesRead = fread(_fileCache.data(), 1, (size_t)fileSize, file);
+	if ((long)bytesRead != fileSize)
+	{
+		LOGI("ERROR: preloadToMemory only read %zu of %ld bytes\n", bytesRead, fileSize);
+		_fileCache.clear();
+		return false;
+	}
+
+	rewind(file);
+
+	LOGI("RegionFile: preloaded %ld bytes into memory cache\n", fileSize);
+	return true;
+}
+
+void RegionFile::freeMemoryCache()
+{
+	std::vector<unsigned char>().swap(_fileCache);
 }
 
 bool RegionFile::writeChunk(int x, int z, RakNet::BitStream& chunkData)

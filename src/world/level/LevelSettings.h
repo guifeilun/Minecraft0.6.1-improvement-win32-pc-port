@@ -11,17 +11,23 @@ namespace GameType {
 	const int Default = Creative;
 }
 
+namespace WorldType {
+	const int Old      = 0; // finite 256x256 world
+	const int Infinite = 1; // infinite procedural world
+}
+
 class LevelSettings
 {
 public:
-    LevelSettings(long seed, int gameType, bool allowCheats = false)
+    LevelSettings(long seed, int gameType, int worldType = WorldType::Old, bool allowCheats = false)
     :   seed(seed),
         gameType(gameType),
+        worldType(worldType),
         allowCheats(allowCheats)
     {
     }
 	static LevelSettings None() {
-		return LevelSettings(-1,-1,false);
+		return LevelSettings(-1, -1, WorldType::Old, false);
 	}
 
     long getSeed() const {
@@ -30,6 +36,10 @@ public:
 
     int getGameType() const {
         return gameType;
+    }
+
+    int getWorldType() const {
+        return worldType;
     }
 
     bool getAllowCheats() const {
@@ -58,6 +68,7 @@ public:
 private:
     const long seed;
     const int gameType;
+    const int worldType;
     const bool allowCheats;
 };
 

@@ -8,6 +8,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <cstdint>
 
 //#include "com/mojang/nbt/CompoundTag.h"
 #include "LevelStorage.h"
@@ -78,8 +79,14 @@ public:
 	// before flipping so chunks queued under the old dim don't get written
 	// to the new dim's region file.
 	void setActiveDimensionId(int id);
+
+	// Release the in-memory region file caches after all initial chunks
+	// have been loaded.
+	void finishPreload();
+
 private:
-	RegionFile* getRegionFile();         // lazy per-dim chunks file
+	RegionFile* getRegionFile();                             // finite worlds (per-dim)
+	RegionFile* getOrOpenRegion(int dimId, int cx, int cz);  // infinite worlds (per-dim + per-region)
 	std::string entitiesFilePathForDim() const;
 
 	std::string levelId;
@@ -87,7 +94,12 @@ private:
 	LevelData* loadedLevelData;
 	// regionFiles[dimId] -> chunks.dat for the overworld, chunks_nether.dat
 	// for the Nether, etc. Lazily populated; freed in the destructor.
+	// Used for finite (Old) worlds.
 	std::map<int, RegionFile*> regionFiles;
+	// Infinite worlds: regionFilesInfinite[dimId][regionKey] -> RegionFile.
+	// Each key covers a 32x32 chunk region. Lazily populated; freed in the
+	// destructor.
+	std::map<int, std::map<int64_t, RegionFile*> > regionFilesInfinite;
 	int activeDimensionId;
 
 	Level* level;

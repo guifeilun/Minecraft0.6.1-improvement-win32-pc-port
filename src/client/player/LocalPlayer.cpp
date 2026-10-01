@@ -794,51 +794,39 @@ void LocalPlayer::_init() {
 
 void LocalPlayer::startCrafting(int x, int y, int z, int tableSize) {
 #ifndef STANDALONE_SERVER
-	if (!minecraft->isCreativeMode()) {
-		// Desktop UI mode: Java-style screen with placeable grid + matched recipes.
-		// Touch UI mode: original PE recipe-browser screen.
-		// `tableSize` is a Recipe size category (SIZE_2X2 = 0, SIZE_3X3 = 1), not
-		// the grid dimension. Translate for the desktop screen which wants NxN.
-		if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) != 0) {
-			int n = (tableSize == Recipe::SIZE_3X3) ? 3 : 2;
-			minecraft->setScreen( new DesktopCraftingScreen(n) );
-		} else {
-			minecraft->setScreen( new WorkbenchScreen(tableSize) );
-		}
-	}
+    if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) != 0) {
+        int n = (tableSize == Recipe::SIZE_3X3) ? 3 : 2;
+        minecraft->setScreen( new DesktopCraftingScreen(n) );
+    } else {
+        minecraft->setScreen( new WorkbenchScreen(tableSize) );
+    }
 #endif
 }
 
 void LocalPlayer::startStonecutting(int x, int y, int z) {
 #ifndef STANDALONE_SERVER
-    if (!minecraft->isCreativeMode()) {
-        if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) != 0)
-            minecraft->setScreen(new DesktopCraftingScreen(3));
-        else
-            minecraft->setScreen(new StonecutterScreen());
-    }
+    if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) != 0)
+        minecraft->setScreen(new DesktopCraftingScreen(3));
+    else
+        minecraft->setScreen(new StonecutterScreen());
 #endif
 }
 
 void LocalPlayer::openFurnace( FurnaceTileEntity* e ) {
 #ifndef STANDALONE_SERVER
-	if (!minecraft->isCreativeMode()) {
-		if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) != 0)
-			minecraft->setScreen( new DesktopFurnaceScreen(this, e) );
-		else
-			minecraft->setScreen( new FurnaceScreen(this, e) );
-	}
+    if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) != 0)
+        minecraft->setScreen( new DesktopFurnaceScreen(this, e) );
+    else
+        minecraft->setScreen( new FurnaceScreen(this, e) );
 #endif
 }
 
 void LocalPlayer::openContainer( ChestTileEntity* container ) {
 #ifndef STANDALONE_SERVER
-	if (!minecraft->isCreativeMode()) {
-		if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) != 0)
-			minecraft->setScreen( new DesktopChestScreen(this, container) );
-		else
-			minecraft->setScreen( new ChestScreen(this, container) );
-	}
+    if (minecraft->options.getIntValue(OPTIONS_MENU_STYLE) != 0)
+        minecraft->setScreen( new DesktopChestScreen(this, container) );
+    else
+        minecraft->setScreen( new ChestScreen(this, container) );
 #endif
 }
 
