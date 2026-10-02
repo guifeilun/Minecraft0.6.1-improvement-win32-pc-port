@@ -1919,8 +1919,20 @@ void Level::switchDimension(int newDimensionId)
 			for (size_t p = 0; p < players.size(); ++p) {
 				if (players[p] == e) { isPlayer = true; break; }
 			}
-			if (isPlayer) survivors.push_back(e);
-			else           delete e;
+			if (isPlayer) {
+				survivors.push_back(e);
+			} else {
+				// Remove from its chunk before deleting. Otherwise the chunk
+				// keeps a dangling pointer and ChunkCache::saveAll (called
+				// below) will crash when it walks the chunk's entity list.
+				if (e->inChunk) {
+					LevelChunk* lc = getChunk(e->xChunk, e->zChunk);
+					if (lc) lc->removeEntity(e, e->yChunk);
+					e->inChunk = false;
+				}
+				entityIdLookup.erase(e->entityId);
+				delete e;
+			}
 		}
 		entities.swap(survivors);
 		entityIdLookup.clear();

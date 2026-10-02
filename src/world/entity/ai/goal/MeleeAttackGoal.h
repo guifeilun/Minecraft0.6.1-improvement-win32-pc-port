@@ -15,48 +15,38 @@ class MeleeAttackGoal: public Goal
 {
 public:
     MeleeAttackGoal(Monster* mob, float speed, bool trackTarget, int attackType = 0)
-	:	mob(mob),
-		level(mob->level),
-		speed(speed),
-		trackTarget(trackTarget),
-		attackTime(0),
-		attackType(attackType),
-		path(NULL)
-	{
-		setRequiredControlFlags(Control::MoveControlFlag | Control::LookControlFlag);
+        :       mob(mob),
+                level(mob->level),
+                speed(speed),
+                trackTarget(trackTarget),
+                attackTime(0),
+                attackType(attackType)
+        {
+                setRequiredControlFlags(Control::MoveControlFlag | Control::LookControlFlag);
     }
-	~MeleeAttackGoal() {
-		if (path) {
-			LOGI("mag-deleting %p (%d)\n", path, path->id);
-			delete path;
-		}
-	}
+        ~MeleeAttackGoal() {
+    }
 
-    /*@Override*/
     bool canUse() {
         Mob* bestTarget = mob->getTarget();
         if (bestTarget == NULL) return false;
-        if (attackType != 0 && !mob->isPlayer()) return false; //!attackType.isAssignableFrom(bestTarget.getClass())) return false;
+        if (attackType != 0 && !mob->isPlayer()) return false;
         target = bestTarget;
-		if (path) {
-			LOGI("mag-canuse-deleting %p (%d)\n", path, path->id);
-			delete path;
-		}
-        path = mob->getNavigation()->createPath(target);
-        return path != NULL;
+        // PathNavigation owns the path; don't keep a copy.
+        return mob->getNavigation()->moveTo(target, speed);
     }
 
     bool canContinueToUse() {
         Mob* bestTarget = mob->getTarget();
         if (bestTarget == NULL) return false;
-        if (attackType != 0 && !mob->isPlayer()) return false;//!attackType.isAssignableFrom(bestTarget.getClass())) return false;
+        if (attackType != 0 && !mob->isPlayer()) return false;
         target = bestTarget;
         if (!trackTarget) return !mob->getNavigation()->isDone();
         return true;
     }
 
     void start() {
-        mob->getNavigation()->moveTo(path, speed, false);
+        // moveTo already called in canUse()
     }
 
     void stop() {
@@ -65,11 +55,9 @@ public:
     }
 
     void tick() {
-        //mob->getLookControl().setLookAt(target, 30, 30);
         if (trackTarget || mob->sensing->canSee(target)) {
-			//LOGI("target: %p @ %f, %f, %f\n", target, target->x, target->y, target->z);
-			mob->getNavigation()->moveTo(target, speed);
-		}
+            mob->getNavigation()->moveTo(target, speed);
+        }
 
         attackTime = Mth::Max(attackTime - 1, 0);
 
@@ -86,9 +74,8 @@ private:
     Mob* target;
     int attackTime;
     float speed;
-    Path* path;
     int attackType;
-	bool trackTarget;
+    bool trackTarget;
 };
 
 #endif /*NET_MINECRAFT_WORLD_ENTITY_AI_GOAL__MeleeAttackGoal_H__*/
