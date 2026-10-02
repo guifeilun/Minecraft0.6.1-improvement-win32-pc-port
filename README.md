@@ -1,4 +1,4 @@
-# Minecraft PE 0.6.1 Win32 Port - Improved
+# Minecraft PE 0.6.1 Win32 移植版 - 改进版
 
 基于 [JackTulli/Minecraft-PE-0.6.1-Win32-port](https://github.com/JackTulli/Minecraft-PE-0.6.1-Win32-port) 的修改版，添加了一些原版 0.6.1 缺失或未完成的功能。
 
@@ -58,6 +58,7 @@
 - 挖掘掉落下界石英
 
 ### 合成表
+
 - 更新合成表，现在各种物品均可合成
 
 ### DirectSound 音频后端
@@ -72,7 +73,7 @@
 - 支持鼠标滚轮滚动
 - 滚动范围自动计算，带边界限制
 - 使用 `glScissor` 裁剪，内容不会溢出可视区域
-- 加入isflying选项
+- 加入 `isFlying` 选项
 
 ### 鼠标绑定修复
 
@@ -122,41 +123,39 @@
 
 - 从设置界面移除
 
+### 切维度稳定性修复
+
+- 修复下界 ↔ 主世界切换后崩溃（实体未从 chunk 移除导致 `saveAll` 访问悬空指针）
+- 加固 `ExplodePacket` 网络包解析（防止损坏包导致越界）
+- 修复 `MeleeAttackGoal` 和 `PathNavigation` 共享 `Path*` 的双重删除
+
 ## JackTulli 的修改
 
-### Redstone
+### 红石
 
-A functional, mostly vanilla-faithful redstone subsystem built from the
-scaffolding upstream left behind (`Tile::isSignalSource`, `Level::getSignal`,
-`hasNeighborSignal`, `hasDirectSignal`). Includes:
+一套功能可用、基本忠于原版的红石系统，构建于上游遗留的脚手架
+（`Tile::isSignalSource`、`Level::getSignal`、`hasNeighborSignal`、
+`hasDirectSignal`）之上。包括：
 
-- **Redstone dust** — 0..15 strength stored in `auxValue`, decays one per hop,
-  cuts properly when the source is removed. Grayscale cross sprite at terrain
-  `(4, 10)` is tinted red at render time via `getColor` — bright when powered,
-  dim when off so you can see the wire layout.
-- **Lever** — wall-mountable on any solid face (and floor). `auxValue` bit
-  `0x8` is on/off, bits `0..2` are mount face (1..5, same convention as torch).
-  No proper lever sprite exists in this build's atlas, so the body renders as
-  a small wooden cube that flips to cobblestone when thrown.
-- **Button** — wall-mountable like the lever, with a timed press: 20 ticks for
-  stone, 30 for wood. `setShape` flattens the AABB against whichever face
-  it's mounted on.
-- **Pressure plate** — random-ticks itself to scan for entities in a small
-  AABB above the plate, sets aux 0/1, fires neighbor updates.
-- **Redstone torch** — two tile IDs (`notGate_off` = 75, `notGate_on` = 76)
-  sharing a class with a `_lit` flag. Acts as a NOT-gate: schedules a 2-tick
-  state-check whenever neighbours change, swaps variant in `tick`. Always
-  strongly powers the block directly above (regardless of mount), so
-  `torch → dirt → door` opens the door.
-- **Redstone lamp** — two-variant tile (123 off, 124 on) that lights when any
-  signal touches it. Off form uses a baked "opaque glass" texture (the glass
-  speckle pattern composited onto a warm-white backing, written into the
-  previously-unused atlas cell at `(4, 11)`); on form uses the glowstone
-  sprite with full light emission.
-- **Doors / TNT** react to weak power via the existing `hasNeighborSignal`
-  path — nothing else needed there. Wires also do an "indirect neighbour
-  update" (neighbours-of-neighbours) on every strength change so torches and
-  components attached to wire-adjacent blocks notice the change.
+- **红石粉** —— 强度 0..15 存储在 `auxValue`，每跳衰减 1，电源移除后正确截断。
+  地形图集 `(4, 10)` 处的灰度十字贴图在渲染时通过 `getColor` 染红 —— 有电时亮，
+  无电时暗，方便查看线路布局。
+- **拉杆** —— 可安装在任意实心面（包括地面）上。`auxValue` 位 `0x8` 是开/关，
+  位 `0..2` 是安装面（1..5，与火把相同的约定）。该版本的图集中没有合适的拉杆贴图，
+  所以主体渲染为一个可翻转的小木块，切换时变成圆石。
+- **按钮** —— 与拉杆一样可安装在墙上，带定时按压：石头 20 tick，木头 30 tick。
+  `setShape` 会将 AABB 压扁到它安装的那个面上。
+- **压力板** —— 随机 tick 扫描板上方小 AABB 内的实体，设置 aux 0/1，触发邻居更新。
+- **红石火把** —— 两个 tile ID（`notGate_off` = 75，`notGate_on` = 76），
+  共用一个类，带 `_lit` 标志。作为非门：邻居变化时安排 2 tick 状态检查，
+  在 `tick` 中交换变体。始终强充能正上方的方块（无论安装面），所以
+  `火把 → 泥土 → 门` 能打开门。
+- **红石灯** —— 双变体 tile（123 关，124 开），任何信号触碰时点亮。
+  关的形式使用烘焙的"不透明玻璃"贴图（玻璃斑点图案叠加在暖白色背景上，
+  写入之前未使用的图集单元 `(4, 11)`）；开的形式使用荧石贴图，全亮度发光。
+- **门 / TNT** 通过现有的 `hasNeighborSignal` 路径响应弱电 —— 无需额外处理。
+  电线每次强度变化时还会做一次"间接邻居更新"（邻居的邻居），
+  以便连接到电线相邻方块的拉杆和组件能感知变化。
 
 ### `/time` 命令
 
@@ -256,7 +255,6 @@ powershell.exe -ExecutionPolicy Bypass -File .\build-xp.ps1
 2. 部分粒子效果渲染错乱（火焰、爆炸粒子）
 3. 水面渲染有瑕疵，透明方块有 Z-fighting（贴图闪烁重叠）
 4. 存档兼容：只能读取 PE 0.6.1 原版存档；更高版本存档不能载入
-5. 偶尔退出游戏发生内存泄漏，程序崩溃
 6. XP 系统下，音频初始化失败概率较高
 
 ## 开发笔记
@@ -272,6 +270,8 @@ powershell.exe -ExecutionPolicy Bypass -File .\build-xp.ps1
 | `Tesselator` 未定义 | `#include "../../../renderer/Tesselator.h"` |
 | `const char* x = I18n::get(...).c_str()` 悬空 | 改成 `std::string x = I18n::get(...)` |
 | 静态 `I18n::get()` 在 `main()` 前执行导致崩溃 | 改为函数内懒初始化或硬编码 |
+| 切维度后崩在 `GoalSelector::_Umove` | `switchDimension` 的 `delete e` 前没从 chunk 移除，`saveAll` 遍历 chunk 时访问悬空 `e`。修法：`delete e` 前 `if (e->inChunk) lc->removeEntity(e, e->yChunk);` |
+| `MeleeAttackGoal` 和 `PathNavigation` 共享 `Path*` | 两个都持有 `Path*`，一个删了另一个悬空。修法：`MeleeAttackGoal` 不删 `path`，交给 `PathNavigation` |
 
 ## 致谢
 
