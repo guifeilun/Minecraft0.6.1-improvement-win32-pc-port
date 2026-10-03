@@ -208,9 +208,10 @@ powershell.exe -ExecutionPolicy Bypass -File .\build-xp.ps1
 
 # 清理后重新构建
 .\build-xp.ps1 -Clean
-```
+
 # 查看编译错误
 .\build-xp.ps1 2>&1 | Select-String -Pattern "error C|fatal|LNK" | Select-Object -First 30
+```
 
 **依赖要求**：
 
