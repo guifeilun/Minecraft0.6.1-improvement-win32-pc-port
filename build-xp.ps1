@@ -1,11 +1,10 @@
 # Build MinecraftPE targeting Windows XP SP2/SP3.
-# Requires: VS 2017 Build Tools with v141_xp toolset, CMake 3.21+, Ninja, Git.
+# Requires: VS 2017 Build Tools with v141_xp toolset, CMake 3.21+, Ninja (on PATH), Git.
 
 param(
     [switch]$Clean,
     [string]$BuildDir = (Join-Path $PSScriptRoot "build-xp"),
     [string]$VsRoot = "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools",
-    [string]$NinjaDir = "C:\Users\Jack\AppData\Local\Microsoft\WinGet\Packages\Ninja-build.Ninja_Microsoft.Winget.Source_8wekyb3d8bbwe",
     [string]$CMake = "C:\Program Files\CMake\bin\cmake.exe"
 )
 
@@ -27,8 +26,8 @@ $env:INCLUDE = $captured['INCLUDE']
 $env:LIB     = $captured['LIB']
 $env:LIBPATH = $captured['LIBPATH']
 # Strip Watcom (or any other stray cl.exe) so MSVC wins on PATH.
-$cleanPath = ($captured['PATH'] -split ';' | Where-Object { $_ -notmatch '(?i)WATCOM' }) -join ';'
-$env:PATH = "$NinjaDir;$cleanPath"
+$env:PATH = ($captured['PATH'] -split ';' | Where-Object { $_ -notmatch '(?i)WATCOM' }) -join ';'
+
 # OpenAL 1.19.1's native-tools sub-project uses cmake_minimum_required < 3.5; CMake 4.x
 # refuses to configure that without this hint.
 $env:CMAKE_POLICY_VERSION_MINIMUM = "3.5"
