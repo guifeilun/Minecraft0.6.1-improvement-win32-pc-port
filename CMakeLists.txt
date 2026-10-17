@@ -1,14 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
-# XP_TARGET must be processed BEFORE project() so that the static-CRT setting
-# applies to CMake's own compiler-detection probe (which otherwise tries to
-# link against ucrtd.lib — not available on the v141_xp toolset).
 option(XP_TARGET "Target Windows XP (requires v141_xp toolset, 32-bit only, statically links the CRT)" OFF)
 if(XP_TARGET)
-    # CMP0091 NEW = honor CMAKE_MSVC_RUNTIME_LIBRARY (instead of baking /MD into flags).
-    # Must be set as default for sub-projects (CPM-fetched deps) too.
     set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
     cmake_policy(SET CMP0091 NEW)
-    # Statically link the CRT so the XP target needs no redistributable.
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
 endif()
 project(MinecraftPE)
@@ -19,11 +13,7 @@ if(XP_TARGET)
     if(NOT MSVC)
         message(FATAL_ERROR "XP_TARGET requires MSVC (v141_xp toolset)")
     endif()
-    # Pin Windows headers to XP so post-XP APIs fail at compile time rather than runtime.
-    # Don't set NTDDI_VERSION — OpenAL 1.19.1 forces _WIN32_WINNT=0x0502 (Server 2003)
-    # internally and would conflict; the Win SDK auto‑derives NTDDI_VERSION from _WIN32_WINNT.
     add_definitions(-DWINVER=0x0501 -D_WIN32_WINNT=0x0501 -DPSAPI_VERSION=1 -DWIN32_LEAN_AND_MEAN)
-    # Make the resulting EXE actually load on XP (XP = NT 5.1)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:CONSOLE,5.01")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SUBSYSTEM:WINDOWS,5.01")
     message(STATUS "XP_TARGET enabled: targeting Windows XP SP3 (NT 5.1), static CRT")
@@ -34,7 +24,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
 include(cmake/EnumOption.cmake)
 if(EMSCRIPTEN)
-    # When configuring web builds with "emcmake cmake -B build -S .", set PLATFORM to Web by default
     set(PLATFORM Web CACHE STRING "Platform to build for.")
 endif()
 enum_option(PLATFORM "Desktop;Web" "Platform to build for.")
@@ -63,7 +52,6 @@ elseif (${PLATFORM} STREQUAL "Web")
     set(PLATFORM_CPP "PLATFORM_WEB")
     set(EXTRA_LIBS "idbfs.js")
 endif()
-# I totally shocked
 if(${PLATFORM} MATCHES "Web")
     set(PNG_LIB png)
     set(AL_LIBTYPE "STATIC")
@@ -87,6 +75,16 @@ else()
         GIT_REPOSITORY "https://github.com/madler/zlib"
         GIT_TAG "v1.3.2"
     )
+    if(WIN32)
+        # Wire the just-fetched zlib into libpng's find_package(ZLIB).
+        # Without this, cross-compiling can't discover the freshly built library.
+        set(ZLIB_INCLUDE_DIR "${zlib_SOURCE_DIR}" "${zlib_BINARY_DIR}" CACHE PATH "" FORCE)
+        set(ZLIB_LIBRARY "zlib" CACHE FILEPATH "" FORCE)
+        set(ZLIB_FOUND TRUE)
+        if(NOT TARGET ZLIB::ZLIB)
+            add_library(ZLIB::ZLIB ALIAS zlib)
+        endif()
+    endif()
     CPMAddPackage(
         NAME "libpng"
         GIT_REPOSITORY "https://github.com/pnggroup/libpng.git"
@@ -97,11 +95,30 @@ else()
             "PNG_TOOLS OFF"
             "PNG_TESTS OFF"
     )
+    if(NOT WIN32 AND NOT APPLE)
+        CPMAddPackage(
+            NAME "openal"
+            GIT_REPOSITORY "https://github.com/kcat/openal-soft.git"
+            GIT_TAG "1.23.1"
+            OPTIONS
+                "ALSOFT_EXAMPLES OFF"
+                "ALSOFT_TESTS OFF"
+                "ALSOFT_UTILS OFF"
+                "ALSOFT_ENABLE_MODULES OFF"
+        )
+    endif()
     if(XP_TARGET)
-        # GLFW 3.4 dropped XP support; 3.3.10 is the last release that runs on XP
         set(GLFW_TAG "3.3.10")
     else()
         set(GLFW_TAG "3.4")
+    endif()
+    # Desktop port uses X11 by default; Wayland is opt-in (avoids a hard
+    # dependency on libwayland-dev / wayland-scanner on every Linux box).
+    option(MCPE_ENABLE_WAYLAND "Build GLFW with Wayland support (Linux)" OFF)
+    if(MCPE_ENABLE_WAYLAND)
+        set(GLFW_WL "ON")
+    else()
+        set(GLFW_WL "OFF")
     endif()
     CPMAddPackage(
         NAME "glfw"
@@ -112,9 +129,9 @@ else()
             "GLFW_BUILD_EXAMPLES OFF"
             "GLFW_BUILD_TESTS OFF"
             "GLFW_BUILD_DOCS OFF"
+            "GLFW_BUILD_WAYLAND ${GLFW_WL}"
     )
 endif()
-# TODO: Clear this paths with *
 file(GLOB SERVER_SOURCES
     "project/lib_projects/raknet/jni/RaknetSources/*.cpp"
     "src/NinecraftApp.cpp"
@@ -145,8 +162,6 @@ file(GLOB SERVER_SOURCES
     "src/network/command/CommandServer.cpp"
     "src/platform/CThread.cpp"
     "src/platform/HttpClient.cpp"
-    # PngLoader.cpp is client‑only (textures); the headless server doesn't need
-    # libpng linkage or texture loading.
     "src/platform/time.cpp"
     "src/platform/input/Controller.cpp"
     "src/platform/input/Keyboard.cpp"
@@ -213,19 +228,14 @@ file(GLOB CLIENT_SOURCES
     "src/client/renderer/ptexture/*.cpp"
     "src/client/renderer/tileentity/*.cpp"
     "src/client/sound/*.cpp"
-
     "src/locale/*.cpp"
-
     "src/nbt/*.cpp"
     "src/network/*.cpp"
     "src/network/command/*.cpp"
     "src/platform/*.cpp"
-    "src/platform/audio/SoundSystemAL.cpp"
     "src/platform/input/*.cpp"
     "src/raknet/**.cpp"
-
     "src/server/**.cpp"
-
     "src/util/**.cpp"
     "src/util/Color.cpp"
     "src/world/*.cpp"
@@ -259,11 +269,14 @@ file(GLOB CLIENT_SOURCES
     "src/AppPlatform_glfw.cpp"
     "src/main.cpp"
 )
+if(WIN32)
+    list(APPEND CLIENT_SOURCES "src/platform/audio/SoundSystemDX.cpp")
+else()
+    list(APPEND CLIENT_SOURCES "src/platform/audio/SoundSystemAL.cpp")
+endif()
 if (${PLATFORM} STREQUAL "Desktop")
     list(APPEND CLIENT_SOURCES glad/src/glad.c)
 endif()
-# Server — headless dedicated server, builds on Linux and Windows.
-# Skipped on Emscripten (no headless networking story there).
 if(NOT EMSCRIPTEN)
     add_executable("${PROJECT_NAME}-server" ${SERVER_SOURCES})
     target_compile_definitions("${PROJECT_NAME}-server" PUBLIC "STANDALONE_SERVER" "SERVER_PROFILER")
@@ -287,9 +300,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     "${glfw_SOURCE_DIR}/include"
     "lib/include"
 )
+if(NOT WIN32 AND NOT EMSCRIPTEN AND NOT APPLE)
+    target_include_directories(${PROJECT_NAME} PUBLIC "${openal_SOURCE_DIR}/include")
+endif()
 if(${PLATFORM} MATCHES "Web")
     set(CMAKE_CXX_STANDARD 11)
-    # uuuh i hate it
     set(EM_FLAGS "-pthread -sUSE_PTHREADS=1 -sUSE_LIBPNG=1 -sSHARED_MEMORY=1")
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EM_FLAGS}")
@@ -324,9 +339,19 @@ if(${PLATFORM} MATCHES "Web")
     endif()
     target_compile_definitions(${PROJECT_NAME} PUBLIC "__EMSCRIPTEN__" "NO_SOUND" "NO_NETWORK")
 endif()
-# Client
 target_compile_definitions(${PROJECT_NAME} PUBLIC "OPENGL_ES" "NO_EGL" ${PLATFORM})
-target_link_libraries(${PROJECT_NAME} zlib ${PNG_LIB} dsound winmm glfw ${EXTRA_LIBS})
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} zlib ${PNG_LIB} dsound winmm glfw ${EXTRA_LIBS})
+elseif(EMSCRIPTEN)
+    target_link_libraries(${PROJECT_NAME} zlib ${PNG_LIB} glfw ${EXTRA_LIBS})
+else()
+    if(APPLE)
+        find_library(OPENAL_LIBRARY OpenAL REQUIRED)
+        target_link_libraries(${PROJECT_NAME} zlib ${PNG_LIB} ${OPENAL_LIBRARY} glfw ${EXTRA_LIBS})
+    else()
+        target_link_libraries(${PROJECT_NAME} zlib ${PNG_LIB} OpenAL::OpenAL glfw ${EXTRA_LIBS})
+    endif()
+endif()
 if (OpenSSL_FOUND)
     target_link_libraries(${PROJECT_NAME} OpenSSL::SSL OpenSSL::Crypto)
     target_compile_definitions(${PROJECT_NAME} PUBLIC HTTPCLIENT_USE_OPENSSL)
