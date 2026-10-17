@@ -6,18 +6,8 @@
 #include <vector>
 
 class ImageButton;
+class NinePatchLayer;
 
-// PC-style creative inventory. Enumerates every registered Item and every
-// placeable Tile at startup, groups them by ItemCategory, and renders them
-// in a scrollable 9-wide grid with tabs across the top. Mouse: click an
-// entry to put it into your selected hotbar slot. Right-click an entry to
-// instead pick a single-count stack. Wheel scrolls; tab buttons switch the
-// active category; Esc/E closes.
-//
-// Unlike the touch IngameBlockSelectionScreen which scrolls through a fixed
-// pre-populated inventory, this screen synthesises ItemInstances on demand
-// from the global Item::items[] table, so every item the game knows about
-// is reachable — including the placeholder items we wired up in Item.cpp.
 class DesktopCreativeScreen : public Screen
 {
     typedef Screen super;
@@ -26,10 +16,14 @@ public:
     ~DesktopCreativeScreen();
 
     void init();
+    void setupPositions();
     void render(int xm, int ym, float a);
+    void tick();
     void mouseClicked(int x, int y, int buttonNum);
+    void mouseReleased(int x, int y, int buttonNum);
     void mouseWheel(int dx, int dy, int xm, int ym);
     void keyPressed(int eventKey);
+    void buttonClicked(Button* button);
     void removed();
 
     bool renderGameBehind() { return true; }
@@ -43,30 +37,25 @@ private:
     int  hitTestHotbar(int mx, int my) const;
     int  hitTestTab(int mx, int my) const;
     void giveToHotbar(const ItemInstance& item);
+    void drawTooltip(int xm, int ym, const std::string& text);
 
     struct Entry {
         ItemInstance item;
         int category;
     };
-    // All known items/tiles, deduped and category-tagged.
     std::vector<Entry> entries;
-    // Indices into `entries` filtered by the currently-selected tab.
     std::vector<int>   filtered;
 
-    int activeCategory;  // ItemCategory:: value, or -1 = "All"
+    int activeCategory;
     int scrollOffsetRows;
-    int hoveredEntryIdx; // index into `filtered`, -1 if none
+    int hoveredEntryIdx;
 
-    // Layout positions (computed in layout()).
     int bgX, bgY, bgW, bgH;
     int paletteX, paletteY, paletteW, paletteH;
     int paletteCols, paletteRowsVisible;
     int hotbarX, hotbarY;
     int tabsY;
     int tabW, tabH;
-    // Tab definitions: each tab has a short label (used as a hover tooltip)
-    // and a representative item id whose icon is drawn into the tab — keeps
-    // the row narrow enough to fit on small windows without truncation.
     struct Tab {
         std::string label;
         int category;
@@ -75,6 +64,18 @@ private:
     };
     std::vector<Tab> tabs;
     int hoveredTabIdx;
+
+    ImageButton*    btnClose;
+    NinePatchLayer* guiBackground;
+    NinePatchLayer* guiSlot;
+    NinePatchLayer* guiSlotMarker;
+    NinePatchLayer* guiTabNormal;
+    NinePatchLayer* guiTabSelected;
+
+    bool  trackingScrollGesture;
+    bool  scrollingGesture;
+    int   dragStartX, dragStartY, lastDragY;
+    int   touchStartX, touchStartY;
 };
 
 #endif

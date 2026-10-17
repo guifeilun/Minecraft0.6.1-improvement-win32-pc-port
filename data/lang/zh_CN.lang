@@ -1,6 +1,7 @@
 language.name=中文
 language.region=CN
 language.code=zh_CN
+
 gui.done=完成
 gui.cancel=取消
 gui.toMenu=返回标题界面
@@ -8,6 +9,7 @@ gui.up=上
 gui.down=下
 gui.yes=是
 gui.no=否
+
 menu.singleplayer=单人游戏
 menu.multiplayer=多人游戏
 menu.mods=材质包
@@ -22,6 +24,7 @@ menu.loadingLevel=加载世界中
 menu.generatingTerrain=正在构建地形
 menu.simulating=正在模拟世界
 menu.respawning=正在重生
+
 selectWorld.title=选择世界
 selectWorld.empty=空
 selectWorld.world=世界
@@ -41,10 +44,12 @@ selectWorld.enterName=世界名称
 selectWorld.resultFolder=保存位置：
 selectWorld.enterSeed=世界生成种子
 selectWorld.seedInfo=留空使用随机种子
+
 gameMode.survival=生存模式
 gameMode.creative=创造模式
 gameMode.hardcore=极限模式！
 gameMode.changed=游戏模式已更改
+
 selectWorld.gameMode=游戏模式：
 selectWorld.gameMode.survival=生存
 selectWorld.gameMode.survival.line1=搜集资源，进行合成，获取
@@ -62,8 +67,10 @@ selectWorld.mapType=世界类型：
 selectWorld.mapType.normal=普通
 selectWorld.hardcoreMode=极限模式：
 selectWorld.hardcoreMode.info=死亡后世界将被删除
+
 generator.default=默认
 generator.flat=超平坦
+
 selectServer.title=选择服务器
 selectServer.empty=空
 selectServer.select=加入服务器
@@ -80,6 +87,7 @@ addServer.title=编辑服务器信息
 addServer.enterName=服务器名称
 addServer.enterIp=服务器地址
 addServer.add=完成
+
 multiplayer.title=多人游戏
 multiplayer.connect=连接
 multiplayer.info1=Minecraft多人游戏尚未完成，但是
@@ -87,6 +95,7 @@ multiplayer.info2=可以进行存在BUG的早期测试。
 multiplayer.ipinfo=输入服务器IP地址以连接：
 multiplayer.downloadingTerrain=正在下载地形
 multiplayer.stopSleeping=离开床
+
 demo.day.1=这个演示版本有5个游戏日，尽力生存！
 demo.day.2=第二天
 demo.day.3=第三天
@@ -98,9 +107,11 @@ demo.reminder=演示时间已结束，购买游戏继续游玩或新建世界！
 demo.help.movement=使用%1$s、%2$s、%3$s、%4$s和鼠标移动
 demo.help.jump=按%1$s跳跃
 demo.help.inventory=按%1$s打开物品栏
+
 connect.connecting=正在连接服务器...
 connect.authorizing=正在登录...
 connect.failed=连接服务器失败
+
 disconnect.genericReason=%s
 disconnect.disconnected=被服务器断开
 disconnect.lost=连接丢失
@@ -112,6 +123,7 @@ disconnect.loginFailedInfo=登录失败：%s
 disconnect.quitting=正在退出
 disconnect.endOfStream=数据流结束
 disconnect.overflow=缓冲区溢出
+
 options.off=关
 options.on=开
 options.title=设置
@@ -129,15 +141,42 @@ options.fov.max=quake专业
 options.gamma=亮度
 options.gamma.min=昏暗
 options.gamma.max=明亮
+options.gamma.moody=昏暗
+options.gamma.dark=暗
+options.gamma.normal=正常
+options.gamma.bright=明亮
+
 options.group.mojang=登录
 options.group.general=通用
 options.group.game=游戏
 options.group.controls=控制
 options.group.graphics=图像
 options.group.tweaks=调整
+
 options.allowSprint=允许疾跑
 options.barOnTop=HUD置于物品栏上方
 options.rpiCursor=显示树莓派光标
+options.foliagetint=树叶染色
+options.javaHud=Java版HUD
+options.blockOutline=方块轮廓
+options.fogType=雾效/天空颜色
+options.fogType.vanilla=原版
+options.fogType.java=Java Beta
+options.fogType.unused=未使用
+
+options.debugStyle=调试菜单样式
+options.debugStyle.javaBeta=Java Beta
+options.debugStyle.custom=自定义
+
+options.beautifulSky=美丽天空
+options.useVignette=暗角效果
+options.vignette=暗角效果
+options.tintedSide=草地侧面染色
+options.betaSky=Java Beta天空
+options.restoredAnims=恢复动画
+options.normalLighting=Java Beta法线光照
+options.isJoyTouchArea=分离控制
+
 options.autoJump=自动跳跃
 options.thirdperson=第三人称
 options.servervisible=服务器可见
@@ -145,6 +184,7 @@ options.sensitivity=鼠标灵敏度
 options.sensitivity.min=昏昏欲睡
 options.sensitivity.max=极速！！！
 options.renderDistance=渲染距离
+options.forceNether=生成为下界
 options.renderDistance.tiny=极近
 options.renderDistance.short=近
 options.renderDistance.normal=正常
@@ -152,6 +192,7 @@ options.renderDistance.far=远
 options.viewBobbing=视角摇晃
 options.ao=平滑光照
 options.anaglyph=3D红蓝立体
+options.anaglyph3d=3D红蓝立体
 options.framerateLimit=性能
 options.limitFramerate=限制帧率
 options.vsync=垂直同步
@@ -171,7 +212,6 @@ options.guiScale.medium=中
 options.guiScale.large=大
 options.guiScale.larger=较大
 options.guiScale.largest=最大
-options.windowScale=窗口缩放
 options.advancedOpengl=高级OpenGL
 options.renderClouds=云
 options.farWarning1=使用“远”渲染距离推荐64位Java
@@ -184,14 +224,23 @@ options.username=用户名
 options.smoothCamera=平滑相机
 options.destroyVibration=破坏震动
 options.isLeftHanded=左手模式
+options.isflying=飞行模式
 options.useTouchscreen=使用触摸屏
 options.fancyGraphics=精致图像
 options.renderDebug=调试渲染
-options.anaglyph3d=3D红蓝立体
+options.windowScale=窗口缩放
+options.menuStyle=菜单样式
+options.menuStyle.pocket=携带版
+options.menuStyle.xperia=Xperia/Pi
+options.menuStyle.java=Java Beta
+options.brightness=亮度
+
 performance.max=最高帧率
 performance.balanced=均衡
 performance.powersaver=省电模式
+
 controls.title=控制
+
 options.key.forward=前进
 options.key.left=左移
 options.key.back=后退
@@ -207,9 +256,11 @@ options.key.attack=攻击
 options.key.use=使用物品
 options.key.pickItem=选取方块
 options.key.mouseButton=鼠标按键%1$s
+
 texturePack.openFolder=打开材质包文件夹
 texturePack.title=选择材质包
 texturePack.folderInfo=（把材质包放到这里）
+
 tile.stone.name=石头
 tile.grass.name=草方块
 tile.dirt.name=泥土
@@ -346,6 +397,7 @@ tile.quartzBlock.name=石英块
 tile.stairsQuartz.name=石英楼梯
 tile.stairsSandStone.name=砂岩楼梯
 tile.stonecutter.name=切石机
+
 item.shovelIron.name=铁铲
 item.pickaxeIron.name=铁镐
 item.hatchetIron.name=铁斧
@@ -492,11 +544,11 @@ item.cauldron.name=炼药锅
 item.brewingStand.name=酿造台
 item.eyeOfEnder.name=末影之眼
 item.speckledMelon.name=闪烁的西瓜
-item.monsterPlacer.name=生成蛋
-item.expBottle.name=经验瓶
+item.monsterPlacer.name=生成蛋item.expBottle.name=经验瓶
 item.fireball.name=火焰弹
 item.netherbrickItem.name=地狱砖
 item.netherquartz.name=下界石英
+
 container.inventory=物品栏
 container.crafting=合成台
 container.dispenser=发射器
@@ -506,6 +558,7 @@ container.creative=物品选择
 container.brewing=酿造台
 container.chest=箱子
 container.minecart=矿车
+
 entity.Item.name=物品
 entity.XPOrb.name=经验球
 entity.Arrow.name=箭
@@ -543,8 +596,8 @@ entity.PrimedTnt.name=点燃的TNT
 entity.FallingSand.name=下落方块
 entity.Minecart.name=矿车
 entity.Boat.name=船
-entity.Arrow.name=箭
 entity.generic.name=未知
+
 death.inFire=%1$s葬身火海
 death.onFire=%1$s被活活烧死
 death.lava=%1$s试图在岩浆里游泳
@@ -563,6 +616,7 @@ death.arrow=%1$s被%2$s射杀
 death.fireball=%1$s被%2$s的火球击中
 death.thrown=%1$s被%2$s投掷物重创
 death.indirectMagic=%1$s被%2$s的魔法杀死
+
 deathScreen.respawn=重生
 deathScreen.deleteWorld=删除世界
 deathScreen.titleScreen=返回标题
@@ -570,6 +624,7 @@ deathScreen.score=分数
 deathScreen.title.hardcore=游戏结束！
 deathScreen.hardcoreInfo=极限模式无法重生！
 deathScreen.title=你死了！
+
 potion.empty=无效果
 potion.moveSpeed=速度
 potion.moveSlowdown=迟缓
@@ -590,6 +645,7 @@ potion.blindness=失明
 potion.nightVision=夜视
 potion.hunger=饥饿
 potion.poison=中毒
+
 potion.moveSpeed.postfix=迅捷药水
 potion.moveSlowdown.postfix=迟缓药水
 potion.digSpeed.postfix=急迫药水
@@ -609,10 +665,12 @@ potion.blindness.postfix=失明药水
 potion.nightVision.postfix=夜视药水
 potion.hunger.postfix=饥饿药水
 potion.poison.postfix=剧毒药水
+
 potion.potency.0=
 potion.potency.1=II
 potion.potency.2=III
 potion.potency.3=IV
+
 potion.prefix.grenade=飞溅型
 potion.prefix.mundane=普通
 potion.prefix.uninteresting=乏味
@@ -646,6 +704,7 @@ potion.prefix.harsh=刺鼻
 potion.prefix.acrid=辛辣
 potion.prefix.gross=恶心
 potion.prefix.stinky=腥臭
+
 enchantment.damage.all=锋利
 enchantment.damage.undead=亡灵杀手
 enchantment.damage.arthropods=节肢杀手
@@ -667,6 +726,7 @@ enchantment.arrowDamage=力量
 enchantment.arrowFire=火焰
 enchantment.arrowKnockback=冲击
 enchantment.arrowInfinite=无限
+
 enchantment.level.1=I
 enchantment.level.2=II
 enchantment.level.3=III
@@ -677,8 +737,10 @@ enchantment.level.7=VII
 enchantment.level.8=VIII
 enchantment.level.9=IX
 enchantment.level.10=X
+
 gui.achievements=成就
 gui.stats=统计
+
 stat.generalButton=通用
 stat.blocksButton=方块
 stat.itemsButton=物品
@@ -713,6 +775,7 @@ stat.mineBlock=%1$s 已挖掘
 stat.craftItem=%1$s 已合成
 stat.useItem=%1$s 已使用
 stat.breakItem=%1$s 已消耗
+
 achievement.get=获得成就！
 achievement.taken=已获取！
 achievement.requires=需要解锁「%1$s」
@@ -770,6 +833,7 @@ achievement.overkill=赶尽杀绝
 achievement.overkill.desc=单次攻击造成8颗心伤害
 achievement.bookcase=图书管理员
 achievement.bookcase.desc=搭建书架来提升附魔台等级
+
 desc.sword=比徒手伤害更高。
 desc.shovel=用来快速挖掘泥土、草、沙子、沙砾、雪。
 desc.pickaxe=开采石头与矿石必须使用镐。

@@ -6,12 +6,15 @@
 #include "../../../renderer/Tesselator.h"
 #include "../../Font.h"
 #include "../../Gui.h"
+#include "../../components/ImageButton.h"
+#include "../../components/NinePatch.h"
 #include "../../../../world/entity/player/Player.h"
 #include "../../../../world/entity/player/Inventory.h"
 #include "../../../../world/inventory/FillingContainer.h"
 #include "../../../../world/level/tile/entity/FurnaceTileEntity.h"
 #include "../../../../world/item/Item.h"
 #include "../../../../world/item/ItemInstance.h"
+#include "../../../../world/item/crafting/FurnaceRecipes.h"
 #include "../../../../locale/I18n.h"
 #include "platform/input/Mouse.h"
 #include "platform/input/Keyboard.h"
@@ -21,17 +24,9 @@ const int SLOT_SIZE      = 18;
 const int SLOT_INNER     = 16;
 const int SLOT_PAD       = 1;
 
-const int COLOR_BG       = 0xc0202020;
-const int COLOR_FRAME    = 0xff8b8b8b;
-const int COLOR_SLOT     = 0xff5b5b5b;
-const int COLOR_HOVER    = 0x80ffffff;
-const int COLOR_TEXT     = 0xffe0e0e0;
+const int COLOR_TEXT       = 0xffe0e0e0;
 const int COLOR_TOOLTIP_BG = 0xe0100010;
 const int COLOR_TOOLTIP_FR = 0xff5000ff;
-const int COLOR_ARROW_BG = 0xff404040;
-const int COLOR_ARROW_FG = 0xffe0a040;  // amber, like Java's progress
-const int COLOR_FLAME    = 0xffff8800;
-const int COLOR_FLAME_BG = 0xff402010;
 
 bool canMerge(const ItemInstance& a, const ItemInstance& b) {
     if (a.isNull() || b.isNull()) return false;
@@ -59,6 +54,8 @@ DesktopFurnaceScreen::DesktopFurnaceScreen(Player* player_, FurnaceTileEntity* f
     hotbarSlotsBegin(0), hotbarSlotsEnd(0),
     invSlotsBegin(0), invSlotsEnd(0),
     bgX(0), bgY(0), bgW(0), bgH(0),
+    btnClose(NULL),
+    guiBackground(NULL), guiSlot(NULL), guiSlotMarker(NULL),
     arrowX(0), arrowY(0),
     flameX(0), flameY(0)
 {
@@ -66,14 +63,46 @@ DesktopFurnaceScreen::DesktopFurnaceScreen(Player* player_, FurnaceTileEntity* f
 }
 
 DesktopFurnaceScreen::~DesktopFurnaceScreen() {
+    delete btnClose;
+    delete guiBackground;
+    delete guiSlot;
+    delete guiSlotMarker;
 }
 
 void DesktopFurnaceScreen::init() {
     super::init();
     rebuildSlots();
+
+    NinePatchFactory builder(minecraft->textures, "gui/spritesheet.png");
+    guiBackground = builder.createSymmetrical(IntRectangle(0, 0, 16, 16), 4, 4);
+    guiSlot       = builder.createSymmetrical(IntRectangle(0, 32, 8, 8), 3, 3);
+    guiSlotMarker = builder.createSymmetrical(IntRectangle(10, 42, 16, 16), 5, 5);
+
+    if (!btnClose) {
+        btnClose = new ImageButton(0, "");
+        ImageDef def;
+        def.name = "gui/spritesheet.png";
+        def.x = 0; def.y = 1;
+        def.width = def.height = 18;
+        def.setSrc(IntRectangle(60, 0, 18, 18));
+        btnClose->setImageDef(def, true);
+        btnClose->scaleWhenPressed = false;
+        buttons.push_back(btnClose);
+    }
 }
 
-void DesktopFurnaceScreen::setupPositions() { init(); }
+void DesktopFurnaceScreen::setupPositions() {
+    rebuildSlots();
+
+    if (btnClose) {
+        btnClose->width  = 19;
+        btnClose->height = 19;
+        btnClose->x = bgX + bgW - btnClose->width;
+        btnClose->y = bgY;
+    }
+    if (guiBackground) guiBackground->setSize((float)bgW, (float)bgH);
+}
+
 void DesktopFurnaceScreen::tick() { rebuildSlots(); }
 
 void DesktopFurnaceScreen::rebuildSlots() {
@@ -86,50 +115,49 @@ void DesktopFurnaceScreen::rebuildSlots() {
     const int sectionGap = 6;
     const int titleH     = 12;
     const int hotbarGap  = 4;
-    const int furnaceTopH = 3 * SLOT_SIZE + 6;  // input/flame/fuel column height
+    const int furnaceTopH = 3 * SLOT_SIZE + 6;
 
     bgW = invRowPx + 2 * innerPad;
     bgH = titleH + furnaceTopH + sectionGap + 3 * SLOT_SIZE + hotbarGap + SLOT_SIZE + 2 * innerPad;
 
     bgX = (width  - bgW) / 2;
     bgY = (height - bgH) / 2;
+    if (bgY < 22) bgY = 22;
 
     int contentX = bgX + innerPad;
     int contentY = bgY + innerPad + titleH;
 
     slots.clear();
 
-    // Furnace column on the left
     int colX = contentX + 14;
     int inputY  = contentY;
     int fuelY   = contentY + 2 * SLOT_SIZE + 6;
     int outputX = colX + 4 * SLOT_SIZE;
     int outputY = contentY + SLOT_SIZE + 3;
 
-    flameX = colX;
-    flameY = contentY + SLOT_SIZE + 1;
-    arrowX = colX + (int)(SLOT_SIZE * 1.5);
-    arrowY = contentY + SLOT_SIZE + 5;
+    // 火焰：水平居中于输入槽，垂直居中于结果槽
+    flameX = colX + (SLOT_SIZE - 16) / 2;
+    flameY = outputY + (SLOT_SIZE - 16) / 2;
+
+    // 箭头：水平居中于输入槽右边缘和结果槽左边缘之间，垂直居中于结果槽
+    arrowX = colX + SLOT_SIZE + (outputX - colX - SLOT_SIZE - 24) / 2;
+    arrowY = outputY + (SLOT_SIZE - 16) / 2;
 
     furnaceSlotsBegin = (int)slots.size();
     {
-        // Input
         Slot s; s.container = furnace; s.slotIndex = FurnaceTileEntity::SLOT_INGREDIENT;
         s.x = colX; s.y = inputY; s.kind = SLOT_FURNACE_INPUT; slots.push_back(s);
     }
     {
-        // Fuel
         Slot s; s.container = furnace; s.slotIndex = FurnaceTileEntity::SLOT_FUEL;
         s.x = colX; s.y = fuelY; s.kind = SLOT_FURNACE_FUEL; slots.push_back(s);
     }
     {
-        // Output
         Slot s; s.container = furnace; s.slotIndex = FurnaceTileEntity::SLOT_RESULT;
         s.x = outputX; s.y = outputY; s.kind = SLOT_FURNACE_OUTPUT; slots.push_back(s);
     }
     furnaceSlotsEnd = (int)slots.size();
 
-    // Player inventory (link-aware)
     const int numLinked = inv->getNumLinkedSlots();
     bool isLinkedTarget[256] = { false };
     for (int h = 0; h < numLinked && h < 256; ++h) {
@@ -179,87 +207,84 @@ int DesktopFurnaceScreen::findSlotAt(int x, int y) {
     return -1;
 }
 
-void DesktopFurnaceScreen::renderSlotBg(int x, int y) {
-    fill(x,             y,             x + SLOT_SIZE, y + SLOT_SIZE, COLOR_FRAME);
-    fill(x + SLOT_PAD,  y + SLOT_PAD,  x + SLOT_SIZE - SLOT_PAD, y + SLOT_SIZE - SLOT_PAD, COLOR_SLOT);
-}
-
 void DesktopFurnaceScreen::render(int xm, int ym, float a) {
+    Tesselator& t = Tesselator::instance;
+
     fill(0, 0, width, height, 0x60101020);
-    fill(bgX - 1, bgY - 1, bgX + bgW + 1, bgY + bgH + 1, COLOR_FRAME);
-    fill(bgX,     bgY,     bgX + bgW,     bgY + bgH,     COLOR_BG);
+
+    guiBackground->setSize((float)bgW, (float)bgH);
+    guiBackground->draw(t, (float)bgX, (float)bgY);
 
     minecraft->font->drawShadow(I18n::get("container.furnace"), (float)(bgX + 8), (float)(bgY + 6), COLOR_TEXT);
 
+    guiSlot->setSize((float)SLOT_SIZE, (float)SLOT_SIZE);
     for (int i = 0; i < (int)slots.size(); ++i)
-        renderSlotBg(slots[i].x, slots[i].y);
+        guiSlot->draw(t, (float)slots[i].x, (float)slots[i].y);
 
-    // Flame indicator (between input and fuel slots) — fills upward as the
-    // remaining fuel time burns down.
     {
-        int max = SLOT_SIZE;
-        int litLeft = furnace ? furnace->getLitProgress(max) : 0;
-        fill(flameX, flameY, flameX + SLOT_SIZE, flameY + SLOT_SIZE, COLOR_FLAME_BG);
-        if (litLeft > 0) {
-            int top = flameY + (SLOT_SIZE - litLeft);
-            fill(flameX + 4, top, flameX + SLOT_SIZE - 4, flameY + SLOT_SIZE, COLOR_FLAME);
-        }
+        int fpx = furnace ? furnace->getLitProgress(14) + 2 : 0;
+        minecraft->textures->loadAndBindTexture("gui/spritesheet.png");
+        blit(flameX, flameY, 80, 40, 16, 16, 32, 32);
+        if (fpx > 0)
+            blit(flameX, flameY + 16 - fpx, 112, 40 + 32 - fpx - fpx, 16, fpx, 32, fpx + fpx);
+
+        int bpx = furnace ? furnace->getBurnProgress(24) : 0;
+        blit(arrowX, arrowY, 144, 40, 24, 16, 48, 32);
+        if (bpx > 0)
+            blit(arrowX, arrowY, 144, 72, bpx, 16, bpx + bpx, 32);
     }
 
-    // Cooking arrow (between input and output) — fills left-to-right.
-    {
-        int max = 2 * SLOT_SIZE;
-        int progress = furnace ? furnace->getBurnProgress(max) : 0;
-        int arrowH = SLOT_SIZE - 6;
-        fill(arrowX, arrowY, arrowX + max, arrowY + arrowH, COLOR_ARROW_BG);
-        if (progress > 0) {
-            fill(arrowX, arrowY + 2, arrowX + progress, arrowY + arrowH - 2, COLOR_ARROW_FG);
-        }
-        // Arrowhead
-        for (int i = 0; i < 5; ++i) {
-            fill(arrowX + max - 5 + i, arrowY - i, arrowX + max - 5 + i + 1, arrowY + arrowH + i, COLOR_ARROW_BG);
-        }
-    }
-
-    // Items
     for (int i = 0; i < (int)slots.size(); ++i) {
         const Slot& s = slots[i];
         if (s.slotIndex < 0) continue;
         ItemInstance* live = s.container->getItem(s.slotIndex);
         if (!live || live->isNull()) continue;
         ItemRenderer::renderGuiItem(minecraft->font, minecraft->textures, live,
-            (float)(s.x + SLOT_PAD), (float)(s.y + SLOT_PAD + 1), true);
-        minecraft->gui.renderSlotText(live, (float)(s.x + SLOT_PAD - 3), (float)(s.y + SLOT_PAD - 3), true, true);
+            (float)(s.x + SLOT_PAD), (float)(s.y + SLOT_PAD), true);
     }
+
     int hov = findSlotAt(xm, ym);
     if (hov >= 0) {
         const Slot& s = slots[hov];
-        fill(s.x + SLOT_PAD, s.y + SLOT_PAD, s.x + SLOT_SIZE - SLOT_PAD, s.y + SLOT_SIZE - SLOT_PAD, COLOR_HOVER);
+        guiSlotMarker->setSize((float)SLOT_SIZE + 4, (float)SLOT_SIZE + 4);
+        guiSlotMarker->draw(t, (float)(s.x - 2), (float)(s.y - 2));
     }
+
     if (!cursorItem.isNull()) {
         ItemRenderer::renderGuiItem(minecraft->font, minecraft->textures, &cursorItem,
             (float)(xm - SLOT_INNER / 2), (float)(ym - SLOT_INNER / 2 + 1), true);
-        minecraft->gui.renderSlotText(&cursorItem,
-            (float)(xm - SLOT_INNER / 2 - 3), (float)(ym - SLOT_INNER / 2 - 3), true, true);
     }
-    Tesselator& t = Tesselator::instance;
+
     t.beginOverride();
     for (int i = 0; i < (int)slots.size(); ++i) {
         const Slot& s = slots[i];
         if (s.slotIndex < 0) continue;
         ItemInstance* live = s.container->getItem(s.slotIndex);
         if (!live || live->isNull()) continue;
-        if (live->isDamaged()) {
+        if (live->isDamaged())
             ItemRenderer::renderGuiItemDecorations(live, (float)(s.x + 1), (float)(s.y + 1));
-        }
     }
-    if (!cursorItem.isNull() && cursorItem.isDamaged()) {
+    if (!cursorItem.isNull() && cursorItem.isDamaged())
         ItemRenderer::renderGuiItemDecorations(&cursorItem,
             (float)(xm - SLOT_INNER / 2 + 1), (float)(ym - SLOT_INNER / 2 + 1));
-    }
     glDisable2(GL_TEXTURE_2D);
     t.endOverrideAndDraw();
     glEnable2(GL_TEXTURE_2D);
+
+    for (int i = 0; i < (int)slots.size(); ++i) {
+        const Slot& s = slots[i];
+        if (s.slotIndex < 0) continue;
+        ItemInstance* live = s.container->getItem(s.slotIndex);
+        if (!live || live->isNull()) continue;
+        minecraft->gui.renderSlotText(live, (float)(s.x + SLOT_PAD - 3), (float)(s.y + SLOT_PAD - 3), true, true);
+    }
+    if (!cursorItem.isNull()) {
+        minecraft->gui.renderSlotText(&cursorItem,
+            (float)(xm - SLOT_INNER / 2 - 3), (float)(ym - SLOT_INNER / 2 - 3), true, true);
+    }
+
+    super::render(xm, ym, a);
+
     if (hov >= 0 && cursorItem.isNull()) {
         const Slot& s = slots[hov];
         if (s.slotIndex >= 0) {
@@ -278,8 +303,6 @@ void DesktopFurnaceScreen::render(int xm, int ym, float a) {
             }
         }
     }
-
-    super::render(xm, ym, a);
 }
 
 void DesktopFurnaceScreen::mouseClicked(int x, int y, int buttonNum) {
@@ -316,7 +339,6 @@ void DesktopFurnaceScreen::mouseClicked(int x, int y, int buttonNum) {
 void DesktopFurnaceScreen::onSlotClick(int idx, int buttonNum, bool shift) {
     Slot& s = slots[idx];
 
-    // Empty hotbar sentinel
     if (s.kind == SLOT_NORMAL && s.slotIndex < 0) {
         if (cursorItem.isNull()) return;
         if (idx < hotbarSlotsBegin || idx >= hotbarSlotsEnd) return;
@@ -350,7 +372,6 @@ void DesktopFurnaceScreen::onSlotClick(int idx, int buttonNum, bool shift) {
         return;
     }
 
-    // Output slot: take-only. Cursor must be empty or hold the same item with room.
     if (s.kind == SLOT_FURNACE_OUTPUT) {
         ItemInstance* live = s.container->getItem(s.slotIndex);
         if (!live || live->isNull()) return;
@@ -383,7 +404,6 @@ void DesktopFurnaceScreen::onSlotClick(int idx, int buttonNum, bool shift) {
 
     if (shift) { shiftClickFrom(idx); return; }
 
-    // Normal slot click logic (input/fuel/inventory/hotbar).
     ItemInstance* slotItemPtr = s.container->getItem(s.slotIndex);
     ItemInstance slotItem = (slotItemPtr && !slotItemPtr->isNull()) ? *slotItemPtr : ItemInstance();
 
@@ -413,7 +433,7 @@ void DesktopFurnaceScreen::onSlotClick(int idx, int buttonNum, bool shift) {
                 cursorItem = slotItem;
             }
         }
-    } else {  // RIGHT
+    } else {
         if (cursorItem.isNull() && !slotItem.isNull()) {
             int take = (slotItem.count + 1) / 2;
             cursorItem = slotItem;
@@ -446,7 +466,7 @@ bool DesktopFurnaceScreen::tryDistributeStack(ItemInstance& stack, int rangeBegi
     for (int i = rangeBegin; i < rangeEnd && !stack.isNull(); ++i) {
         Slot& s = slots[i];
         if (s.slotIndex < 0) continue;
-        if (s.kind == SLOT_FURNACE_OUTPUT) continue;  // never auto-fill the output slot
+        if (s.kind == SLOT_FURNACE_OUTPUT) continue;
         ItemInstance* live = s.container->getItem(s.slotIndex);
         if (!live || live->isNull()) continue;
         if (!canMerge(stack, *live)) continue;
@@ -481,7 +501,6 @@ void DesktopFurnaceScreen::shiftClickFrom(int idx) {
     if (!live || live->isNull()) return;
     ItemInstance moving = *live;
 
-    // From any furnace slot -> player inventory (hotbar first, then main).
     bool fromFurnace = (idx >= furnaceSlotsBegin && idx < furnaceSlotsEnd);
     if (fromFurnace) {
         ItemInstance moving1 = moving;
@@ -496,11 +515,22 @@ void DesktopFurnaceScreen::shiftClickFrom(int idx) {
         return;
     }
 
-    // From player side: prefer fuel slot if the item is fuel, otherwise input.
-    bool isFuel = FurnaceTileEntity::isFuel(moving);
-    int targetSlot = isFuel ? FurnaceTileEntity::SLOT_FUEL : FurnaceTileEntity::SLOT_INGREDIENT;
+    ItemInstance* input = furnace->getItem(FurnaceTileEntity::SLOT_INGREDIENT);
+    bool canSmelt = !FurnaceRecipes::getInstance()->getResult(moving.id).isNull();
+    bool inputAccepts = canSmelt &&
+        (input->isNull() || (canMerge(moving, *input) && input->count < input->getMaxStackSize()));
 
-    // Find that furnace slot in our list.
+    int targetSlot;
+    if (inputAccepts) {
+        targetSlot = FurnaceTileEntity::SLOT_INGREDIENT;
+    } else if (FurnaceTileEntity::isFuel(moving)) {
+        targetSlot = FurnaceTileEntity::SLOT_FUEL;
+    } else if (canSmelt) {
+        targetSlot = FurnaceTileEntity::SLOT_INGREDIENT;
+    } else {
+        return;
+    }
+
     int destIdx = -1;
     for (int i = furnaceSlotsBegin; i < furnaceSlotsEnd; ++i) {
         if (slots[i].slotIndex == targetSlot) { destIdx = i; break; }
@@ -518,6 +548,14 @@ void DesktopFurnaceScreen::keyPressed(int eventKey) {
         return;
     }
     super::keyPressed(eventKey);
+}
+
+void DesktopFurnaceScreen::buttonClicked(Button* button) {
+    if (button == btnClose) {
+        if (minecraft->player) minecraft->player->closeContainer();
+        return;
+    }
+    super::buttonClicked(button);
 }
 
 void DesktopFurnaceScreen::removed() {
