@@ -113,7 +113,7 @@ TextureId Textures::assignTexture( const std::string& resourceName, const Textur
         case TEXF_COMPRESSED_PVRTC_565:
         case TEXF_COMPRESSED_PVRTC_5551:
         {
-#if defined(__APPLE__)
+#if defined(__APPLE__) && TARGET_OS_IPHONE
             int fmt = img.transparent? GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG : GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
             glCompressedTexImage2D(GL_TEXTURE_2D, 0, fmt, img.w, img.h, 0, img.numBytes, img.data);
 #endif
