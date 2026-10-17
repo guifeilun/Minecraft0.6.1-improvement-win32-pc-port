@@ -1179,6 +1179,15 @@
 		F99F0FB02F8436EB00F2B29A /* Color.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99F0FAE2F8436EB00F2B29A /* Color.cpp */; };
 		BEEF202614CFF670005F0002 /* Lighting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BEEF202614CFF670005F0001 /* Lighting.cpp */; };
 		BEEF202614CFF670005F0003 /* Lighting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BEEF202614CFF670005F0001 /* Lighting.cpp */; };
+		F99D3450B2F736BDA00DC153E /* PortalTile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3450A2F736BDA00DC153E /* PortalTile.cpp */; };
+		F99D3454B2F736BDA00DC153E /* FishingRodItem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3454A2F736BDA00DC153E /* FishingRodItem.cpp */; };
+		F99D3458B2F736BDA00DC153E /* LanguageScreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3458A2F736BDA00DC153E /* LanguageScreen.cpp */; };
+		F99D345CB2F736BDA00DC153E /* NetherDimension.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D345CA2F736BDA00DC153E /* NetherDimension.cpp */; };
+		F99D3460B2F736BDA00DC153E /* DesktopChestScreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3460A2F736BDA00DC153E /* DesktopChestScreen.cpp */; };
+		F99D3464B2F736BDA00DC153E /* FishingHookRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3464A2F736BDA00DC153E /* FishingHookRenderer.cpp */; };
+		F99D3468B2F736BDA00DC153E /* DesktopFurnaceScreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3468A2F736BDA00DC153E /* DesktopFurnaceScreen.cpp */; };
+		F99D346CB2F736BDA00DC153E /* DesktopCraftingScreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D346CA2F736BDA00DC153E /* DesktopCraftingScreen.cpp */; };
+		F99D3470B2F736BDA00DC153E /* DesktopCreativeScreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3470A2F736BDA00DC153E /* DesktopCreativeScreen.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -2465,6 +2474,15 @@
 		F99F0FAB2F8436CE00F2B29A /* FoliageColor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FoliageColor.cpp; sourceTree = "<group>"; };
 		F99F0FAE2F8436EB00F2B29A /* Color.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Color.cpp; sourceTree = "<group>"; };
 		BEEF202614CFF670005F0001 /* Lighting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Lighting.cpp; path = Lighting.cpp; sourceTree = "<group>"; };
+		F99D3450A2F736BDA00DC153E /* PortalTile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PortalTile.cpp; path = "../../src/world/level/tile/PortalTile.cpp"; sourceTree = "<group>"; };
+		F99D3454A2F736BDA00DC153E /* FishingRodItem.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FishingRodItem.cpp; path = "../../src/world/item/FishingRodItem.cpp"; sourceTree = "<group>"; };
+		F99D3458A2F736BDA00DC153E /* LanguageScreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LanguageScreen.cpp; path = "../../src/client/gui/screens/LanguageScreen.cpp"; sourceTree = "<group>"; };
+		F99D345CA2F736BDA00DC153E /* NetherDimension.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = NetherDimension.cpp; path = "../../src/world/level/dimension/NetherDimension.cpp"; sourceTree = "<group>"; };
+		F99D3460A2F736BDA00DC153E /* DesktopChestScreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DesktopChestScreen.cpp; path = "../../src/client/gui/screens/desktop/DesktopChestScreen.cpp"; sourceTree = "<group>"; };
+		F99D3464A2F736BDA00DC153E /* FishingHookRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FishingHookRenderer.cpp; path = "../../src/client/renderer/entity/FishingHookRenderer.cpp"; sourceTree = "<group>"; };
+		F99D3468A2F736BDA00DC153E /* DesktopFurnaceScreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DesktopFurnaceScreen.cpp; path = "../../src/client/gui/screens/desktop/DesktopFurnaceScreen.cpp"; sourceTree = "<group>"; };
+		F99D346CA2F736BDA00DC153E /* DesktopCraftingScreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DesktopCraftingScreen.cpp; path = "../../src/client/gui/screens/desktop/DesktopCraftingScreen.cpp"; sourceTree = "<group>"; };
+		F99D3470A2F736BDA00DC153E /* DesktopCreativeScreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DesktopCreativeScreen.cpp; path = "../../src/client/gui/screens/desktop/DesktopCreativeScreen.cpp"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -4348,6 +4366,15 @@
 				F99D34452F736FE800DC153E /* KeyOption.h */,
 				F99D34462F736FE800DC153E /* KeyOption.cpp */,
 				F99D34492F7370CF00DC153E /* Slider.h */,
+				F99D3450A2F736BDA00DC153E /* PortalTile.cpp */,
+				F99D3454A2F736BDA00DC153E /* FishingRodItem.cpp */,
+				F99D3458A2F736BDA00DC153E /* LanguageScreen.cpp */,
+				F99D345CA2F736BDA00DC153E /* NetherDimension.cpp */,
+				F99D3460A2F736BDA00DC153E /* DesktopChestScreen.cpp */,
+				F99D3464A2F736BDA00DC153E /* FishingHookRenderer.cpp */,
+				F99D3468A2F736BDA00DC153E /* DesktopFurnaceScreen.cpp */,
+				F99D346CA2F736BDA00DC153E /* DesktopCraftingScreen.cpp */,
+				F99D3470A2F736BDA00DC153E /* DesktopCreativeScreen.cpp */,
 				F99D344A2F7370CF00DC153E /* Slider.cpp */,
 			);
 			sourceTree = "<group>";
@@ -5626,6 +5653,15 @@
 				D584926D14FD234400741128 /* SharedConstants.cpp in Sources */,
 				D584927314FD236700741128 /* MoveControl.cpp in Sources */,
 				F99D344C2F7370CF00DC153E /* Slider.cpp in Sources */,
+				F99D3450B2F736BDA00DC153E /* PortalTile.cpp in Sources */,
+				F99D3454B2F736BDA00DC153E /* FishingRodItem.cpp in Sources */,
+				F99D3458B2F736BDA00DC153E /* LanguageScreen.cpp in Sources */,
+				F99D345CB2F736BDA00DC153E /* NetherDimension.cpp in Sources */,
+				F99D3460B2F736BDA00DC153E /* DesktopChestScreen.cpp in Sources */,
+				F99D3464B2F736BDA00DC153E /* FishingHookRenderer.cpp in Sources */,
+				F99D3468B2F736BDA00DC153E /* DesktopFurnaceScreen.cpp in Sources */,
+				F99D346CB2F736BDA00DC153E /* DesktopCraftingScreen.cpp in Sources */,
+				F99D3470B2F736BDA00DC153E /* DesktopCreativeScreen.cpp in Sources */,
 				D584928614FD240D00741128 /* IConfigListener.cpp in Sources */,
 				D584928914FD2FAF00741128 /* Path.cpp in Sources */,
 				D5B86281153810BD00F3238A /* I18n.cpp in Sources */,
