@@ -1,8 +1,17 @@
-# Minecraft PE 0.6.1 Win32 Port - Improved
+# Minecraft PE 0.6.1 Win32 移植版 - 改进版
 
 基于 [JackTulli/Minecraft-PE-0.6.1-Win32-port](https://github.com/JackTulli/Minecraft-PE-0.6.1-Win32-port) 的修改版，添加了一些原版 0.6.1 缺失或未完成的功能。
 
 ## 该版本目前修改
+
+### 无限世界
+
+- 创建世界界面新增**世界类型**按钮：`世界类型：普通` / `世界类型：无限`
+- **有限世界**（旧 256×256）和**无限世界**（程序生成，无边界）可自由切换
+- 无限世界区块按 32×32 分 region 存储，文件命名 `chunks.r.<rx>.<rz>.dat`
+- 有限世界保持原有 `chunks.dat` 单文件存储，旧存档完全兼容
+- 出生点：无限世界从 (8, 8) 开始搜索，有限世界保持原逻辑
+- 走远、存档、重进，位置和地形都保留
 
 ### 多语言支持
 
@@ -13,6 +22,7 @@
 - 切换语言后立即生效，并保存到 `options.txt` 的 `options.language`
 - 下次启动自动加载上次选择的语言
 - 已内置 `en_US.lang`（英文）和 `zh_CN.lang`（简体中文）
+- 硬编码 UI 字符串迁移到 I18n，覆盖几乎全部菜单
 
 添加新语言教程：
 
@@ -27,6 +37,10 @@
 
 3. 保存为 **UTF-8 无 BOM** 编码
 4. 重启游戏，语言界面会自动扫描到新语言
+
+### 全新desktopUI
+- 完全调用原生控件
+- 风格与携带版一致
 
 ### 钓鱼竿
 
@@ -47,6 +61,10 @@
 - 每区块尝试 16 次，每次矿团 1~14 个方块
 - 挖掘掉落下界石英
 
+### 合成表
+
+- 更新合成表，现在各种物品均可合成
+
 ### DirectSound 音频后端
 
 - 用 DirectSound 替换原 OpenAL 音频层
@@ -59,6 +77,7 @@
 - 支持鼠标滚轮滚动
 - 滚动范围自动计算，带边界限制
 - 使用 `glScissor` 裁剪，内容不会溢出可视区域
+- 加入 `isFlying` 选项
 
 ### 鼠标绑定修复
 
@@ -108,46 +127,39 @@
 
 - 从设置界面移除
 
-### 硬编码 UI 字符串迁移到 I18n
+### 切维度稳定性修复
 
-- 覆盖：OptionsScreen、PauseScreen、DeathScreen、InBedScreen、StartMenuScreen、UsernameScreen、SelectWorldScreen、SimpleChooseLevelScreen、JoinGameScreen、JoinByIPScreen、ChestScreen、FurnaceScreen、DesktopCraftingScreen、TouchStartMenuScreen、TouchSelectWorldScreen、TouchJoinGameScreen 等
-- `.lang` 里没有对应 key 的字符串（如 `"Cheats: On"`、`"World name:"` 等）保留硬编码
+- 修复下界 ↔ 主世界切换后崩溃（实体未从 chunk 移除导致 `saveAll` 访问悬空指针）
+- 加固 `ExplodePacket` 网络包解析（防止损坏包导致越界）
+- 修复 `MeleeAttackGoal` 和 `PathNavigation` 共享 `Path*` 的双重删除
 
 ## JackTulli 的修改
 
-### Redstone
+### 红石
 
-A functional, mostly vanilla-faithful redstone subsystem built from the
-scaffolding upstream left behind (`Tile::isSignalSource`, `Level::getSignal`,
-`hasNeighborSignal`, `hasDirectSignal`). Includes:
+一套功能可用、基本忠于原版的红石系统，构建于上游遗留的脚手架
+（`Tile::isSignalSource`、`Level::getSignal`、`hasNeighborSignal`、
+`hasDirectSignal`）之上。包括：
 
-- **Redstone dust** — 0..15 strength stored in `auxValue`, decays one per hop,
-  cuts properly when the source is removed. Grayscale cross sprite at terrain
-  `(4, 10)` is tinted red at render time via `getColor` — bright when powered,
-  dim when off so you can see the wire layout.
-- **Lever** — wall-mountable on any solid face (and floor). `auxValue` bit
-  `0x8` is on/off, bits `0..2` are mount face (1..5, same convention as torch).
-  No proper lever sprite exists in this build's atlas, so the body renders as
-  a small wooden cube that flips to cobblestone when thrown.
-- **Button** — wall-mountable like the lever, with a timed press: 20 ticks for
-  stone, 30 for wood. `setShape` flattens the AABB against whichever face
-  it's mounted on.
-- **Pressure plate** — random-ticks itself to scan for entities in a small
-  AABB above the plate, sets aux 0/1, fires neighbor updates.
-- **Redstone torch** — two tile IDs (`notGate_off` = 75, `notGate_on` = 76)
-  sharing a class with a `_lit` flag. Acts as a NOT-gate: schedules a 2-tick
-  state-check whenever neighbours change, swaps variant in `tick`. Always
-  strongly powers the block directly above (regardless of mount), so
-  `torch → dirt → door` opens the door.
-- **Redstone lamp** — two-variant tile (123 off, 124 on) that lights when any
-  signal touches it. Off form uses a baked "opaque glass" texture (the glass
-  speckle pattern composited onto a warm-white backing, written into the
-  previously-unused atlas cell at `(4, 11)`); on form uses the glowstone
-  sprite with full light emission.
-- **Doors / TNT** react to weak power via the existing `hasNeighborSignal`
-  path — nothing else needed there. Wires also do an "indirect neighbour
-  update" (neighbours-of-neighbours) on every strength change so torches and
-  components attached to wire-adjacent blocks notice the change.
+- **红石粉** —— 强度 0..15 存储在 `auxValue`，每跳衰减 1，电源移除后正确截断。
+  地形图集 `(4, 10)` 处的灰度十字贴图在渲染时通过 `getColor` 染红 —— 有电时亮，
+  无电时暗，方便查看线路布局。
+- **拉杆** —— 可安装在任意实心面（包括地面）上。`auxValue` 位 `0x8` 是开/关，
+  位 `0..2` 是安装面（1..5，与火把相同的约定）。该版本的图集中没有合适的拉杆贴图，
+  所以主体渲染为一个可翻转的小木块，切换时变成圆石。
+- **按钮** —— 与拉杆一样可安装在墙上，带定时按压：石头 20 tick，木头 30 tick。
+  `setShape` 会将 AABB 压扁到它安装的那个面上。
+- **压力板** —— 随机 tick 扫描板上方小 AABB 内的实体，设置 aux 0/1，触发邻居更新。
+- **红石火把** —— 两个 tile ID（`notGate_off` = 75，`notGate_on` = 76），
+  共用一个类，带 `_lit` 标志。作为非门：邻居变化时安排 2 tick 状态检查，
+  在 `tick` 中交换变体。始终强充能正上方的方块（无论安装面），所以
+  `火把 → 泥土 → 门` 能打开门。
+- **红石灯** —— 双变体 tile（123 关，124 开），任何信号触碰时点亮。
+  关的形式使用烘焙的"不透明玻璃"贴图（玻璃斑点图案叠加在暖白色背景上，
+  写入之前未使用的图集单元 `(4, 11)`）；开的形式使用荧石贴图，全亮度发光。
+- **门 / TNT** 通过现有的 `hasNeighborSignal` 路径响应弱电 —— 无需额外处理。
+  电线每次强度变化时还会做一次"间接邻居更新"（邻居的邻居），
+  以便连接到电线相邻方块的拉杆和组件能感知变化。
 
 ### `/time` 命令
 
@@ -190,6 +202,8 @@ Windows ABI 构建的最后一个版本。
 
 ## 构建
 
+### windows
+
 支持的构建环境：**Windows + Visual Studio 2017 生成工具**，使用
 `v141_xp` 工具集。PowerShell 脚本会处理 vcvars 环境、选择对应的
 Ninja，并将输出程序生成至 `build-xp\MinecraftPE.exe`。
@@ -200,6 +214,9 @@ powershell.exe -ExecutionPolicy Bypass -File .\build-xp.ps1
 
 # 清理后重新构建
 .\build-xp.ps1 -Clean
+
+# 查看编译错误
+.\build-xp.ps1 2>&1 | Select-String -Pattern "error C|fatal|LNK" | Select-Object -First 30
 ```
 
 **依赖要求**：
@@ -224,6 +241,50 @@ powershell.exe -ExecutionPolicy Bypass -File .\build-xp.ps1
    软件渲染器。默认 llvmpipe 为 JIT 渲染，需要 SSE2 指令集，遇到兼容性
    问题时使用该选项。
 
+### Linux
+\`\`\`bash
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target MinecraftPE -j$(nproc)
+\`\`\`
+
+依赖（Debian / Ubuntu）：
+\`\`\`bash
+sudo apt install build-essential libgl1-mesa-dev libx11-dev libasound2-dev libxkbcommon-dev
+\`\`\`
+默认 X11；开启 Wayland 后端增加 \`-DUSE_WAYLAND=ON\`。
+
+### macOS
+Universal2（同时支持 Intel 和 Apple Silicon）：
+\`\`\`bash
+cmake -S . -B build -G Ninja \\
+  -DCMAKE_BUILD_TYPE=Release \\
+  -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+cmake --build build --target MinecraftPE -j
+\`\`\`
+单架构编译：把 \`CMAKE_OSX_ARCHITECTURES\` 改为 \`"arm64"\` 或者 \`"x86_64"\`。
+
+### Android
+依赖：
+- Android SDK（platform-tools + platform）
+- NDK r14b（\`ANDROID_NDK\` 环境变量）
+- JDK（apksigner、zipalign）
+
+构建脚本：
+\`\`\`bash
+./build-android.sh
+./build-android.sh --abi armeabi-v7a
+./build-android.sh --abi all
+\`\`\`
+产物输出：\`build-android/minecraftpe-<abi>-release.apk\`
+
+### Web（Emscripten）
+依赖：emsdk 5.0+，激活环境之后：
+\`\`\`bash
+emcmake cmake -S . -B build-web -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build-web --target MinecraftPE -j
+\`\`\`
+输出：\`build-web/MinecraftPE.js\`、\`MinecraftPE.wasm\`、\`index.html\`。
+
 ## 控制按键
 
 | 按键 | 功能 |
@@ -247,7 +308,6 @@ powershell.exe -ExecutionPolicy Bypass -File .\build-xp.ps1
 2. 部分粒子效果渲染错乱（火焰、爆炸粒子）
 3. 水面渲染有瑕疵，透明方块有 Z-fighting（贴图闪烁重叠）
 4. 存档兼容：只能读取 PE 0.6.1 原版存档；更高版本存档不能载入
-5. 偶尔退出游戏发生内存泄漏，程序崩溃
 6. XP 系统下，音频初始化失败概率较高
 
 ## 开发笔记
@@ -255,14 +315,13 @@ powershell.exe -ExecutionPolicy Bypass -File .\build-xp.ps1
 | 问题 | 解决方案 |
 | --- | --- |
 | 改 `.h` 没 `-Clean` → `0xc0000005` | 改 `.h` 后必须 `-Clean` |
-| `-Clean` 时 CMake 下载 zlib 失败 | 开代理 / VPN |
-| `OreFeature::place()` 走 Level 递归崩溃 | 直接操作 `blocks[]` 数组 |
 | `git push` 报 rejected | 先 `git pull origin main` 再 push |
 | Option 自动加 `options.` 前缀 | key 写 `language`（不带前缀） |
 | `renderGuiItemDecorations` 耐久条被覆盖 | 绘制顺序：图标 → 鼠标图标 → 耐久条 |
 | `Tesselator` 未定义 | `#include "../../../renderer/Tesselator.h"` |
 | `const char* x = I18n::get(...).c_str()` 悬空 | 改成 `std::string x = I18n::get(...)` |
 | 静态 `I18n::get()` 在 `main()` 前执行导致崩溃 | 改为函数内懒初始化或硬编码 |
+| 切维度后崩在 `GoalSelector::_Umove` | `switchDimension` 的 `delete e` 前没从 chunk 移除，`saveAll` 遍历 chunk 时访问悬空 `e`。修法：`delete e` 前 `if (e->inChunk) lc->removeEntity(e, e->yChunk);` |
 
 ## 致谢
 
