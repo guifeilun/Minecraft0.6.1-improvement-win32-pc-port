@@ -18,6 +18,8 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <shellapi.h>
+#else
+#include <dirent.h>
 #endif
 
 #ifdef __EMSCRIPTEN__
@@ -168,19 +170,33 @@ public:
 
 	StringVector listLanguageCodes() override {
 		StringVector codes;
+#ifdef _WIN32
 		WIN32_FIND_DATAA findData;
 		HANDLE hFind = FindFirstFileA("data/lang/*.lang", &findData);
-		if (hFind == INVALID_HANDLE_VALUE) {
-			return codes;
+		if (hFind != INVALID_HANDLE_VALUE) {
+			do {
+				std::string name = findData.cFileName;
+				size_t dot = name.find_last_of('.');
+				if (dot != std::string::npos) {
+					codes.push_back(name.substr(0, dot));
+				}
+			} while (FindNextFileA(hFind, &findData));
+			FindClose(hFind);
 		}
-		do {
-			std::string name = findData.cFileName;
-			size_t dot = name.find_last_of('.');
-			if (dot != std::string::npos) {
-				codes.push_back(name.substr(0, dot));
+#else
+		DIR* dir = opendir("data/lang");
+		if (dir) {
+			struct dirent* ent;
+			while ((ent = readdir(dir)) != NULL) {
+				std::string name = ent->d_name;
+				size_t dot = name.find_last_of('.');
+				if (dot != std::string::npos && name.compare(dot, 5, ".lang") == 0) {
+					codes.push_back(name.substr(0, dot));
+				}
 			}
-		} while (FindNextFileA(hFind, &findData));
-		FindClose(hFind);
+			closedir(dir);
+		}
+#endif
 		return codes;
 	}
 

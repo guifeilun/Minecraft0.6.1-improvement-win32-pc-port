@@ -1,4 +1,3 @@
-
 language.name=English
 language.region=US
 language.code=en_US
@@ -94,9 +93,7 @@ multiplayer.connect=Connect
 multiplayer.info1=Minecraft Multiplayer is currently not finished, but there
 multiplayer.info2=is some buggy early testing going on.
 multiplayer.ipinfo=Enter the IP of a server to connect to it:
-
 multiplayer.downloadingTerrain=Downloading terrain
-
 multiplayer.stopSleeping=Leave Bed
 
 demo.day.1=This demo will last five game days, do your best!
@@ -144,12 +141,18 @@ options.fov.max=Quake Pro
 options.gamma=Brightness
 options.gamma.min=Moody
 options.gamma.max=Bright
+options.gamma.moody=Moody
+options.gamma.dark=Dark
+options.gamma.normal=Normal
+options.gamma.bright=Bright!
+
 options.group.mojang=Login
 options.group.general=General
 options.group.game=Game
 options.group.controls=Controls
 options.group.graphics=Graphics
 options.group.tweaks=Tweaks
+
 options.allowSprint=Allow sprint
 options.barOnTop=HUD above inventory
 options.rpiCursor=Show Raspberry PI cursor
@@ -166,17 +169,12 @@ options.debugStyle.javaBeta=Java Beta
 options.debugStyle.custom=Custom
 
 options.beautifulSky=Beautiful Skies
-
 options.useVignette=Vignette Overlay
-
+options.vignette=Vignette Overlay
 options.tintedSide=Tint Grass Sides
-
 options.betaSky=Java Beta Sky
-
 options.restoredAnims=Restored Animations
-
 options.normalLighting=Java Beta/Normals Shading
-
 options.isJoyTouchArea=Use Split Controls
 
 options.autoJump=Auto Jump
@@ -186,7 +184,6 @@ options.sensitivity=Sensitivity
 options.sensitivity.min=*yawn*
 options.sensitivity.max=HYPERSPEED!!!
 options.renderDistance=Render Distance
-options.fov=FOV
 options.forceNether=Generate as Nether
 options.renderDistance.tiny=Tiny
 options.renderDistance.short=Short
@@ -195,6 +192,7 @@ options.renderDistance.far=Far
 options.viewBobbing=View Bobbing
 options.ao=Smooth Lighting
 options.anaglyph=3D Anaglyph
+options.anaglyph3d=3D anaglyph
 options.framerateLimit=Performance
 options.limitFramerate=Limit Framerate
 options.vsync=VSync
@@ -207,11 +205,6 @@ options.difficulty.hardcore=Hardcore
 options.graphics=Graphics
 options.graphics.fancy=Fancy
 options.graphics.fast=Fast
-options.gamma=Brightness
-options.gamma.moody=Moody
-options.gamma.dark=Dark
-options.gamma.normal=Normal
-options.gamma.bright=Bright!
 options.guiScale=GUI Scale
 options.guiScale.auto=Auto
 options.guiScale.small=Small
@@ -231,17 +224,16 @@ options.username=Username
 options.smoothCamera=Smooth camera
 options.destroyVibration=Destroy vibration
 options.isLeftHanded=Left handed
+options.isflying=Flying
 options.useTouchscreen=Use touchscreen
 options.fancyGraphics=Fancy graphics
 options.renderDebug=Debug render
-options.anaglyph3d=3D anaglyph
-
-options.windowScale =Window Scaling
-
-options.menuStyle =Menu Style 
-options.menuStyle.pocket =Pocket Edition
-options.menuStyle.xperia =Xperia/Pi
-options.menuStyle.java =Java Beta
+options.windowScale=Window Scaling
+options.menuStyle=Menu Style
+options.menuStyle.pocket=Pocket Edition
+options.menuStyle.xperia=Xperia/Pi
+options.menuStyle.java=Java Beta
+options.brightness=Brightness
 
 performance.max=Max FPS
 performance.balanced=Balanced
@@ -400,6 +392,7 @@ tile.dragonEgg.name=Dragon Egg
 tile.redstoneLight.name=Redstone Lamp
 tile.glowingobsidian.name=Glowing Obsidian
 tile.netherreactor.name=Nether Reactor Core
+tile.netherQuartzOre.name=Nether Quartz Ore
 tile.quartzBlock.name=Block of Quartz
 tile.stairsQuartz.name=Quartz Stairs
 tile.stairsSandStone.name=Sand Stone Stairs
@@ -569,14 +562,11 @@ container.minecart=Minecart
 
 entity.Item.name=Item
 entity.XPOrb.name=Experience Orb
-
 entity.Arrow.name=Arrow
 entity.Snowball.name=Snowball
 entity.Painting.name=Painting
-
 entity.Mob.name=Mob
 entity.Monster.name=Monster
-
 entity.Creeper.name=Creeper
 entity.Skeleton.name=Skeleton
 entity.Spider.name=Spider
@@ -595,7 +585,6 @@ entity.Villager.name=Villager
 entity.VillagerGolem.name=Iron Golem
 entity.SnowMan.name=Snow Golem
 entity.EnderDragon.name=Ender Dragon
-
 entity.Pig.name=Pig
 entity.Sheep.name=Sheep
 entity.Cow.name=Cow
@@ -604,14 +593,10 @@ entity.Squid.name=Squid
 entity.Wolf.name=Wolf
 entity.Ozelot.name=Ocelot
 entity.Cat.name=Cat
-
 entity.PrimedTnt.name=Block of TNT
 entity.FallingSand.name=Falling Block
-
 entity.Minecart.name=Minecart
 entity.Boat.name=Boat
-
-entity.Arrow.name=arrow
 entity.generic.name=unknown
 
 death.inFire=%1$s went up in flames
@@ -760,20 +745,16 @@ gui.stats=Statistics
 stat.generalButton=General
 stat.blocksButton=Blocks
 stat.itemsButton=Items
-
 stat.used=Times Used
 stat.mined=Times Mined
 stat.depleted=Times Depleted
 stat.crafted=Times Crafted
-
 stat.startGame=Times played
 stat.createWorld=Worlds played
 stat.loadWorld=Saves loaded
 stat.joinMultiplayer=Multiplayer joins
 stat.leaveGame=Games quit
-
 stat.playOneMinute=Minutes Played
-
 stat.walkOneCm=Distance Walked
 stat.fallOneCm=Distance Fallen
 stat.swimOneCm=Distance Swum
@@ -785,23 +766,19 @@ stat.boatOneCm=Distance by Boat
 stat.pigOneCm=Distance by Pig
 stat.jump=Jumps
 stat.drop=Items Dropped
-
 stat.damageDealt=Damage Dealt
 stat.damageTaken=Damage Taken
 stat.deaths=Number of Deaths
 stat.mobKills=Mob Kills
 stat.playerKills=Player Kills
 stat.fishCaught=Fish Caught
-
 stat.mineBlock=%1$s Mined
 stat.craftItem=%1$s Crafted
 stat.useItem=%1$s Used
 stat.breakItem=%1$s Depleted
 
 achievement.get=Achievement get!
-
 achievement.taken=Taken!
-
 achievement.requires=Requires '%1$s'
 achievement.openInventory=Taking Inventory
 achievement.openInventory.desc=Press '%1$s' to open your inventory.
@@ -912,7 +889,6 @@ desc.bread=Restores 2.5 Hearts.
 desc.goldenapple=Restores 10 Hearts.
 desc.lever=Used to send an electrical charge by being turned on or off. Stays in the on or off state until pressed again.
 desc.redstonetorch=Constantly sends an electrical charge, or can be used as a receiver/transmitter when connected to the side of a block. 
-Can also be used for low-level lighting.
 desc.redstonerepeater=Used in Redstone circuits as repeater, a delayer, and/or a diode
 desc.button=Used to send an electrical charge by being pressed. Stays activated for approximately a second before shutting off again.
 desc.dispenser=Used to hold and shoot out items in a random order when given a Redstone charge.
@@ -937,8 +913,7 @@ desc.dyepowder.pink=Used as a dye to create pink wool.
 desc.dyepowder.orange=Used as a dye to create orange wool.
 desc.dyepowder.lime=Used as a dye to create lime wool.
 desc.dyepowder.gray=Used as a dye to create gray wool.
-desc.dyepowder.lightgray=Used as a dye to create light gray wool. 
-(Note: light gray dye can also be made by combining gray dye with bone meal, letting you make four light gray dyes from every ink sac instead of three.)
+desc.dyepowder.lightgray=Used as a dye to create light gray wool.
 desc.dyepowder.lightblue=Used as a dye to create light blue wool.
 desc.dyepowder.cyan=Used as a dye to create cyan wool.
 desc.dyepowder.purple=Used as a dye to create purple wool.
