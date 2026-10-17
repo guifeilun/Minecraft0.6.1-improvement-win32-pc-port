@@ -65,7 +65,6 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
 ../../../src/client/gui/screens/IngameBlockSelectionScreen.cpp \
 ../../../src/client/gui/screens/JoinGameScreen.cpp \
 ../../../src/client/gui/screens/OptionsScreen.cpp \
-                   ../../../src/client/gui/screens/CreditsScreen.cpp \
                    ../../../src/client/gui/screens/PauseScreen.cpp \
 ../../../src/client/gui/screens/ProgressScreen.cpp \
 ../../../src/client/gui/screens/RenameMPLevelScreen.cpp \
@@ -258,9 +257,30 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
 ../../../src/world/level/tile/entity/SignTileEntity.cpp \
 ../../../src/world/level/tile/entity/TileEntity.cpp \
 ../../../src/world/level/tile/entity/FurnaceTileEntity.cpp \
-../../../src/world/phys/HitResult.cpp
-
-LOCAL_CFLAGS := -DPLATFORM_ANDROID -DPRE_ANDROID23 -Wno-narrowing $(LOCAL_CFLAGS)
+../../../src/world/phys/HitResult.cpp \
+                   ../../../src/client/gamemode/CreatorMode.cpp \
+                   ../../../src/client/gui/components/GButton.cpp \
+                   ../../../src/client/gui/components/OptionsPane.cpp \
+                   ../../../src/client/gui/components/SmallButton.cpp \
+                   ../../../src/client/gui/screens/LanguageScreen.cpp \
+                   ../../../src/client/gui/screens/desktop/DesktopChestScreen.cpp \
+                   ../../../src/client/gui/screens/desktop/DesktopCraftingScreen.cpp \
+                   ../../../src/client/gui/screens/desktop/DesktopCreativeScreen.cpp \
+                   ../../../src/client/gui/screens/desktop/DesktopFurnaceScreen.cpp \
+                   ../../../src/client/renderer/entity/FishingHookRenderer.cpp \
+                   ../../../src/network/NATPunchHandler.cpp \
+                   ../../../src/network/PHPDirectoryServer2.cpp \
+                   ../../../src/platform/PngLoader.cpp \
+                   ../../../src/server/ArgumentsSettings.cpp \
+                   ../../../src/server/CreatorLevel.cpp \
+                   ../../../src/util/ServerProfiler.cpp \
+                   ../../../src/world/entity/FishingHook.cpp \
+                   ../../../src/world/item/FishingRodItem.cpp \
+                   ../../../src/world/level/dimension/NetherDimension.cpp \
+                   ../../../src/world/level/levelgen/NetherLevelSource.cpp \
+                   ../../../src/world/level/tile/PortalTile.cpp \
+                   ../../../src/world/level/tile/SandTile.cpp
+LOCAL_CFLAGS := -DANDROID -DPLATFORM_ANDROID -DPRE_ANDROID23 -Wno-narrowing $(LOCAL_CFLAGS)
 LOCAL_CPPFLAGS := -std=c++14 -frtti
 LOCAL_CPPFLAGS += -frtti
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../src
