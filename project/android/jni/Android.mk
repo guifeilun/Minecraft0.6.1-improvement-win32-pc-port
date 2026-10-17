@@ -270,7 +270,6 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
                    ../../../src/client/renderer/entity/FishingHookRenderer.cpp \
                    ../../../src/network/NATPunchHandler.cpp \
                    ../../../src/network/PHPDirectoryServer2.cpp \
-                   ../../../src/platform/PngLoader.cpp \
                    ../../../src/server/ArgumentsSettings.cpp \
                    ../../../src/server/CreatorLevel.cpp \
                    ../../../src/util/ServerProfiler.cpp \
@@ -285,16 +284,8 @@ LOCAL_CPPFLAGS := -std=c++14 -frtti
 LOCAL_CPPFLAGS += -frtti
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../src
 
-#LOCAL_CFLAGS := -DANDROID_PUBLISH -DDEMO_MODE $(LOCAL_CFLAGS)
-#LOCAL_CFLAGS := -DANDROID_PUBLISH $(LOCAL_CFLAGS)
-
-#LOCAL_CFLAGS := -DDEMO_MODE -DGLDEBUG $(LOCAL_CFLAGS)
-#LOCAL_CFLAGS := -DGLDEBUG $(LOCAL_CFLAGS)
-
 LOCAL_LDLIBS    := -llog -landroid -lEGL -lGLESv1_CM -lOpenSLES
 LOCAL_STATIC_LIBRARIES := android_native_app_glue RakNet
-
-#LOCAL_CPP_FEATURES := exceptions
 
 TARGET_ARCH_ABI := armeabi-v7a
 
