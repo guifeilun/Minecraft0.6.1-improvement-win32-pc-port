@@ -9,7 +9,14 @@ inputs:
 runs:
   using: "composite"
   steps:
-  - name: Setup
+  - name: Setup (macOS)
+    if: inputs.host == 'macos'
+    shell: bash
+    run: |
+      brew install ninja
+
+  - name: Setup (Windows/Linux)
+    if: inputs.host != 'macos'
     shell: bash
     run: |
       curl -L https://github.com/ninja-build/ninja/releases/latest/download/ninja-${{ inputs.host }}.zip -o ninja.zip

@@ -3,10 +3,10 @@ description: Sets up sccache, CPM cache, etc.
 
 inputs:
   host:
-    description: 'Host platform: win or linux'
+    description: 'Host platform: win, linux, macos'
     required: true
   target:
-    description: 'Target platform: win, linux'
+    description: 'Target platform: win, linux, macos'
     required: true
 
 runs:
