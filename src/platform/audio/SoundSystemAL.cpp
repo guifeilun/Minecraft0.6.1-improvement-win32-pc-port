@@ -1,184 +1,199 @@
 #include "SoundSystemAL.h"
 #include "../../util/Mth.h"
+#include "../../world/level/tile/Tile.h"
 #include "../../world/phys/Vec3.h"
 #include "../../client/sound/Sound.h"
 #include "../log.h"
-#include <math.h>
+
+static const char* errIdString = 0;
+
+void checkError() {
+    while (1) {
+        ALenum err = alGetError();
+        if (err == AL_NO_ERROR) return;
+        LOGI("### SoundSystemAL error: %d ####: %s\n", err, errIdString == 0 ? "(none)" : errIdString);
+    }
+}
 
 SoundSystemAL::SoundSystemAL()
-    : _dsound(NULL), _playedCnt(0), _rotation(-9999.9f), _available(false)
+:   available(true),
+    context(0),
+    device(0),
+    _rotation(-9999.9f)
 {
-    _available = initDirectSound();
+    _buffers.reserve(64);
+    init();
 }
 
 SoundSystemAL::~SoundSystemAL()
 {
-    for (int i = 0; i < MAX_PLAYED; i++) {
-        if (_buffers[i].buffer) {
-            _buffers[i].buffer->Stop();
-            _buffers[i].buffer->Release();
-            _buffers[i].buffer = NULL;
+    alDeleteSources(MaxNumSources, _sources);
+
+    for (int i = 0; i < (int)_buffers.size(); ++i)
+        if (_buffers[i].inited) alDeleteBuffers(1, &_buffers[i].bufferID);
+
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(context);
+    alcCloseDevice(device);
+}
+
+void SoundSystemAL::init()
+{
+    device = alcOpenDevice(NULL);
+    if (device) {
+        context = alcCreateContext(device, NULL);
+        alcMakeContextCurrent(context);
+
+        alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+
+        alGenSources(MaxNumSources, _sources);
+        for (int index = 0; index < MaxNumSources; index++) {
+            ALuint sourceID = _sources[index];
+            alSourcef(sourceID, AL_REFERENCE_DISTANCE, 5.0f);
+            alSourcef(sourceID, AL_MAX_DISTANCE, 16.0f);
+            alSourcef(sourceID, AL_ROLLOFF_FACTOR, 6.0f);
         }
-        _buffers[i].inUse = false;
-    }
 
-    if (_dsound) {
-        _dsound->Release();
-        _dsound = NULL;
+        float listenerPos[] = {0, 0, 0};
+        float listenerOri[] = {0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+        float listenerVel[] = {0, 0, 0};
+        alListenerfv(AL_POSITION, listenerPos);
+        alListenerfv(AL_ORIENTATION, listenerOri);
+        alListenerfv(AL_VELOCITY, listenerVel);
+
+        errIdString = "Init audio";
+        checkError();
     }
 }
 
-bool SoundSystemAL::initDirectSound()
-{
-    HRESULT hr = DirectSoundCreate8(NULL, &_dsound, NULL);
-    if (FAILED(hr)) {
-        return false;
+void SoundSystemAL::enable(bool status) {
+    LOGI("Enabling? audio: %d (context %p)\n", status, context);
+    if (status) {
+        alcMakeContextCurrent(context);
+        errIdString = "Enable audio";
+    } else {
+        alcMakeContextCurrent(NULL);
+        errIdString = "Disable audio";
     }
-
-    HWND hwnd = GetActiveWindow();
-    if (!hwnd) {
-        _dsound->Release();
-        _dsound = NULL;
-        return false;
-    }
-
-    hr = _dsound->SetCooperativeLevel(hwnd, DSSCL_NORMAL);
-    if (FAILED(hr)) {
-        _dsound->Release();
-        _dsound = NULL;
-        return false;
-    }
-
-    return true;
+    checkError();
 }
 
-void SoundSystemAL::enable(bool status)
-{
-    _available = status && (_dsound != NULL);
-}
+void SoundSystemAL::destroy() {}
 
 void SoundSystemAL::setListenerPos(float x, float y, float z) {}
-void SoundSystemAL::setListenerAngle(float deg) { _rotation = deg; }
 
-void SoundSystemAL::removeStoppedSounds()
+void SoundSystemAL::setListenerAngle(float deg)
 {
-    _playedCnt = 0;
-    for (int i = 0; i < MAX_PLAYED; i++) {
-        if (!_buffers[i].buffer) continue;
-        
-        DWORD status;
-        HRESULT hr = _buffers[i].buffer->GetStatus(&status);
-        if (FAILED(hr)) {
-            _buffers[i].buffer->Release();
-            _buffers[i].buffer = NULL;
-            _buffers[i].inUse = false;
-            continue;
-        }
-        
-        if (status & DSBSTATUS_PLAYING) {
-            _playedCnt++;
-        } else {
-            _buffers[i].buffer->Release();
-            _buffers[i].buffer = NULL;
-            _buffers[i].inUse = false;
-        }
+    if (_rotation != deg) {
+        _rotation = deg;
+        float rad = deg * Mth::DEGRAD;
+
+        static ALfloat orientation[] = {0, 0, 0, 0, 1, 0};
+        orientation[0] = -Mth::sin(rad);
+        orientation[2] =  Mth::cos(rad);
+        alListenerfv(AL_ORIENTATION, orientation);
     }
-}
-
-int SoundSystemAL::getFreeSourceIndex()
-{
-    removeStoppedSounds();
-    
-    for (int i = 0; i < MAX_PLAYED; i++) {
-        if (!_buffers[i].inUse || !_buffers[i].buffer) {
-            _buffers[i].inUse = true;
-            return i;
-        }
-    }
-    return -1;
-}
-
-bool SoundSystemAL::createBuffer(const SoundDesc& sound, LPDIRECTSOUNDBUFFER* outBuffer)
-{
-    if (!sound.isValid()) {
-        return false;
-    }
-
-    WAVEFORMATEX wf;
-    ZeroMemory(&wf, sizeof(wf));
-    wf.wFormatTag = WAVE_FORMAT_PCM;
-    wf.nSamplesPerSec = sound.frameRate;
-    wf.wBitsPerSample = sound.byteWidth * 8;
-    wf.nChannels = sound.channels;
-    wf.nBlockAlign = sound.channels * sound.byteWidth;
-    wf.nAvgBytesPerSec = wf.nSamplesPerSec * wf.nBlockAlign;
-    wf.cbSize = 0;
-
-    DSBUFFERDESC desc;
-    ZeroMemory(&desc, sizeof(desc));
-    desc.dwSize = sizeof(desc);
-    desc.dwFlags = DSBCAPS_CTRLVOLUME | DSBCAPS_GLOBALFOCUS | DSBCAPS_GETCURRENTPOSITION2;
-    desc.dwBufferBytes = sound.size;
-    desc.lpwfxFormat = &wf;
-
-    LPDIRECTSOUNDBUFFER tmpBuffer = NULL;
-    HRESULT hr = _dsound->CreateSoundBuffer(&desc, &tmpBuffer, NULL);
-    if (FAILED(hr)) {
-        return false;
-    }
-
-    *outBuffer = tmpBuffer;
-
-    void* writePtr = NULL;
-    DWORD writeSize = 0;
-    hr = (*outBuffer)->Lock(0, sound.size, &writePtr, &writeSize, NULL, 0, 0);
-    if (FAILED(hr)) {
-        (*outBuffer)->Release();
-        *outBuffer = NULL;
-        return false;
-    }
-
-    memcpy(writePtr, sound.frames, sound.size);
-    (*outBuffer)->Unlock(writePtr, writeSize, NULL, 0);
-
-    return true;
 }
 
 void SoundSystemAL::playAt(const SoundDesc& sound, float x, float y, float z, float volume, float pitch)
 {
-    if (!_available || !_dsound) return;
-    if (!sound.isValid()) {
+    if (pitch < 0.01f) pitch = 1;
+
+    ALuint bufferID;
+    if (!getBufferId(sound, &bufferID)) {
+        errIdString = "Get buffer (failed)";
+        checkError();
+        LOGE("getBufferId returned false!\n");
+        return;
+    }
+    errIdString = "Get buffer";
+    checkError();
+
+    int sourceIndex;
+    errIdString = "Get free index";
+    if (!getFreeSourceIndex(&sourceIndex)) {
+        LOGI("No free sound sources left @ SoundSystemAL::playAt\n");
         return;
     }
 
-    int index = getFreeSourceIndex();
-    if (index < 0) {
-        return;
-    }
+    ALuint sourceID = _sources[sourceIndex];
+    checkError();
 
-    LPDIRECTSOUNDBUFFER buffer = NULL;
-    if (!createBuffer(sound, &buffer)) {
-        _buffers[index].inUse = false;
-        return;
-    }
+    alSourcei(sourceID, AL_BUFFER, 0);
+    errIdString = "unbind";
+    checkError();
+    alSourcei(sourceID, AL_BUFFER, bufferID);
+    errIdString = "bind";
+    checkError();
 
-    _buffers[index].buffer = buffer;
+    alSourcef(sourceID, AL_PITCH, pitch);
+    errIdString = "pitch";
+    checkError();
+    alSourcef(sourceID, AL_GAIN, volume);
+    errIdString = "gain";
+    checkError();
 
-    LONG dsVolume = DSBVOLUME_MIN;
-    if (volume > 0.0f) {
-        float vol = (volume > 1.0f) ? 1.0f : volume;
-        if (vol > 0.0f) {
-            dsVolume = (LONG)(2000.0f * log10f(vol));
-            if (dsVolume < DSBVOLUME_MIN) dsVolume = DSBVOLUME_MIN;
-            if (dsVolume > DSBVOLUME_MAX) dsVolume = DSBVOLUME_MAX;
+    alSourcei(sourceID, AL_LOOPING, AL_FALSE);
+    errIdString = "looping";
+    checkError();
+    alSource3f(sourceID, AL_POSITION, x, y, z);
+    errIdString = "position";
+    checkError();
+
+    alSourcePlay(sourceID);
+    errIdString = "source play";
+    checkError();
+}
+
+void SoundSystemAL::removeStoppedSounds() {}
+
+bool SoundSystemAL::getFreeSourceIndex(int* sourceIndex) {
+    for (int i = 0; i < MaxNumSources; ++i) {
+        ALint state;
+        alGetSourcei(_sources[i], AL_SOURCE_STATE, &state);
+        if (state != AL_PLAYING) {
+            *sourceIndex = i;
+            return true;
         }
     }
-    buffer->SetVolume(dsVolume);
+    return false;
+}
 
-    HRESULT hr = buffer->Play(0, 0, 0);
-    if (FAILED(hr)) {
-        buffer->Release();
-        _buffers[index].buffer = NULL;
-        _buffers[index].inUse = false;
+bool SoundSystemAL::getBufferId(const SoundDesc& sound, ALuint* buf) {
+    for (int i = 0; i < (int)_buffers.size(); ++i) {
+        if (_buffers[i].framePtr == sound.frames) {
+            *buf = _buffers[i].bufferID;
+            return true;
+        }
     }
+
+    if (!sound.isValid()) {
+        LOGE("Err: sound is invalid @ getBufferId! %s\n", sound.name.c_str());
+        return false;
+    }
+
+    ALuint bufferID;
+    alGenBuffers(1, &bufferID);
+    errIdString = "Gen buffer";
+    checkError();
+
+    ALenum format = (sound.byteWidth == 2) ?
+        (sound.channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16)
+    :   (sound.channels == 2 ? AL_FORMAT_STEREO8  : AL_FORMAT_MONO8);
+
+    alBufferData(bufferID, format, sound.frames, sound.size, sound.frameRate);
+    errIdString = "Buffer data";
+    checkError();
+
+    Buffer buffer;
+    buffer.inited = true;
+    buffer.framePtr = sound.frames;
+    buffer.bufferID = bufferID;
+    *buf = bufferID;
+    _buffers.push_back(buffer);
+
+#if !defined(PLATFORM_DESKTOP)
+    sound.destroy();
+#endif
+    return true;
 }
