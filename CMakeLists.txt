@@ -86,7 +86,7 @@ else()
         endif()
     endif()
     # --- libpng NEON fix: force OFF before option() runs ---
-    set(PNG_ARM_NEON OFF CACHE BOOL "" FORCE)
+    set(PNG_ARM_NEON "off" CACHE STRING "" FORCE)
     set(PNG_ARM_NEON_OPT 0 CACHE INTERNAL "" FORCE)
     # ------------------------------------------------------
     CPMAddPackage(

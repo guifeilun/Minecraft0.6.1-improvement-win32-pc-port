@@ -93,7 +93,6 @@ public class MainActivity extends NativeActivity {
     		builder.setCancelable(false);
 
     	builder.setOnCancelListener(new OnCancelListener() {
-			//@Override 
 			public void onCancel(DialogInterface dialog) {
 				onDialogCanceled();
 			}
@@ -117,8 +116,6 @@ public class MainActivity extends NativeActivity {
     
     public boolean supportsTouchscreen() {
     	return isXperiaPlay();
-    	//if (isXperiaPlay()) return false;
-    	//return true;
     }
 
 	static public boolean isXperiaPlay() {
@@ -136,15 +133,11 @@ public class MainActivity extends NativeActivity {
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-    	// TODO Auto-generated method stub
-    	//System.out.println("Focus has changed. Has Focus? " + hasFocus);
     	super.onWindowFocusChanged(hasFocus);
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-    	// TODO Auto-generated method stub
-    	//System.out.println("KeyDown: " + keyCode);
     	Log.w("MCPE", "onKeyDown: " + keyCode);
     	return super.onKeyDown(keyCode, event);
     }
@@ -153,20 +146,15 @@ public class MainActivity extends NativeActivity {
     }
     static public void saveScreenshot(String filename, int w, int h, int[] pixels) {
     	Bitmap bitmap = Bitmap.createBitmap(pixels, w, h, Bitmap.Config.ARGB_8888);
-
-    	//System.out.println("Save screenshot: " + filename);
     	
     	try {
 	        FileOutputStream fos = new FileOutputStream(filename);
 	        bitmap.compress(CompressFormat.JPEG, 85, fos);
-	    	//System.out.println("Compression completed!");
-
 	        try {
                 fos.flush();
 	        } catch (IOException e) {
                 e.printStackTrace();
 	        }
-
 	        try {
                 fos.close();
 	        } catch (IOException e) {
@@ -182,14 +170,20 @@ public class MainActivity extends NativeActivity {
     public byte[] getFileDataBytes(String filename) {
     	AssetManager assets = getAssets();
 
-    	BufferedInputStream bis;
+    	InputStream is;
     	try {
-        	InputStream is = assets.open(filename);
-        	bis = new BufferedInputStream(is);
-        } catch (IOException e) {
-        	e.printStackTrace();
-        	return null;
-        }
+    		// Assets live under assets/data/ in this port; I18n passes paths
+    		// like "lang/en_US.lang", so try data/ first, then as-is.
+    		is = assets.open("data/" + filename);
+    	} catch (IOException e) {
+    		try {
+    			is = assets.open(filename);
+    		} catch (IOException e2) {
+    			e2.printStackTrace();
+    			return null;
+    		}
+    	}
+    	BufferedInputStream bis = new BufferedInputStream(is);
 
     	ByteArrayOutputStream s = new ByteArrayOutputStream(4096);
     	byte[] tmp = new byte[1024];
@@ -212,20 +206,17 @@ public class MainActivity extends NativeActivity {
     public int[] getImageData(String filename) {
     	AssetManager assets = getAssets();
 
-        try {
-        	/*String[] filenames = */assets.list("images");
-        } catch (IOException e) {
-        	System.err.println("getImageData: Could not list directory");
-        	return null;
-        }
-
-        InputStream inputStream = null;
-        try {
-        	inputStream = assets.open(filename);
-        } catch (IOException e) {
-        	System.err.println("getImageData: Could not open image " + filename);
-        	return null;
-        }
+    	InputStream inputStream;
+    	try {
+    		inputStream = assets.open("data/" + filename);
+    	} catch (IOException e) {
+    		try {
+    			inputStream = assets.open(filename);
+    		} catch (IOException e2) {
+    			System.err.println("getImageData: Could not open image " + filename);
+    			return null;
+    		}
+    	}
 
         Bitmap bm = BitmapFactory.decodeStream(inputStream);
         int w = bm.getWidth();
@@ -254,7 +245,6 @@ public class MainActivity extends NativeActivity {
     public float getPixelsPerMillimeter() {
     	 DisplayMetrics metrics = new DisplayMetrics();
     	 getWindowManager().getDefaultDisplay().getMetrics(metrics);
-    	 //System.err.println("metrics: " + metrics.xdpi + ", " + metrics.ydpi);
     	 return (metrics.xdpi + metrics.ydpi) * 0.5f / 25.4f;
     }
 
@@ -339,7 +329,6 @@ public class MainActivity extends NativeActivity {
                     			{ public void onClick(View v) { if (mDialog != null) mDialog.cancel(); onDialogCanceled(); }});
                     }
 
-                    //mDialog.setO
                     MainActivity.this.mDialog.setView(view);
 
                     if (viewIds != null)
@@ -358,7 +347,6 @@ public class MainActivity extends NativeActivity {
     	        MainActivity.this.mDialog.show();
     	        MainActivity.this.mDialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
     	        MainActivity.this.mDialog.getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.MATCH_PARENT);
-    	        //MainActivity.this.getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
     	    }
     	});
     }
@@ -373,18 +361,9 @@ public class MainActivity extends NativeActivity {
 
     	int n = 0;
     	for (Map.Entry<String, ?> e : m.entrySet()) {
-    		// @todo: Would be nice if the disabled settings could be stripped out here
-
     		String key   = e.getKey();
     		String value = e.getValue().toString(); 
 
-    		//
-    		// Feel free to modify key or value!
-    		//
-    		// This can be used to correct differences between the different
-    		// platforms, such as Android not supporting floating point
-    		// ranges for Sliders/SeekBars: {0..100} - TRANSFORM -> {0..1}
-    		//
     		if (key.equals(MainMenuOptionsActivity.Controls_UseTouchscreen))
     			_isTouchscreen = !isXperiaPlay() || (Boolean) e.getValue(); 
 
@@ -403,12 +382,8 @@ public class MainActivity extends NativeActivity {
 
     		tmpOut[n++] = key;
     		tmpOut[n++] = value;
-
-    		//System.out.println("Key: " + e.getKey());
-    		//System.out.println("Val: " + e.getValue().toString() + " (" + e.getValue().getClass().getName() + ")\n");
     	}
 
-    	// Copy over the enabled preferences
     	String[] out = new String[n];
     	for (int i = 0; i < n; ++i)
     		out[i] = tmpOut[i];
@@ -425,13 +400,6 @@ public class MainActivity extends NativeActivity {
 
     public boolean isNetworkEnabled(boolean onlyWifiAllowed) {
     	return true;
-    	/*
-	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-	    NetworkInfo info = onlyWifiAllowed? cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
-	    								:	cm.getActiveNetworkInfo();
-	  //(info.getState() == NetworkInfo.State.CONNECTED || info.getState() == NetworkInfo.State.CONNECTING));
-	    return (info != null && info.isConnectedOrConnecting());
-    	 */
     }
     
     private Bundle data;
@@ -447,7 +415,6 @@ public class MainActivity extends NativeActivity {
     
     private AlertDialog mDialog;
     private final DateFormat DateFormat = new SimpleDateFormat();
-//    public EditText mTextInputWidget;
     
     public void vibrate(int milliSeconds) {
     	Vibrator v = (Vibrator)this.getSystemService(VIBRATOR_SERVICE);
@@ -472,7 +439,6 @@ public class MainActivity extends NativeActivity {
         if (focused != null) {
             boolean result = inputManager.showSoftInput(focused, InputMethodManager.SHOW_IMPLICIT);
         } else {
-            // fallback: try to show using decor view token
             View decor = getWindow().getDecorView();
             if (decor != null) {
                 inputManager.showSoftInput(decor, InputMethodManager.SHOW_IMPLICIT);
@@ -481,27 +447,21 @@ public class MainActivity extends NativeActivity {
     }
 
     protected void onPause() {
-    	//System.out.println("onPause");
     	super.onPause();
     }
 
     protected void onStop() {
-    	//System.out.println("onStop");
     	nativeStopThis();
     	super.onStop();
     }
     protected void onDestroy() {
     	System.out.println("onDestroy");
-
     	nativeUnregisterThis();
     	super.onDestroy();
     }
 
     protected boolean isDemo() { return false; }
     
-    //
-    // Native interface
-    //
     native void nativeRegisterThis(); 
     native void nativeUnregisterThis();
     native void nativeStopThis();
@@ -511,7 +471,6 @@ public class MainActivity extends NativeActivity {
     }
 }
 
-// see client/gui/screens/DialogDefinitions.h
 class DialogDefinitions {
 	static final int DIALOG_CREATE_NEW_WORLD = 1;
 	static final int DIALOG_NEW_CHAT_MESSAGE = 2;

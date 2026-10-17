@@ -354,20 +354,17 @@ public class MainActivity extends Activity {
     public int[] getImageData(String filename) {
     	AssetManager assets = getAssets();
 
-        try {
-        	/*String[] filenames = */assets.list("images");
-        } catch (IOException e) {
-        	System.err.println("getImageData: Could not list directory");
-        	return null;
-        }
-
-        InputStream inputStream = null;
-        try {
-        	inputStream = assets.open(filename);
-        } catch (IOException e) {
-        	System.err.println("getImageData: Could not open image " + filename);
-        	return null;
-        }
+    	InputStream inputStream;
+    	try {
+    		inputStream = assets.open("data/" + filename);
+    	} catch (IOException e) {
+    		try {
+    			inputStream = assets.open(filename);
+    		} catch (IOException e2) {
+    			System.err.println("getImageData: Could not open image " + filename);
+    			return null;
+    		}
+    	}
 
         Bitmap bm = BitmapFactory.decodeStream(inputStream);
         int w = bm.getWidth();
@@ -384,14 +381,18 @@ public class MainActivity extends Activity {
     public byte[] getFileDataBytes(String filename) {
     	AssetManager assets = getAssets();
 
-    	BufferedInputStream bis;
+    	InputStream is;
     	try {
-        	InputStream is = assets.open(filename);
-        	bis = new BufferedInputStream(is);
-        } catch (IOException e) {
-        	e.printStackTrace();
-        	return null;
-        }
+    		is = assets.open("data/" + filename);
+    	} catch (IOException e) {
+    		try {
+    			is = assets.open(filename);
+    		} catch (IOException e2) {
+    			e2.printStackTrace();
+    			return null;
+    		}
+    	}
+    	BufferedInputStream bis = new BufferedInputStream(is);
 
     	ByteArrayOutputStream s = new ByteArrayOutputStream(4096);
     	byte[] tmp = new byte[1024];
@@ -734,18 +735,9 @@ class GLView extends GLSurfaceView {
 	
     @Override
     public void surfaceCreated(android.view.SurfaceHolder holder) {
-//    	holder.setFixedSize((int)(_activity.getScreenWidth() * _activity.invScale),
-//    						(int)(_activity.getScreenHeight() * _activity.invScale));
         System.out.println("w,h: " + _activity.getScreenWidth() + "," + _activity.getScreenHeight());
     	super.surfaceCreated(holder);
     }
-
-//    public boolean onTouchEvent(final MotionEvent event) {
-//        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-//            nativePause();
-//        }
-//        return true;
-//    }
 
     private GLRenderer _renderer;
 	private MainActivity _activity;
@@ -785,7 +777,6 @@ class GLRenderer implements GLSurfaceView.Renderer {
     private static native void nativeOnSurfaceCreated();
     private static native void nativeOnSurfaceChanged(int w, int h);
     private static native void nativeUpdate();
-    //private static native void nativeDone();
 }
 
 class TextViewReader implements StringValue {
