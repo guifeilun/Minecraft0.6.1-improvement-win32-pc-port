@@ -1,4 +1,5 @@
 #include "SoundEngine.h"
+#include "../../platform/audio/SoundSystemAL.h"
 #include "../Options.h"
 #include "../Minecraft.h"
 #include "../../world/entity/Mob.h"
@@ -85,11 +86,11 @@ void* MyGetOpenALAudioData(CFURLRef inFileURL, ALsizei *outDataSize, ALenum *out
     do {
 	// Open a file with ExtAudioFileOpen()
 	err = ExtAudioFileOpenURL(inFileURL, &extRef);
-	if(err) { printf("MyGetOpenALAudioData: ExtAudioFileOpenURL FAILED, Error = %ld\n", err); break; }
+	if(err) { printf("MyGetOpenALAudioData: ExtAudioFileOpenURL FAILED, Error = %d\n", (int)err); break; }
 	
 	// Get the audio data format
 	err = ExtAudioFileGetProperty(extRef, kExtAudioFileProperty_FileDataFormat, &thePropertySize, &theFileFormat);
-	if(err) { printf("MyGetOpenALAudioData: ExtAudioFileGetProperty(kExtAudioFileProperty_FileDataFormat) FAILED, Error = %ld\n", err); break; }
+	if(err) { printf("MyGetOpenALAudioData: ExtAudioFileGetProperty(kExtAudioFileProperty_FileDataFormat) FAILED, Error = %d\n", (int)err); break; }
 	if (theFileFormat.mChannelsPerFrame > 2)  { printf("MyGetOpenALAudioData - Unsupported Format, channel count is greater than stereo\n"); break;}
     
 	// Set the client format to 16 bit signed integer (native-endian) data
@@ -106,15 +107,15 @@ void* MyGetOpenALAudioData(CFURLRef inFileURL, ALsizei *outDataSize, ALenum *out
 	
 	// Set the desired client (output) data format
 	err = ExtAudioFileSetProperty(extRef, kExtAudioFileProperty_ClientDataFormat, sizeof(theOutputFormat), &theOutputFormat);
-	if(err) { printf("MyGetOpenALAudioData: ExtAudioFileSetProperty(kExtAudioFileProperty_ClientDataFormat) FAILED, Error = %ld\n", err); break; }
+	if(err) { printf("MyGetOpenALAudioData: ExtAudioFileSetProperty(kExtAudioFileProperty_ClientDataFormat) FAILED, Error = %d\n", (int)err); break; }
 	
 	// Get the total frame count
 	thePropertySize = sizeof(theFileLengthInFrames);
 	err = ExtAudioFileGetProperty(extRef, kExtAudioFileProperty_FileLengthFrames, &thePropertySize, &theFileLengthInFrames);
-	if(err) { printf("MyGetOpenALAudioData: ExtAudioFileGetProperty(kExtAudioFileProperty_FileLengthFrames) FAILED, Error = %ld\n", err); break; }
+	if(err) { printf("MyGetOpenALAudioData: ExtAudioFileGetProperty(kExtAudioFileProperty_FileLengthFrames) FAILED, Error = %d\n", (int)err); break; }
 	
 	// Read all the data into memory
-	UInt32		dataSize = theFileLengthInFrames * theOutputFormat.mBytesPerFrame;
+	UInt32		dataSize = (UInt32)(theFileLengthInFrames * theOutputFormat.mBytesPerFrame);
 	theData = (void*)new char[dataSize];
 	if (theData)
 	{
@@ -138,7 +139,7 @@ void* MyGetOpenALAudioData(CFURLRef inFileURL, ALsizei *outDataSize, ALenum *out
 			// failure
 			free (theData);
 			theData = NULL; // make sure to return NULL
-			printf("MyGetOpenALAudioData: ExtAudioFileRead FAILED, Error = %ld\n", err); break;
+			printf("MyGetOpenALAudioData: ExtAudioFileRead FAILED, Error = %d\n", (int)err); break;
 		}	
 	}
     } while(0);
@@ -323,7 +324,7 @@ void SoundEngine::init( Minecraft* mc, Options* options )
 
 void SoundEngine::enable( bool status )
 {
-	soundSystem.enable(status);
+	soundSystem->enable(status);
 }
 
 void SoundEngine::updateOptions()
@@ -333,7 +334,7 @@ void SoundEngine::updateOptions()
 
 void SoundEngine::destroy()
 {
-	//if (loaded) soundSystem.cleanup();
+	//if (loaded) soundSystem->cleanup();
 }
 
 void SoundEngine::update( Mob* player, float a )
@@ -346,8 +347,8 @@ void SoundEngine::update( Mob* player, float a )
 	_z = player->zo + (player->z - player->zo) * a;
 	_yRot = player->yRotO + (player->yRot - player->yRotO) * a;
 
-	soundSystem.setListenerAngle(_yRot);
-	//soundSystem.setListenerPos(_x, _y, _z); //@note: not used, since we translate all sounds to Player space
+	soundSystem->setListenerAngle(_yRot);
+	//soundSystem->setListenerPos(_x, _y, _z); //@note: not used, since we translate all sounds to Player space
 }
 
 float SoundEngine::_getVolumeMult( float x, float y, float z )
@@ -367,7 +368,7 @@ void SoundEngine::play(const std::string& name, float x, float y, float z, float
 
 	SoundDesc sound;
 	if (sounds.get(name, sound)) {
-		soundSystem.playAt(sound, x-_x, y-_y, z-_z, volume, pitch);
+		soundSystem->playAt(sound, x-_x, y-_y, z-_z, volume, pitch);
 	}
 }
 
@@ -379,7 +380,6 @@ void SoundEngine::playUI(const std::string& name, float volume, float pitch) {
 
 	SoundDesc sound;
 	if (sounds.get(name, sound)) {
-		soundSystem.playAt(sound, 0, 0, 0, volume, pitch);
+		soundSystem->playAt(sound, 0, 0, 0, volume, pitch);
 	}
 }
-

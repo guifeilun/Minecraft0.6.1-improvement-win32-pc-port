@@ -85,6 +85,10 @@ else()
             add_library(ZLIB::ZLIB ALIAS zlib)
         endif()
     endif()
+    # --- libpng NEON fix: force OFF before option() runs ---
+    set(PNG_ARM_NEON OFF CACHE BOOL "" FORCE)
+    set(PNG_ARM_NEON_OPT 0 CACHE INTERNAL "" FORCE)
+    # ------------------------------------------------------
     CPMAddPackage(
         NAME "libpng"
         GIT_REPOSITORY "https://github.com/pnggroup/libpng.git"
@@ -94,7 +98,6 @@ else()
             "ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR}"
             "PNG_TOOLS OFF"
             "PNG_TESTS OFF"
-            "PNG_ARM_NEON=off"
     )
     if(NOT WIN32 AND NOT APPLE)
         CPMAddPackage(
