@@ -1,6 +1,8 @@
 #include "AppPlatform_android.h"
 #include <android/asset_manager.h>
 #include <android/native_activity.h>
+#include <string>
+#include <vector>
 
 class AppPlatform_android23 : public AppPlatform_android
 {
@@ -11,9 +13,7 @@ public:
 	{
 	}
 
-	// If we're using Android 2.3+, try reading assets from NDK at first.
-	// If that doesn't work, read through java/JNI as usual.
-	BinaryBlob readAssetFile(const std::string& filename) {
+	BinaryBlob readAssetFile(const std::string& filename) override {
 		if (!_isInited)
 			return BinaryBlob();
 
@@ -36,10 +36,26 @@ public:
 		return super::readAssetFile(filename);
 	}
 
+	StringVector listLanguageCodes() override {
+		StringVector codes;
+		if (!_isInited)
+			return codes;
 
-	// Another init method... added to read data from the activity, and setup constants
-	// @note: This is called after instance is set from the outside, BUT this
-	//        will be rewritten later on anyway
+		if (_assetManager != NULL) {
+			AAssetDir* dir = AAssetManager_openDir(_assetManager, "lang");
+			if (dir != NULL) {
+				const char* name;
+				while ((name = AAssetDir_getNextFileName(dir)) != NULL) {
+					std::string n(name);
+					if (n.size() > 5 && n.compare(n.size() - 5, 5, ".lang") == 0)
+						codes.push_back(n.substr(0, n.size() - 5));
+				}
+				AAssetDir_close(dir);
+			}
+		}
+		return codes;
+	}
+
 	void initWithActivity(struct ANativeActivity* activity) {
 		_assetManager = activity->assetManager;
 	}

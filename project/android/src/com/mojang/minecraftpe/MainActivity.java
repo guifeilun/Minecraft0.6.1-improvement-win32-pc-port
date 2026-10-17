@@ -170,20 +170,14 @@ public class MainActivity extends NativeActivity {
     public byte[] getFileDataBytes(String filename) {
     	AssetManager assets = getAssets();
 
-    	InputStream is;
+    	BufferedInputStream bis;
     	try {
-    		// Assets live under assets/data/ in this port; I18n passes paths
-    		// like "lang/en_US.lang", so try data/ first, then as-is.
-    		is = assets.open("data/" + filename);
-    	} catch (IOException e) {
-    		try {
-    			is = assets.open(filename);
-    		} catch (IOException e2) {
-    			e2.printStackTrace();
-    			return null;
-    		}
-    	}
-    	BufferedInputStream bis = new BufferedInputStream(is);
+        	InputStream is = assets.open(filename);
+        	bis = new BufferedInputStream(is);
+        } catch (IOException e) {
+        	e.printStackTrace();
+        	return null;
+        }
 
     	ByteArrayOutputStream s = new ByteArrayOutputStream(4096);
     	byte[] tmp = new byte[1024];
@@ -206,17 +200,20 @@ public class MainActivity extends NativeActivity {
     public int[] getImageData(String filename) {
     	AssetManager assets = getAssets();
 
-    	InputStream inputStream;
-    	try {
-    		inputStream = assets.open("data/" + filename);
-    	} catch (IOException e) {
-    		try {
-    			inputStream = assets.open(filename);
-    		} catch (IOException e2) {
-    			System.err.println("getImageData: Could not open image " + filename);
-    			return null;
-    		}
-    	}
+        try {
+        	assets.list("images");
+        } catch (IOException e) {
+        	System.err.println("getImageData: Could not list directory");
+        	return null;
+        }
+
+        InputStream inputStream = null;
+        try {
+        	inputStream = assets.open(filename);
+        } catch (IOException e) {
+        	System.err.println("getImageData: Could not open image " + filename);
+        	return null;
+        }
 
         Bitmap bm = BitmapFactory.decodeStream(inputStream);
         int w = bm.getWidth();

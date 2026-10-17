@@ -413,7 +413,7 @@ public:
 		AAssetManager* mgr = _nativeActivity->assetManager;
 		if (!mgr) return codes;
 
-		AAssetDir* dir = AAssetManager_openDir(mgr, "data/lang");
+		AAssetDir* dir = AAssetManager_openDir(mgr, "lang");
 		if (!dir) return codes;
 
 		const char* name;

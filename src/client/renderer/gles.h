@@ -5,11 +5,12 @@
 #include "../Options.h"
 
 #if defined(__APPLE__)
+    #include <TargetConditionals.h>
     #define GLES_SILENCE_DEPRECATION
 #endif
 
-// Android should always run OPENGL_ES
-#if defined(ANDROID) || defined(__APPLE__) || defined(RPI)
+// Android and iOS should always run OPENGL_ES
+#if defined(ANDROID) || (defined(__APPLE__) && TARGET_OS_IPHONE) || defined(RPI)
     #define OPENGL_ES
 #endif
 #define GLES_SILENCE_DEPRECATION
@@ -17,7 +18,7 @@
 // #if defined(OPENGL_ES) // || defined(ANDROID)
 	#define USE_VBO
 	#define GL_QUADS 0x0007
-    #if defined(__APPLE__)
+    #if defined(__APPLE__) && TARGET_OS_IPHONE
         #import <OpenGLES/ES1/gl.h>
         #import <OpenGLES/ES1/glext.h> 
     #elif defined(ANDROID) || defined(__EMSCRIPTEN__)

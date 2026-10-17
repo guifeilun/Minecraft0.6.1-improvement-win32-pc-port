@@ -55,7 +55,6 @@ import com.mojang.minecraftpe.R;
 import com.mojang.minecraftpe.sound.SoundPlayer;
 
 public class MainActivity extends Activity {
-	/** Called when the activity is first created. */
     private static final int PERMISSION_REQUEST_CODE = 123;
 
     private GLView _glView;
@@ -73,17 +72,12 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         nativeRegisterThis();
 
-        // Cache screen dimensions once to avoid re-entrant getDisplayMetrics() callbacks
         android.util.DisplayMetrics _dm = getResources().getDisplayMetrics();
         _screenWidth = Math.max(_dm.widthPixels, _dm.heightPixels);
         _screenHeight = Math.min(_dm.widthPixels, _dm.heightPixels);
 
         _glView = new GLView(getApplication(), this);
-        //_glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-
         _glView.setEGLConfigChooser(true);
-        //_glView
-
         _glView.commit();
         setContentView(_glView);
 
@@ -101,7 +95,6 @@ public class MainActivity extends Activity {
         nativeOnCreate(_screenWidth, _screenHeight);
     }
 
-    // request dangerous permissions at runtime if necessary
     private boolean checkAndRequestPermissions() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
@@ -135,8 +128,6 @@ public class MainActivity extends Activity {
             if (granted) {
                 initNative();
             } else {
-                // We can still run using app-specific external files in scoped-storage,
-                // so allow startup while warning the user.
                 initNative();
                 new AlertDialog.Builder(this)
                     .setTitle("Storage permission recommended")
@@ -149,9 +140,8 @@ public class MainActivity extends Activity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    // method required by native code to detect touchscreen support
     public boolean supportsTouchscreen() {
-        return true; // all devices using this build are touch-capable
+        return true;
     }
 
     static public boolean isXperiaPlay() { return false; }
@@ -179,7 +169,6 @@ public class MainActivity extends Activity {
     		builder.setCancelable(false);
 
     	builder.setOnCancelListener(new OnCancelListener() {
-			//@Override
 			public void onCancel(DialogInterface dialog) {
 				onDialogCanceled();
 			}
@@ -232,14 +221,11 @@ public class MainActivity extends Activity {
     }
 
     public void handleKeyEvent(KeyEvent event) {
-    	//System.out.println("KeyDown: " + keyCode);
-
     	final int keyCode = event.getKeyCode();
     	final boolean pressedBack = (keyCode == KeyEvent.KEYCODE_BACK);
 
     	if (pressedBack) {
 			if (!nativeHandleBack(event.getAction() == KeyEvent.ACTION_DOWN)) {
-				// End game here
 				if (event.getAction() == KeyEvent.ACTION_DOWN)
 					finish();
 			}
@@ -255,61 +241,48 @@ public class MainActivity extends Activity {
         	nativeOnKeyUp(keyCode);
     }
 
-    //private int _primaryPointerIdDown = -1; 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-    	//System.out.println("Adding touch event " + e.getActionMasked());
     	_touchEvents.add(MotionEvent.obtainNoHistory(e));
     	return super.onTouchEvent(e);
     }
 
     public void handleTouchEvent(MotionEvent e) {
-    	//printMemUsage(this);
-    	
     	int fullAction = e.getAction();
     	int action = (fullAction & MotionEvent.ACTION_MASK);
-    	//int pointerIndex = (fullAction & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
     	int pointerIndex = (fullAction & MotionEvent.ACTION_POINTER_ID_MASK) >> MotionEvent.ACTION_POINTER_ID_SHIFT;
     	int pointerId = e.getPointerId(pointerIndex);
-    	//System.out.println("Pointers: " + pointerId + ", " + pointerId222);
 		float x = e.getX(pointerIndex) * invScale;
 		float y = e.getY(pointerIndex) * invScale;
 
     	switch (action) {
     	case MotionEvent.ACTION_DOWN: {
-    		//System.err.println("D: " + pointerId + ": " + x + ", " + y);
     		nativeMouseDown(pointerId, 1, x, y);
     		break;
     	}
     	case MotionEvent.ACTION_POINTER_DOWN: {
-    		//System.err.println("d: " + pointerId + ": " + x + ", " + y);
 			nativeMouseDown(pointerId, 1, x, y);
 			break;
         }
     	case MotionEvent.ACTION_UP: {
-    		//System.err.println("U: " + pointerId + ": " + x + ", " + y);
 			nativeMouseUp(pointerId, 1, x, y);
 			break;
         }
     	case MotionEvent.ACTION_POINTER_UP: {
-    		//System.err.println("u: " + pointerId + ": " + x + ", " + y);
 			nativeMouseUp(pointerId, 1, x, y);
 			break;
     	}
 		case MotionEvent.ACTION_MOVE: {
     		int pcount = e.getPointerCount();
     		for (int i = 0; i < pcount; ++i) {
-    			int pp = e.getPointerId(i); // @attn wtf?																																
+    			int pp = e.getPointerId(i);
     			float xx = e.getX(i) * invScale;
     			float yy = e.getY(i) * invScale; 
-        		//	System.err.println("   " + p + " @ " + x + ", " + y);
     			nativeMouseMove(pp, xx, yy);
     		}
     		break;
     	}
     	}
-    	
-    	//return super.onTouchEvent(e);
     }
     
     static private void printMemUsage(Context context)
@@ -325,20 +298,15 @@ public class MainActivity extends Activity {
 
     static public void saveScreenshot(String filename, int w, int h, int[] pixels) {
     	Bitmap bitmap = Bitmap.createBitmap(pixels, w, h, Bitmap.Config.ARGB_8888);
-
-    	//System.out.println("Save screenshot: " + filename);
     	
     	try {
 	        FileOutputStream fos = new FileOutputStream(filename);
 	        bitmap.compress(CompressFormat.JPEG, 85, fos);
-	    	//System.out.println("Compression completed!");
-
 	        try {
                 fos.flush();
 	        } catch (IOException e) {
                 e.printStackTrace();
 	        }
-
 	        try {
                 fos.close();
 	        } catch (IOException e) {
@@ -354,17 +322,13 @@ public class MainActivity extends Activity {
     public int[] getImageData(String filename) {
     	AssetManager assets = getAssets();
 
-    	InputStream inputStream;
-    	try {
-    		inputStream = assets.open("data/" + filename);
-    	} catch (IOException e) {
-    		try {
-    			inputStream = assets.open(filename);
-    		} catch (IOException e2) {
-    			System.err.println("getImageData: Could not open image " + filename);
-    			return null;
-    		}
-    	}
+        InputStream inputStream = null;
+        try {
+        	inputStream = assets.open(filename);
+        } catch (IOException e) {
+        	System.err.println("getImageData: Could not open image " + filename);
+        	return null;
+        }
 
         Bitmap bm = BitmapFactory.decodeStream(inputStream);
         int w = bm.getWidth();
@@ -381,18 +345,14 @@ public class MainActivity extends Activity {
     public byte[] getFileDataBytes(String filename) {
     	AssetManager assets = getAssets();
 
-    	InputStream is;
+    	BufferedInputStream bis;
     	try {
-    		is = assets.open("data/" + filename);
-    	} catch (IOException e) {
-    		try {
-    			is = assets.open(filename);
-    		} catch (IOException e2) {
-    			e2.printStackTrace();
-    			return null;
-    		}
-    	}
-    	BufferedInputStream bis = new BufferedInputStream(is);
+        	InputStream is = assets.open(filename);
+        	bis = new BufferedInputStream(is);
+        } catch (IOException e) {
+        	e.printStackTrace();
+        	return null;
+        }
 
     	ByteArrayOutputStream s = new ByteArrayOutputStream(4096);
     	byte[] tmp = new byte[1024];
@@ -458,7 +418,7 @@ public class MainActivity extends Activity {
     			new int[] { R.id.editText_worldName,
     						R.id.editText_worldSeed,
     						R.id.button_gameMode},
-    			false, // Don't prevent back key
+    			false,
     			R.id.button_createworld_create,
     			R.id.button_createworld_cancel
     		); 
@@ -506,7 +466,6 @@ public class MainActivity extends Activity {
                     			{ public void onClick(View v) { if (mDialog != null) mDialog.cancel(); onDialogCanceled(); }});
                     }
 
-                    //mDialog.setO
                     MainActivity.this.mDialog.setView(view);
 
                     if (viewIds != null)
@@ -525,7 +484,6 @@ public class MainActivity extends Activity {
     	        MainActivity.this.mDialog.show();
     	        MainActivity.this.mDialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
     	        MainActivity.this.mDialog.getWindow().setLayout(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-    	        //MainActivity.this.getWindow().setLayout(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     	    }
     	});
     }
@@ -542,13 +500,6 @@ public class MainActivity extends Activity {
     	for (Map.Entry<String, ?> e : m.entrySet()) {
     		String key   = e.getKey();
     		String value = e.getValue().toString();
-    		//
-    		// Feel free to modify key or value!
-    		//
-    		// This can be used to correct differences between the different
-    		// platforms, such as Android not supporting floating point
-    		// ranges for Sliders/SeekBars: {0..100} - TRANSFORM -> {0..1}
-    		//
     		if (key.equals(MainMenuOptionsActivity.Internal_Game_DifficultyPeaceful)) {
     			key = MainMenuOptionsActivity.Game_DifficultyLevel;
     			value = ((Boolean) e.getValue()) ? "0" : "2";
@@ -561,11 +512,8 @@ public class MainActivity extends Activity {
 
     		tmpOut[n++] = key;
     		tmpOut[n++] = value;
-//    		System.out.println("Key: " + e.getKey());
-//    		System.out.println("Val: " + e.getValue().toString() + "\n");
     	}
 
-    	// Copy over the enabled preferences
     	String[] out = new String[n];
     	for (int i = 0; i < n; ++i)
     		out[i] = tmpOut[i];
@@ -596,13 +544,6 @@ public class MainActivity extends Activity {
 
     public boolean isNetworkEnabled(boolean onlyWifiAllowed) {
     	return true;
-    	/*
-	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-	    NetworkInfo info = onlyWifiAllowed? cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
-	    								:	cm.getActiveNetworkInfo();
-	  //(info.getState() == NetworkInfo.State.CONNECTED || info.getState() == NetworkInfo.State.CONNECTING));
-	    return (info != null && info.isConnectedOrConnecting());
-    	 */
     }
 
     private Bundle data;
@@ -623,7 +564,6 @@ public class MainActivity extends Activity {
 
     private AlertDialog mDialog;
     private final DateFormat DateFormat = new SimpleDateFormat();
-//    public EditText mTextInputWidget;
 
     private void onDialogCanceled() {
     	_userInputStatus = 0;
@@ -642,29 +582,23 @@ public class MainActivity extends Activity {
     
     
     protected void onStart() {
-    	//System.out.println("onStart");
     	super.onStart();
     }
     
     protected void onResume() {
-    	//System.out.println("onResume");
     	super.onResume();
         _glView.onResume();
     }
 
     protected void onPause() {
-    	//System.out.println("onPause");
     	super.onPause();
         _glView.onPause();
     }
 
     protected void onStop() {
-    	//System.out.println("onStop");
     	super.onStop();
     }
     protected void onDestroy() {
-    	//System.out.println("onDestroy");
-
     	nativeUnregisterThis();
     	super.onDestroy();
     	nativeOnDestroy();
@@ -672,9 +606,6 @@ public class MainActivity extends Activity {
 
     protected boolean isDemo() { return false; }
     
-    //
-    // Native interface
-    //
     native void nativeRegisterThis();
     native void nativeUnregisterThis();
     native static void nativeOnCreate(int screenWidth, int screenHeight);
@@ -707,7 +638,6 @@ public class MainActivity extends Activity {
 	}
 }
 
-// see client/gui/screens/DialogDefinitions.h
 class DialogDefinitions {
 	static final int DIALOG_CREATE_NEW_WORLD = 1;
 	static final int DIALOG_NEW_CHAT_MESSAGE = 2;
@@ -721,7 +651,6 @@ class GLView extends GLSurfaceView {
         super(context);
         _activity = activity;
         _renderer = new GLRenderer(activity);
-        
     }
 
 	@Override
@@ -756,7 +685,6 @@ class GLRenderer implements GLSurfaceView.Renderer {
 
     public void onSurfaceChanged(GL10 gl, int w, int h) {
     	if (h > w) {
-    		System.out.println("surfchanged ERROR. dimensions: " + w + ", " + h);
     		nativeOnSurfaceChanged(h, w);
     	}
     	else
