@@ -96,7 +96,8 @@ public:
 		_hasSetPowerVR(false),
 		_nativeActivity(0),
 
-		_methodGetKeyFromKeyCode(0)
+		_methodGetKeyFromKeyCode(0),
+		_methodListAssets(0)
     {
     }
 
@@ -148,6 +149,7 @@ public:
 		_methodGetPixelsPerMillimeter = env->GetMethodID( _activityClass, "getPixelsPerMillimeter", "()F");
 		_methodGetPlatformStringVar = env->GetMethodID( _activityClass, "getPlatformStringVar", "(I)Ljava/lang/String;");
 		_methodOpenURL = env->GetMethodID(_activityClass, "openURL", "(Ljava/lang/String;)V");
+		_methodListAssets = env->GetMethodID(_activityClass, "listAssets", "(Ljava/lang/String;)[Ljava/lang/String;");
 
 		_classWindow = (jclass)env->NewGlobalRef(env->FindClass("android/view/Window"));
 		_classContext = (jclass)env->NewGlobalRef(env->FindClass("android/content/Context"));
@@ -408,21 +410,45 @@ public:
 
 	StringVector listLanguageCodes() override {
 		StringVector codes;
-		if (!_isInited || !_nativeActivity) return codes;
+		if (!_isInited) return codes;
 
-		AAssetManager* mgr = _nativeActivity->assetManager;
-		if (!mgr) return codes;
-
-		AAssetDir* dir = AAssetManager_openDir(mgr, "lang");
-		if (!dir) return codes;
-
-		const char* name;
-		while ((name = AAssetDir_getNextFileName(dir)) != NULL) {
-			std::string n(name);
-			if (n.size() > 5 && n.compare(n.size() - 5, 5, ".lang") == 0)
-				codes.push_back(n.substr(0, n.size() - 5));
+		// Path 1: ANativeActivity available (main_android.cpp)
+		if (_nativeActivity) {
+			AAssetManager* mgr = _nativeActivity->assetManager;
+			if (mgr) {
+				AAssetDir* dir = AAssetManager_openDir(mgr, "lang");
+				if (dir) {
+					const char* name;
+					while ((name = AAssetDir_getNextFileName(dir)) != NULL) {
+						std::string n(name);
+						if (n.size() > 5 && n.compare(n.size() - 5, 5, ".lang") == 0)
+							codes.push_back(n.substr(0, n.size() - 5));
+					}
+					AAssetDir_close(dir);
+				}
+			}
 		}
-		AAssetDir_close(dir);
+
+		// Path 2: JNI fallback (main_android_java.cpp, _nativeActivity is NULL)
+		if (codes.empty() && _methodListAssets) {
+			JVMAttacher ta(_vm);
+			JNIEnv* env = ta.getEnv();
+			jobjectArray arr = (jobjectArray)env->CallObjectMethod(
+				instance, _methodListAssets, env->NewStringUTF("lang"));
+			if (arr) {
+				jsize len = env->GetArrayLength(arr);
+				for (jsize i = 0; i < len; ++i) {
+					jstring s = (jstring)env->GetObjectArrayElement(arr, i);
+					const char* str = env->GetStringUTFChars(s, 0);
+					std::string n(str);
+					env->ReleaseStringUTFChars(s, str);
+					env->DeleteLocalRef(s);
+					if (n.size() > 5 && n.compare(n.size() - 5, 5, ".lang") == 0)
+						codes.push_back(n.substr(0, n.size() - 5));
+				}
+				env->DeleteLocalRef(arr);
+			}
+		}
 		return codes;
 	}
 
@@ -615,6 +641,7 @@ private:
 
 	jmethodID _methodGetPlatformStringVar;
 	jmethodID _methodOpenURL;
+	jmethodID _methodListAssets;
 
 	jclass _classWindow;
 	jclass _classContext;

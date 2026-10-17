@@ -1188,6 +1188,8 @@
 		F99D3468B2F736BDA00DC153E /* DesktopFurnaceScreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3468A2F736BDA00DC153E /* DesktopFurnaceScreen.cpp */; };
 		F99D346CB2F736BDA00DC153E /* DesktopCraftingScreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D346CA2F736BDA00DC153E /* DesktopCraftingScreen.cpp */; };
 		F99D3470B2F736BDA00DC153E /* DesktopCreativeScreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3470A2F736BDA00DC153E /* DesktopCreativeScreen.cpp */; };
+		F99D3474B2F736BDA00DC153E /* FishingHook.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3474A2F736BDA00DC153E /* FishingHook.cpp */; };
+		F99D3478B2F736BDA00DC153E /* NetherLevelSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F99D3478A2F736BDA00DC153E /* NetherLevelSource.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -2483,6 +2485,8 @@
 		F99D3468A2F736BDA00DC153E /* DesktopFurnaceScreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DesktopFurnaceScreen.cpp; path = "../../src/client/gui/screens/desktop/DesktopFurnaceScreen.cpp"; sourceTree = "<group>"; };
 		F99D346CA2F736BDA00DC153E /* DesktopCraftingScreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DesktopCraftingScreen.cpp; path = "../../src/client/gui/screens/desktop/DesktopCraftingScreen.cpp"; sourceTree = "<group>"; };
 		F99D3470A2F736BDA00DC153E /* DesktopCreativeScreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DesktopCreativeScreen.cpp; path = "../../src/client/gui/screens/desktop/DesktopCreativeScreen.cpp"; sourceTree = "<group>"; };
+		F99D3474A2F736BDA00DC153E /* FishingHook.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FishingHook.cpp; path = "../../src/world/entity/FishingHook.cpp"; sourceTree = "<group>"; };
+		F99D3478A2F736BDA00DC153E /* NetherLevelSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = NetherLevelSource.cpp; path = "../../src/world/level/levelgen/NetherLevelSource.cpp"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -4375,6 +4379,8 @@
 				F99D3468A2F736BDA00DC153E /* DesktopFurnaceScreen.cpp */,
 				F99D346CA2F736BDA00DC153E /* DesktopCraftingScreen.cpp */,
 				F99D3470A2F736BDA00DC153E /* DesktopCreativeScreen.cpp */,
+				F99D3474A2F736BDA00DC153E /* FishingHook.cpp */,
+				F99D3478A2F736BDA00DC153E /* NetherLevelSource.cpp */,
 				F99D344A2F7370CF00DC153E /* Slider.cpp */,
 			);
 			sourceTree = "<group>";
@@ -5662,6 +5668,8 @@
 				F99D3468B2F736BDA00DC153E /* DesktopFurnaceScreen.cpp in Sources */,
 				F99D346CB2F736BDA00DC153E /* DesktopCraftingScreen.cpp in Sources */,
 				F99D3470B2F736BDA00DC153E /* DesktopCreativeScreen.cpp in Sources */,
+				F99D3474B2F736BDA00DC153E /* FishingHook.cpp in Sources */,
+				F99D3478B2F736BDA00DC153E /* NetherLevelSource.cpp in Sources */,
 				D584928614FD240D00741128 /* IConfigListener.cpp in Sources */,
 				D584928914FD2FAF00741128 /* Path.cpp in Sources */,
 				D5B86281153810BD00F3238A /* I18n.cpp in Sources */,

@@ -196,7 +196,14 @@ public class MainActivity extends NativeActivity {
 
     	return s.toByteArray();
     }
-    
+    public String[] listAssets(String dir) {
+        try {
+            String[] names = getAssets().list(dir);
+            return names != null ? names : new String[0];
+        } catch (IOException e) {
+            return new String[0];
+        }
+    }    
     public int[] getImageData(String filename) {
     	AssetManager assets = getAssets();
 
