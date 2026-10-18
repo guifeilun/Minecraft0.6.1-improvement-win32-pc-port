@@ -27,6 +27,9 @@ jobs:
           tar -xf llvm-mingw.tar.xz
           mv llvm-mingw-* llvm-mingw
 
+      - name: Patch raknet for llvm-mingw (uint32_t)
+        run: sed -i '1i #include <cstdint>' src/raknet/RakNetTypes.h
+
       - name: Configure CMake
         run: |
           cmake -S . -B build -G Ninja \
@@ -35,7 +38,8 @@ jobs:
             -DCMAKE_CXX_COMPILER=$PWD/llvm-mingw/bin/x86_64-w64-mingw32-clang++ \
             -DCMAKE_RC_COMPILER=$PWD/llvm-mingw/bin/x86_64-w64-mingw32-windres \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_EXE_LINKER_FLAGS=-static
+            -DCMAKE_EXE_LINKER_FLAGS=-static \
+            -DCMAKE_CXX_FLAGS="-include cstdint"
 
       - name: Build
         run: cmake --build build --config $BUILD_TYPE --target MinecraftPE --parallel
