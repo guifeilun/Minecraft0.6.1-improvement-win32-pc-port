@@ -71,10 +71,6 @@ void ProgressScreen::render( int xm, int ym, float a )
 	const int progressY = height / 2 - 4 + 8;
 	minecraft->font->drawShadow(status, (float)progressLeft, (float)progressY, 0xffffff);
 
-#if APPLE_DEMO_PROMOTION
-	drawCenteredString(minecraft->font, I18n::get("demo.reminder"), width/2, progressY + 36, 0xffffff);
-#endif
-    
 	// If we're locating the server, show our famous spinner!
 	bool isLocating = (minecraft->getProgressStatusId() == 0);
 	if (isLocating) {

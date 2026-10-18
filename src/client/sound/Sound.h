@@ -61,8 +61,6 @@ private:
 	mutable char* buffer;
 };
 
-#if !defined(PRE_ANDROID23) && !defined(__APPLE__) && !defined(RPI)
-
 extern SoundDesc SA_cloth1;
 extern SoundDesc SA_cloth2;
 extern SoundDesc SA_cloth3;
@@ -174,7 +172,7 @@ extern SoundDesc SA_eat2;
 extern SoundDesc SA_eat3;
 extern SoundDesc SA_fuse;
 
-#endif /*!PRE_ANDROID23 && !__APPLE__*/
+
 
 
 #endif /*NET_MINECRAFT_CLIENT_SOUND__Sound_H__*/

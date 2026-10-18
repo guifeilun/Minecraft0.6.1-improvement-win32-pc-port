@@ -1,4 +1,4 @@
-#if !defined(DEMO_MODE) && !defined(APPLE_DEMO_PROMOTION)
+#if !defined(DEMO_MODE)
 
 #include "LevelData.h"
 #include "RegionFile.h"

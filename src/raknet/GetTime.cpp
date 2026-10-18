@@ -21,19 +21,6 @@
 DWORD mProcMask;
 DWORD mSysMask;
 HANDLE mThread;
-
-
-
-
-
-
-
-
-
-#else
-#include <sys/time.h>
-#include <unistd.h>
-RakNet::TimeUS initialTime;
 #endif
 
 static bool initialized=false;
@@ -166,30 +153,6 @@ RakNet::TimeUS GetTimeUS_Windows( void )
 	return NormalizeTime(curTime);
 #else
 	return curTime;
-#endif // #if defined(GET_TIME_SPIKE_LIMIT) && GET_TIME_SPIKE_LIMIT>0
-}
-#elif defined(__GNUC__)  || defined(__GCCXML__) ||  defined(__S3E__)
-RakNet::TimeUS GetTimeUS_Linux( void )
-{
-	timeval tp;
-	if ( initialized == false)
-	{
-		gettimeofday( &tp, 0 );
-		initialized=true;
-		// I do this because otherwise RakNet::Time in milliseconds won't work as it will underflow when dividing by 1000 to do the conversion
-		initialTime = ( tp.tv_sec ) * (RakNet::TimeUS) 1000000 + ( tp.tv_usec );
-	}
-
-	// GCC
-	RakNet::TimeUS curTime;
-	gettimeofday( &tp, 0 );
-
-	curTime = ( tp.tv_sec ) * (RakNet::TimeUS) 1000000 + ( tp.tv_usec );
-
-#if defined(GET_TIME_SPIKE_LIMIT) && GET_TIME_SPIKE_LIMIT>0
-	return NormalizeTime(curTime - initialTime);
-#else
-	return curTime - initialTime;
 #endif // #if defined(GET_TIME_SPIKE_LIMIT) && GET_TIME_SPIKE_LIMIT>0
 }
 #endif

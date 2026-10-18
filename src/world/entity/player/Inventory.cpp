@@ -130,11 +130,7 @@ void Inventory::setupDefault() {
 		Sel[5] =  addItem(new ItemInstance(Tile::wood));
 		Sel[2] = addItem(new ItemInstance(Tile::redBrick));
 
-#ifdef RPI
-		Sel[3] = addItem(new ItemInstance(Tile::rock));
-#else
 		Sel[0] = addItem(new ItemInstance(Tile::rock));
-#endif
 		Sel[4] = addItem(new ItemInstance(Tile::dirt));
 		addItem(new ItemInstance(Tile::grass));
 		addItem(new ItemInstance(Tile::clay));
@@ -206,11 +202,7 @@ void Inventory::setupDefault() {
 		addItem(new ItemInstance(Tile::cloth, 1, 9));
 		addItem(new ItemInstance(Tile::cloth, 1, 8));
 		addItem(new ItemInstance(Tile::ladder));
-#ifdef RPI
-		addItem(new ItemInstance(Tile::torch));
-#else
 		Sel[3] = addItem(new ItemInstance(Tile::torch));
-#endif
 		addItem(new ItemInstance(Tile::thinGlass));
 
 		addItem(new ItemInstance(Item::door_wood));
@@ -246,11 +238,7 @@ void Inventory::setupDefault() {
 		addItem(new ItemInstance(Item::dye_powder, 1, DyePowderItem::WHITE));
 		addItem(new ItemInstance(Item::hoe_iron));
 		addItem(new ItemInstance(Item::flintAndSteel));
-#ifdef RPI
-		Sel[0] = addItem(new ItemInstance(Item::sword_iron));
-#else
 		addItem(new ItemInstance(Item::sword_iron));
-#endif
 		addItem(new ItemInstance(Item::bow));
 		addItem(new ItemInstance(Item::sign));
 	} else {

@@ -3,9 +3,12 @@
 #include "../../../Minecraft.h"
 #include "../../../player/LocalPlayer.h"
 #include "../../../renderer/entity/ItemRenderer.h"
+#include "../../../renderer/Tesselator.h"
 #include "../../../sound/SoundEngine.h"
 #include "../../Font.h"
 #include "../../Gui.h"
+#include "../../components/ImageButton.h"
+#include "../../components/NinePatch.h"
 #include "../../../../world/entity/player/Inventory.h"
 #include "../../../../world/entity/player/Player.h"
 #include "../../../../world/item/Item.h"
@@ -16,6 +19,7 @@
 #include "platform/input/Mouse.h"
 #include "platform/input/Keyboard.h"
 #include "../../../Options.h"
+#include <cmath>
 
 namespace {
 const int SLOT_SIZE   = 18;
@@ -23,33 +27,21 @@ const int SLOT_PAD    = 1;
 const int SLOT_INNER  = 16;
 const int PALETTE_COLS = 9;
 const int TAB_H       = 18;
-const int TAB_PAD     = 6;
 const int HOTBAR_GAP  = 10;
 const int INNER_PAD   = 8;
+const int ScrollStartThreshold = 10;
 
-// Prefixed CLR_* to dodge Win32's COLOR_* macros (winuser.h defines
-// CLR_SCROLL_BAR, COLOR_BTNTEXT, etc. as integer system-colour ids).
 const int CLR_DIM        = 0x60101020;
-const int CLR_BG         = 0xc0202020;
-const int CLR_FRAME      = 0xff8b8b8b;
-const int CLR_SLOT       = 0xff5b5b5b;
-const int CLR_HOVER      = 0x80ffffff;
 const int CLR_TEXT       = 0xffe0e0e0;
-const int CLR_TAB_BG     = 0xa0303030;
-const int CLR_TAB_ACTIVE = 0xff404858;
-const int CLR_TAB_HOVER  = 0xff505050;
 const int CLR_TIP_BG     = 0xe0100010;
 const int CLR_TIP_FR     = 0xff5000ff;
-const int CLR_SCROLL_BAR = 0xff707070;
-const int CLR_SCROLL_HND = 0xffb0b0b0;
 
 const int CAT_ALL = -1;
 
-// One row per cloth/dye colour so the palette shows all 16 of each.
 struct AuxRange { int id; int auxLo; int auxHi; };
 const AuxRange AUX_EXPAND[] = {
-    {  35 /* cloth tile id */,    0, 15 },
-    { 256 + 95 /* dye_powder */,  0, 15 },
+    {  35, 0, 15 },
+    { 256 + 95, 0, 15 },
 };
 }
 
@@ -62,28 +54,69 @@ DesktopCreativeScreen::DesktopCreativeScreen()
     paletteCols(PALETTE_COLS), paletteRowsVisible(0),
     hotbarX(0), hotbarY(0),
     tabsY(0), tabW(0), tabH(TAB_H),
-    hoveredTabIdx(-1)
+    hoveredTabIdx(-1),
+    btnClose(NULL),
+    guiBackground(NULL), guiSlot(NULL), guiSlotMarker(NULL),
+    guiTabNormal(NULL), guiTabSelected(NULL),
+    trackingScrollGesture(false), scrollingGesture(false),
+    dragStartX(0), dragStartY(0), lastDragY(0),
+    touchStartX(0), touchStartY(0)
 {
-    // Each tab is drawn as a 22x22 icon button. The icon is just a
-    // representative item from that category (so e.g. the tools tab shows
-    // the iron pickaxe). The full text label appears as a hover tooltip.
-    // 0 = no icon (the All tab is drawn as text since no single item really
-    // represents "everything").
     Tab t;
-    t.label = "All";           t.category = CAT_ALL;                  t.iconItemId = 0;                                    t.x = 0; tabs.push_back(t);
-    t.label = "Blocks";        t.category = ItemCategory::Structures; t.iconItemId = 1   /* Tile::rock id */;              t.x = 0; tabs.push_back(t);
-    t.label = "Tools";         t.category = ItemCategory::Tools;      t.iconItemId = 256 + 1  /* Item::pickAxe_iron */;    t.x = 0; tabs.push_back(t);
-    t.label = "Food & Armor";  t.category = ItemCategory::FoodArmor;  t.iconItemId = 256 + 4  /* Item::apple */;           t.x = 0; tabs.push_back(t);
-    t.label = "Decorations";   t.category = ItemCategory::Decorations;t.iconItemId = 50  /* Tile::torch id */;             t.x = 0; tabs.push_back(t);
-    t.label = "Mechanisms";    t.category = ItemCategory::Mechanisms; t.iconItemId = 256 + 75 /* Item::redStone */;        t.x = 0; tabs.push_back(t);
+    t.label = "All";           t.category = CAT_ALL;                  t.iconItemId = Item::compass ? Item::compass->id : 256 + 89; t.x = 0; tabs.push_back(t);
+    t.label = "Blocks";        t.category = ItemCategory::Structures; t.iconItemId = 1;        t.x = 0; tabs.push_back(t);
+    t.label = "Tools";         t.category = ItemCategory::Tools;      t.iconItemId = 256 + 1;  t.x = 0; tabs.push_back(t);
+    t.label = "Food & Armor";  t.category = ItemCategory::FoodArmor;  t.iconItemId = 256 + 4;  t.x = 0; tabs.push_back(t);
+    t.label = "Decorations";   t.category = ItemCategory::Decorations;t.iconItemId = 50;       t.x = 0; tabs.push_back(t);
+    t.label = "Mechanisms";    t.category = ItemCategory::Mechanisms; t.iconItemId = 256 + 75; t.x = 0; tabs.push_back(t);
 }
 
-DesktopCreativeScreen::~DesktopCreativeScreen() {}
+DesktopCreativeScreen::~DesktopCreativeScreen() {
+    delete btnClose;
+    delete guiBackground;
+    delete guiSlot;
+    delete guiSlotMarker;
+    delete guiTabSelected;
+}
 
 void DesktopCreativeScreen::init() {
     super::init();
     rebuildEntries();
     layout();
+
+    NinePatchFactory builder(minecraft->textures, "gui/spritesheet.png");
+    guiBackground  = builder.createSymmetrical(IntRectangle(0, 0, 16, 16), 4, 4);
+    guiSlot        = builder.createSymmetrical(IntRectangle(0, 32, 8, 8), 3, 3);
+    guiSlotMarker  = builder.createSymmetrical(IntRectangle(10, 42, 16, 16), 5, 5);
+    guiTabNormal   = guiSlot;
+    guiTabSelected = builder.createSymmetrical(IntRectangle(0, 44, 8, 8), 3, 3);
+
+    if (!btnClose) {
+        btnClose = new ImageButton(0, "");
+        ImageDef def;
+        def.name = "gui/spritesheet.png";
+        def.x = 0; def.y = 1;
+        def.width = def.height = 18;
+        def.setSrc(IntRectangle(60, 0, 18, 18));
+        btnClose->setImageDef(def, true);
+        btnClose->scaleWhenPressed = false;
+        buttons.push_back(btnClose);
+    }
+
+    trackingScrollGesture = false;
+    scrollingGesture = false;
+}
+
+void DesktopCreativeScreen::setupPositions() {
+    layout();
+
+    if (btnClose) {
+        btnClose->width  = 19;
+        btnClose->height = 19;
+        btnClose->x = bgX + bgW - btnClose->width;
+        btnClose->y = bgY;
+    }
+    if (guiBackground) guiBackground->setSize((float)bgW, (float)bgH);
 }
 
 void DesktopCreativeScreen::removed() {
@@ -93,33 +126,19 @@ void DesktopCreativeScreen::removed() {
 void DesktopCreativeScreen::rebuildEntries() {
     entries.clear();
 
-    // Walk the global Item table (which covers both real items and the
-    // auto-registered TileItems). Anything with a valid category is something
-    // we want surfaced in the creative menu.
     for (int i = 0; i < Item::MAX_ITEMS; ++i) {
         Item* it = Item::items[i];
         if (!it) continue;
         if (it->category < 0) continue;
 
-        // Skip aux variants we explicitly expand below to avoid duplicates.
-        bool expanded = false;
+        const AuxRange* expand = NULL;
         for (size_t a = 0; a < sizeof(AUX_EXPAND)/sizeof(AUX_EXPAND[0]); ++a) {
-            if (AUX_EXPAND[a].id == i) { expanded = true; break; }
+            if (AUX_EXPAND[a].id == i) { expand = &AUX_EXPAND[a]; break; }
         }
-        if (expanded) continue;
 
-        Entry e;
-        e.item = ItemInstance(it, 1, 0);
-        e.category = it->category;
-        entries.push_back(e);
-    }
-
-    // Now explicitly expand cloth and dye colours so every shade is visible.
-    for (size_t a = 0; a < sizeof(AUX_EXPAND)/sizeof(AUX_EXPAND[0]); ++a) {
-        int id = AUX_EXPAND[a].id;
-        Item* it = Item::items[id];
-        if (!it) continue;
-        for (int aux = AUX_EXPAND[a].auxLo; aux <= AUX_EXPAND[a].auxHi; ++aux) {
+        int lo = expand ? expand->auxLo : 0;
+        int hi = expand ? expand->auxHi : 0;
+        for (int aux = lo; aux <= hi; ++aux) {
             Entry e;
             e.item = ItemInstance(it, 1, aux);
             e.category = it->category;
@@ -127,7 +146,6 @@ void DesktopCreativeScreen::rebuildEntries() {
         }
     }
 
-    // Build the filtered index list for the active category.
     filtered.clear();
     for (size_t i = 0; i < entries.size(); ++i) {
         if (activeCategory == CAT_ALL || entries[i].category == activeCategory)
@@ -137,7 +155,6 @@ void DesktopCreativeScreen::rebuildEntries() {
 }
 
 void DesktopCreativeScreen::layout() {
-    // Panel sized for 9 cols and ~7 visible rows. Centred on the screen.
     paletteCols = PALETTE_COLS;
     paletteRowsVisible = 7;
 
@@ -145,17 +162,15 @@ void DesktopCreativeScreen::layout() {
     int paletteContentH = paletteRowsVisible * SLOT_SIZE;
 
     int hotbarRowW = 9 * SLOT_SIZE;
-    int innerW = paletteContentW + 12;   // +scrollbar
+    int innerW = paletteContentW + 12;
     bgW = innerW + 2 * INNER_PAD;
     bgH = TAB_H + 2 + paletteContentH + HOTBAR_GAP + SLOT_SIZE + 2 * INNER_PAD;
 
     bgX = (width  - bgW) / 2;
     bgY = (height - bgH) / 2;
+    if (bgY < 22) bgY = 22;
 
     tabsY = bgY + INNER_PAD;
-    // Each tab is a fixed-width icon button (slot-sized + a couple of pixels
-    // of padding) so the row stays compact regardless of how long the label
-    // text is. They're left-aligned and never overflow the panel.
     tabW = SLOT_SIZE + 4;
     int countTabs = (int)tabs.size();
     for (int i = 0; i < countTabs; ++i)
@@ -200,10 +215,6 @@ int DesktopCreativeScreen::hitTestTab(int mx, int my) const {
     return -1;
 }
 
-// Place `item` into whatever slot the player has selected on the hotbar.
-// PE's hotbar is a "linked slot" — a redirection into a real inventory slot,
-// so we either overwrite the linked target or, if there isn't one, allocate
-// a fresh inventory slot and link to it.
 void DesktopCreativeScreen::giveToHotbar(const ItemInstance& item) {
     if (item.isNull()) return;
     if (!minecraft || !minecraft->player || !minecraft->player->inventory) return;
@@ -213,7 +224,6 @@ void DesktopCreativeScreen::giveToHotbar(const ItemInstance& item) {
 
     int targetSlot = inv->linkedSlots[sel].inventorySlot;
     if (targetSlot < 0) {
-        // No backing inventory slot yet — try to find a free one.
         int numLinked = inv->getNumLinkedSlots();
         for (int s = numLinked; s < inv->getContainerSize(); ++s) {
             if (inv->getItem(s) == NULL) {
@@ -225,8 +235,6 @@ void DesktopCreativeScreen::giveToHotbar(const ItemInstance& item) {
         }
         return;
     }
-    // Overwrite the existing slot. ItemInstance is value-typed in PE so writing
-    // through getItem() updates the live store.
     ItemInstance* existing = inv->getItem(targetSlot);
     if (existing) {
         *existing = item;
@@ -246,6 +254,40 @@ void DesktopCreativeScreen::mouseWheel(int dx, int dy, int xm, int ym) {
     if (scrollOffsetRows > maxScroll) scrollOffsetRows = maxScroll;
 }
 
+void DesktopCreativeScreen::tick() {
+    super::tick();
+
+    int xm = Mouse::getX();
+    int ym = Mouse::getY();
+    if (minecraft->screen)
+        minecraft->screen->toGUICoordinate(xm, ym);
+
+    bool leftDown = Mouse::isButtonDown(MouseAction::ACTION_LEFT);
+
+    if (trackingScrollGesture && leftDown) {
+        int dy = ym - lastDragY;
+        if (!scrollingGesture) {
+            int totalDx = xm - dragStartX;
+            int totalDy = ym - dragStartY;
+            if (std::abs(totalDx) >= ScrollStartThreshold ||
+                std::abs(totalDy) >= ScrollStartThreshold) {
+                if (std::abs(totalDy) >= std::abs(totalDx)) {
+                    scrollingGesture = true;
+                }
+            }
+        }
+        if (scrollingGesture && dy != 0) {
+            int totalRows = ((int)filtered.size() + paletteCols - 1) / paletteCols;
+            int maxScroll = totalRows - paletteRowsVisible;
+            if (maxScroll < 0) maxScroll = 0;
+            scrollOffsetRows -= (dy > 0 ? 1 : -1);
+            if (scrollOffsetRows < 0) scrollOffsetRows = 0;
+            if (scrollOffsetRows > maxScroll) scrollOffsetRows = maxScroll;
+        }
+        lastDragY = ym;
+    }
+}
+
 void DesktopCreativeScreen::keyPressed(int eventKey) {
     Options& o = minecraft->options;
     if (eventKey == o.getIntValue(OPTIONS_KEY_MENU_CANCEL) || eventKey == Keyboard::KEY_ESCAPE) {
@@ -256,19 +298,39 @@ void DesktopCreativeScreen::keyPressed(int eventKey) {
         minecraft->setScreen(NULL);
         return;
     }
+    super::keyPressed(eventKey);
+}
+
+void DesktopCreativeScreen::buttonClicked(Button* button) {
+    if (button == btnClose) { minecraft->setScreen(NULL); return; }
+    super::buttonClicked(button);
 }
 
 void DesktopCreativeScreen::mouseClicked(int x, int y, int buttonNum) {
+    trackingScrollGesture = false;
+    scrollingGesture = false;
+
+    if (buttonNum == MouseAction::ACTION_LEFT) {
+        int paletteIdx = hitTestPaletteCell(x, y);
+        if (paletteIdx >= 0) {
+            trackingScrollGesture = true;
+            dragStartX = x;
+            dragStartY = y;
+            lastDragY = y;
+            touchStartX = x;
+            touchStartY = y;
+            return;
+        }
+    }
+
     if (buttonNum != MouseAction::ACTION_LEFT && buttonNum != MouseAction::ACTION_RIGHT) {
         super::mouseClicked(x, y, buttonNum);
         return;
     }
 
-    // Tab click — switch category.
     int tabIdx = hitTestTab(x, y);
     if (tabIdx >= 0) {
         activeCategory = tabs[tabIdx].category;
-        // Rebuild filter only (entries themselves are stable).
         filtered.clear();
         for (size_t i = 0; i < entries.size(); ++i) {
             if (activeCategory == CAT_ALL || entries[i].category == activeCategory)
@@ -280,25 +342,6 @@ void DesktopCreativeScreen::mouseClicked(int x, int y, int buttonNum) {
         return;
     }
 
-    // Palette click — give the clicked item to the selected hotbar slot.
-    int paletteIdx = hitTestPaletteCell(x, y);
-    if (paletteIdx >= 0) {
-        const Entry& e = entries[filtered[paletteIdx]];
-        ItemInstance give = e.item;
-        // Left = full stack, right = single. Tools cap at 1 so the stack-size
-        // dance reduces to a no-op for them.
-        if (buttonNum == MouseAction::ACTION_LEFT)
-            give.count = (give.id < Item::MAX_ITEMS && Item::items[give.id])
-                         ? Item::items[give.id]->getMaxStackSize() : 64;
-        else
-            give.count = 1;
-        giveToHotbar(give);
-        if (minecraft->soundEngine)
-            minecraft->soundEngine->playUI("random.click", 1, 1);
-        return;
-    }
-
-    // Hotbar click — clear the slot (helpful when you've messed it up).
     int hotIdx = hitTestHotbar(x, y);
     if (hotIdx >= 0 && minecraft->player && minecraft->player->inventory) {
         Inventory* inv = minecraft->player->inventory;
@@ -315,157 +358,155 @@ void DesktopCreativeScreen::mouseClicked(int x, int y, int buttonNum) {
     super::mouseClicked(x, y, buttonNum);
 }
 
-void DesktopCreativeScreen::render(int xm, int ym, float a) {
-    // Dim world behind, then draw the panel.
-    fill(0, 0, width, height, CLR_DIM);
-    fill(bgX - 1, bgY - 1, bgX + bgW + 1, bgY + bgH + 1, CLR_FRAME);
-    fill(bgX,     bgY,     bgX + bgW,     bgY + bgH,     CLR_BG);
+void DesktopCreativeScreen::mouseReleased(int x, int y, int buttonNum) {
+    if (trackingScrollGesture && !scrollingGesture) {
+        int paletteIdx = hitTestPaletteCell(touchStartX, touchStartY);
+        if (paletteIdx >= 0) {
+            const Entry& e = entries[filtered[paletteIdx]];
+            ItemInstance give = e.item;
+            if (buttonNum == MouseAction::ACTION_LEFT)
+                give.count = (give.id < Item::MAX_ITEMS && Item::items[give.id])
+                             ? Item::items[give.id]->getMaxStackSize() : 64;
+            else
+                give.count = 1;
+            giveToHotbar(give);
+            if (minecraft->soundEngine)
+                minecraft->soundEngine->playUI("random.click", 1, 1);
+        }
+    }
+    trackingScrollGesture = false;
+    scrollingGesture = false;
+    super::mouseReleased(x, y, buttonNum);
+}
 
-    // Tabs.
+void DesktopCreativeScreen::drawTooltip(int xm, int ym, const std::string& text) {
+    int tw = (int)minecraft->font->width(text) + 6;
+    int th = 12;
+    int tx = xm + 8;
+    int ty = ym - 14;
+    if (tx + tw > width) tx = width - tw;
+    if (ty < 0) ty = 0;
+    fill(tx - 1, ty - 1, tx + tw + 1, ty + th + 1, CLR_TIP_FR);
+    fill(tx,     ty,     tx + tw,     ty + th,     CLR_TIP_BG);
+    minecraft->font->drawShadow(text, (float)(tx + 3), (float)(ty + 2), CLR_TEXT);
+}
+
+void DesktopCreativeScreen::render(int xm, int ym, float a) {
+    Tesselator& t = Tesselator::instance;
+
+    fill(0, 0, width, height, CLR_DIM);
+
+    guiBackground->setSize((float)bgW, (float)bgH);
+    guiBackground->draw(t, (float)bgX, (float)bgY);
+
     hoveredTabIdx = hitTestTab(xm, ym);
     for (int i = 0; i < (int)tabs.size(); ++i) {
         int tx = tabs[i].x;
         bool active = (tabs[i].category == activeCategory);
-        int color = active ? CLR_TAB_ACTIVE
-                  : (hoveredTabIdx == i ? CLR_TAB_HOVER : CLR_TAB_BG);
-        fill(tx, tabsY, tx + tabW, tabsY + TAB_H, color);
+        NinePatchLayer* patch = active ? guiTabSelected : guiTabNormal;
+        patch->setSize((float)tabW, (float)TAB_H);
+        patch->draw(t, (float)tx, (float)tabsY);
 
         if (tabs[i].iconItemId > 0 && tabs[i].iconItemId < Item::MAX_ITEMS
             && Item::items[tabs[i].iconItemId])
         {
-            // Centre the item icon in the tab.
             ItemInstance icon(Item::items[tabs[i].iconItemId], 1, 0);
             int ix = tx + (tabW - SLOT_INNER) / 2;
             int iy = tabsY + (TAB_H - SLOT_INNER) / 2;
             ItemRenderer::renderGuiItem(minecraft->font, minecraft->textures, &icon,
-                (float)ix, (float)iy + 1, true);
-        } else {
-            // No icon (the All tab) — fall back to a centred text label.
-            std::string label = tabs[i].label;
-            int tw = (int)minecraft->font->width(label);
-            int lx = tx + (tabW - tw) / 2;
-            int ly = tabsY + (TAB_H - 8) / 2;
-            minecraft->font->drawShadow(label, (float)lx, (float)ly, CLR_TEXT);
-        }
-
-        // Underline the active tab so it pops even when its icon doesn't.
-        if (active) {
-            int underY = tabsY + TAB_H - 2;
-            fill(tx, underY, tx + tabW, underY + 2, 0xff5cc0ff);
+                (float)ix, (float)iy, true);
         }
     }
 
-    // Palette grid background.
-    fill(paletteX - 1, paletteY - 1, paletteX + paletteW + 1, paletteY + paletteH + 1, CLR_FRAME);
-    fill(paletteX,     paletteY,     paletteX + paletteW,     paletteY + paletteH,     CLR_SLOT);
-
-    // Palette slot grid + items.
     hoveredEntryIdx = hitTestPaletteCell(xm, ym);
+
+    guiSlot->setSize((float)SLOT_SIZE, (float)SLOT_SIZE);
     for (int row = 0; row < paletteRowsVisible; ++row) {
         for (int col = 0; col < paletteCols; ++col) {
             int sx = paletteX + col * SLOT_SIZE;
             int sy = paletteY + row * SLOT_SIZE;
-            fill(sx + SLOT_PAD, sy + SLOT_PAD, sx + SLOT_SIZE - SLOT_PAD, sy + SLOT_SIZE - SLOT_PAD, 0x20000000);
-
+            guiSlot->draw(t, (float)sx, (float)sy);
             int idx = (scrollOffsetRows + row) * paletteCols + col;
             if (idx >= 0 && idx < (int)filtered.size()) {
                 const Entry& e = entries[filtered[idx]];
                 ItemInstance copy = e.item;
                 ItemRenderer::renderGuiItem(minecraft->font, minecraft->textures, &copy,
-                    (float)(sx + SLOT_PAD), (float)(sy + SLOT_PAD + 1), true);
+                    (float)(sx + SLOT_PAD), (float)(sy + SLOT_PAD), true);
             }
         }
     }
-    // Hover highlight.
+
     if (hoveredEntryIdx >= 0) {
         int row = hoveredEntryIdx / paletteCols - scrollOffsetRows;
         int col = hoveredEntryIdx % paletteCols;
         int sx = paletteX + col * SLOT_SIZE;
         int sy = paletteY + row * SLOT_SIZE;
-        fill(sx + SLOT_PAD, sy + SLOT_PAD, sx + SLOT_SIZE - SLOT_PAD, sy + SLOT_SIZE - SLOT_PAD, CLR_HOVER);
+        guiSlotMarker->setSize((float)SLOT_SIZE + 4, (float)SLOT_SIZE + 4);
+        guiSlotMarker->draw(t, (float)(sx - 2), (float)(sy - 2));
     }
 
-    // Scrollbar.
     {
         int totalRows = ((int)filtered.size() + paletteCols - 1) / paletteCols;
         int sbX = paletteX + paletteW + 2;
         int sbY = paletteY;
         int sbW = 6;
         int sbH = paletteH;
-        fill(sbX, sbY, sbX + sbW, sbY + sbH, CLR_SCROLL_BAR);
+
+        guiSlot->setSize((float)sbW, (float)sbH);
+        guiSlot->draw(t, (float)sbX, (float)sbY);
+
         if (totalRows > paletteRowsVisible) {
-            float t = (float)scrollOffsetRows / (float)(totalRows - paletteRowsVisible);
+            float tt = (float)scrollOffsetRows / (float)(totalRows - paletteRowsVisible);
             int knobH = sbH * paletteRowsVisible / totalRows;
             if (knobH < 6) knobH = 6;
-            int knobY = sbY + (int)((sbH - knobH) * t);
-            fill(sbX + 1, knobY, sbX + sbW - 1, knobY + knobH, CLR_SCROLL_HND);
+            int knobY = sbY + (int)((sbH - knobH) * tt);
+            guiSlotMarker->setSize((float)sbW, (float)knobH);
+            guiSlotMarker->draw(t, (float)sbX, (float)knobY);
         }
     }
 
-    // Hotbar (read-only display of the player's current hotbar).
     Inventory* inv = minecraft->player ? minecraft->player->inventory : NULL;
     int hoveredHotbar = hitTestHotbar(xm, ym);
+
+    guiSlot->setSize((float)SLOT_SIZE, (float)SLOT_SIZE);
     for (int col = 0; col < 9; ++col) {
         int sx = hotbarX + col * SLOT_SIZE;
         int sy = hotbarY;
-        fill(sx,            sy,            sx + SLOT_SIZE, sy + SLOT_SIZE, CLR_FRAME);
-        fill(sx + SLOT_PAD, sy + SLOT_PAD, sx + SLOT_SIZE - SLOT_PAD, sy + SLOT_SIZE - SLOT_PAD, CLR_SLOT);
-
+        guiSlot->draw(t, (float)sx, (float)sy);
         if (inv) {
             int targetSlot = inv->linkedSlots[col].inventorySlot;
             ItemInstance* it = (targetSlot >= 0) ? inv->getItem(targetSlot) : NULL;
             if (it && !it->isNull()) {
                 ItemRenderer::renderGuiItem(minecraft->font, minecraft->textures, it,
-                    (float)(sx + SLOT_PAD), (float)(sy + SLOT_PAD + 1), true);
-                minecraft->gui.renderSlotText(it, (float)(sx + SLOT_PAD - 3), (float)(sy + SLOT_PAD - 3), true, true);
-            }
-            // Mark the currently-selected hotbar slot.
-            if (col == inv->selected) {
-                int c = 0xff00ff00;
-                fill(sx,            sy,            sx + SLOT_SIZE, sy + 1,       c);
-                fill(sx,            sy + SLOT_SIZE - 1, sx + SLOT_SIZE, sy + SLOT_SIZE, c);
-                fill(sx,            sy,            sx + 1,         sy + SLOT_SIZE, c);
-                fill(sx + SLOT_SIZE - 1, sy,            sx + SLOT_SIZE, sy + SLOT_SIZE, c);
+                    (float)(sx + SLOT_PAD), (float)(sy + SLOT_PAD), true);
             }
         }
-        if (hoveredHotbar == col) {
-            fill(sx + SLOT_PAD, sy + SLOT_PAD, sx + SLOT_SIZE - SLOT_PAD, sy + SLOT_SIZE - SLOT_PAD, CLR_HOVER);
+    }
+
+    if (inv) {
+        int sx = hotbarX + inv->selected * SLOT_SIZE;
+        guiSlotMarker->setSize((float)SLOT_SIZE + 4, (float)SLOT_SIZE + 4);
+        guiSlotMarker->draw(t, (float)(sx - 2), (float)(hotbarY - 2));
+    }
+    if (hoveredHotbar >= 0) {
+        int sx = hotbarX + hoveredHotbar * SLOT_SIZE;
+        guiSlotMarker->setSize((float)SLOT_SIZE + 4, (float)SLOT_SIZE + 4);
+        guiSlotMarker->draw(t, (float)(sx - 2), (float)(hotbarY - 2));
+    }
+
+    for (int col = 0; col < 9; ++col) {
+        int sx = hotbarX + col * SLOT_SIZE;
+        int sy = hotbarY;
+        if (inv) {
+            int targetSlot = inv->linkedSlots[col].inventorySlot;
+            ItemInstance* it = (targetSlot >= 0) ? inv->getItem(targetSlot) : NULL;
+            if (it && !it->isNull()) {
+                minecraft->gui.renderSlotText(it,
+                    (float)(sx + SLOT_PAD - 3), (float)(sy + SLOT_PAD - 3), true, true);
+            }
         }
     }
 
-    // Tooltip for hovered tab (full category name).
-    if (hoveredTabIdx >= 0 && hoveredEntryIdx < 0) {
-        std::string label = tabs[hoveredTabIdx].label;
-        int tw = (int)minecraft->font->width(label) + 6;
-        int th = 12;
-        int tx = xm + 8;
-        int ty = ym - 14;
-        if (tx + tw > width) tx = width - tw;
-        if (ty < 0) ty = 0;
-        fill(tx - 1, ty - 1, tx + tw + 1, ty + th + 1, CLR_TIP_FR);
-        fill(tx,     ty,     tx + tw,     ty + th,     CLR_TIP_BG);
-        minecraft->font->drawShadow(label, (float)(tx + 3), (float)(ty + 2), CLR_TEXT);
-    }
-
-    // Tooltip for hovered palette entry.
-    if (hoveredEntryIdx >= 0) {
-        const Entry& e = entries[filtered[hoveredEntryIdx]];
-        ItemInstance copy = e.item;
-        std::string name = copy.getName();
-        if (!name.empty()) {
-            int tw = (int)minecraft->font->width(name) + 6;
-            int th = 12;
-            int tx = xm + 8;
-            int ty = ym - 14;
-            if (tx + tw > width) tx = width - tw;
-            if (ty < 0) ty = 0;
-            fill(tx - 1, ty - 1, tx + tw + 1, ty + th + 1, CLR_TIP_FR);
-            fill(tx,     ty,     tx + tw,     ty + th,     CLR_TIP_BG);
-            minecraft->font->drawShadow(name, (float)(tx + 3), (float)(ty + 2), CLR_TEXT);
-        }
-    }
-
-    // Title.
     {
         std::string label = I18n::get("container.creative");
         int lw = (int)minecraft->font->width(label);
@@ -475,4 +516,14 @@ void DesktopCreativeScreen::render(int xm, int ym, float a) {
     }
 
     Screen::render(xm, ym, a);
+
+    if (hoveredTabIdx >= 0 && hoveredEntryIdx < 0) {
+        drawTooltip(xm, ym, tabs[hoveredTabIdx].label);
+    }
+    if (hoveredEntryIdx >= 0) {
+        ItemInstance copy = entries[filtered[hoveredEntryIdx]].item;
+        std::string name = copy.getName();
+        if (!name.empty())
+            drawTooltip(xm, ym, name);
+    }
 }

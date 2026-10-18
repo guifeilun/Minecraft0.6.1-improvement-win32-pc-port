@@ -320,7 +320,6 @@
     <ClCompile Include="..\..\src\client\gui\Gui.cpp">
       <Filter>Source Files\client\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\raknet\_FindFirst.cpp">
       <Filter>Libs\raknet</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\raknet\BitStream.cpp">
@@ -422,7 +421,6 @@
     <ClCompile Include="..\..\src\raknet\Itoa.cpp">
       <Filter>Libs\raknet</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\raknet\LinuxStrings.cpp">
       <Filter>Libs\raknet</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\raknet\LogCommandParser.cpp">
@@ -506,7 +504,6 @@
     <ClCompile Include="..\..\src\raknet\Rand.cpp">
       <Filter>Libs\raknet</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\raknet\rdlmalloc.cpp">
       <Filter>Libs\raknet</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\raknet\ReadyEvent.cpp">
@@ -1225,9 +1222,6 @@
     <ClInclude Include="..\..\src\main_win32.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\main_android.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\client\Minecraft.h">
       <Filter>Source Files\client</Filter>
     </ClInclude>
@@ -1654,7 +1648,6 @@
     <ClInclude Include="..\..\src\world\level\LevelConstants.h">
       <Filter>Source Files\world\level</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\raknet\_FindFirst.h">
       <Filter>Libs\raknet</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\raknet\AutopatcherPatchContext.h">
@@ -1831,7 +1824,6 @@
     <ClInclude Include="..\..\src\raknet\Kbhit.h">
       <Filter>Libs\raknet</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\raknet\LinuxStrings.h">
       <Filter>Libs\raknet</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\raknet\LogCommandParser.h">
@@ -1960,10 +1952,8 @@
     <ClInclude Include="..\..\src\raknet\Rand.h">
       <Filter>Libs\raknet</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\raknet\rdlmalloc.h">
       <Filter>Libs\raknet</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\raknet\rdlmalloc-options.h">
       <Filter>Libs\raknet</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\raknet\ReadyEvent.h">
@@ -2145,9 +2135,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\client\gui\Screen.h">
       <Filter>Source Files\client\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\platform\audio\SoundSystemSL.h">
-      <Filter>Platform\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\entity\ItemRenderer.h">
       <Filter>Source Files\client\renderer\entity</Filter>

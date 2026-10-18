@@ -117,11 +117,6 @@ void JoinGameScreen::init()
 
 	minecraft->raknetInstance->clearServerList();
 	gamesList = new AvailableGamesList(minecraft, width, height);
-
-#ifdef ANDROID
-	tabButtons.push_back(&bJoin);
-	tabButtons.push_back(&bBack);
-#endif
 }
 
 void JoinGameScreen::setupPositions() {
@@ -151,11 +146,7 @@ void JoinGameScreen::render( int xm, int ym, float a )
 	Screen::render(xm, ym, a);
 
 	if (hasNetwork) {
-#ifdef RPI
-		std::string s = "Scanning for Local Network Games...";
-#else
 		std::string s = "Scanning for WiFi Games...";
-#endif
 		drawCenteredString(minecraft->font, s, width / 2, 8, 0xffffffff);
 
 		const int textWidth = minecraft->font->width(s);

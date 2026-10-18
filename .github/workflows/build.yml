@@ -1,0 +1,50 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - '**'
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-windows:
+    name: Build Windows
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ninja
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
+      - name: Download llvm-mingw
+        run: |
+          curl -L https://github.com/mstorsjo/llvm-mingw/releases/download/20260311/llvm-mingw-20260311-msvcrt-ubuntu-22.04-x86_64.tar.xz -o llvm-mingw.tar.xz
+          tar -xf llvm-mingw.tar.xz
+          mv llvm-mingw-* llvm-mingw
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_C_COMPILER=$PWD/llvm-mingw/bin/x86_64-w64-mingw32-clang \
+            -DCMAKE_CXX_COMPILER=$PWD/llvm-mingw/bin/x86_64-w64-mingw32-clang++ \
+            -DCMAKE_RC_COMPILER=$PWD/llvm-mingw/bin/x86_64-w64-mingw32-windres \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_EXE_LINKER_FLAGS=-static
+
+      - name: Build
+        run: cmake --build build --config $BUILD_TYPE --target MinecraftPE --parallel
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcpe-windows
+          path: |
+            build/MinecraftPE.exe
+            build/libpng16.dll
+            build/libz.dll

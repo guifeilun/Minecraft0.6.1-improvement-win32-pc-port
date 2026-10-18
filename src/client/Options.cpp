@@ -31,11 +31,7 @@ OptionInt guiScale("guiScale", 0, 0, 5);
 
 OptionString skin("skin", "Default");
 
-#ifdef RPI
-OptionString username("username", "StevePi");
-#else 
 OptionString username("username", "Steve");
-#endif
 
 OptionBool destroyVibration("destroyVibration", true);
 OptionBool isLeftHanded("isLeftHanded", false);
@@ -139,7 +135,7 @@ void Options::initTable() {
 	m_options[OPTIONS_MUSIC_VOLUME] = &musicVolume;
 	m_options[OPTIONS_SOUND_VOLUME] = &soundVolume;
 
-	#if defined(PLATFORM_DESKTOP) || defined(RPI)
+	#if defined(PLATFORM_DESKTOP)
 		float sensitivity = sensitivityOpt.get();
 		sensitivity *= 0.4f;
 		sensitivityOpt.set(sensitivity);

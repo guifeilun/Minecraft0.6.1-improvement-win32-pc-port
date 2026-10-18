@@ -33,90 +33,61 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
 include(cmake/EnumOption.cmake)
-if(EMSCRIPTEN)
-    # When configuring web builds with "emcmake cmake -B build -S .", set PLATFORM to Web by default
-    set(PLATFORM Web CACHE STRING "Platform to build for.")
-endif()
-enum_option(PLATFORM "Desktop;Web" "Platform to build for.")
+# This project is Windows (win32) only.
+set(PLATFORM_CPP "PLATFORM_DESKTOP")
 find_package(Threads REQUIRED)
 find_package(OpenSSL)
-if (${PLATFORM} STREQUAL "Desktop")
-    set(PLATFORM_CPP "PLATFORM_DESKTOP")
-    if (MINGW)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
-    endif()
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-narrowing -Wno-narrowing -Wno-invalid-source-encoding -Wno-reserved-user-defined-literal")
-    endif()
-    if (WIN32)
-        add_definitions(-D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN)
-        if(MSVC)
-            add_compile_options(/utf-8)
-        endif()
-        include_directories(misc/windows)
-        set(EXTRA_LIBS ws2_32 winhttp)
-    elseif(UNIX)
-        find_library(pthread NAMES pthread)
-        set(EXTRA_LIBS pthread m)
-    endif()
-elseif (${PLATFORM} STREQUAL "Web")
-    set(PLATFORM_CPP "PLATFORM_WEB")
-    set(EXTRA_LIBS "idbfs.js")
+if (MINGW)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
 endif()
-# I totally shocked
-if(${PLATFORM} MATCHES "Web")
-    set(PNG_LIB png)
-    set(AL_LIBTYPE "STATIC")
-    add_library(zlib INTERFACE IMPORTED)
-    set_target_properties(zlib PROPERTIES
-        INTERFACE_LINK_OPTIONS "-sUSE_ZLIB=1"
-    )
-    add_library(png INTERFACE IMPORTED)
-    set_target_properties(png PROPERTIES
-        INTERFACE_COMPILE_OPTIONS "-sUSE_LIBPNG=1"
-        INTERFACE_LINK_OPTIONS "-sUSE_LIBPNG=1"
-    )
-    add_library(glfw INTERFACE IMPORTED)
-    set_target_properties(glfw PROPERTIES
-        INTERFACE_LINK_OPTIONS "-sUSE_GLFW=3"
-    )
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-narrowing -Wno-narrowing -Wno-invalid-source-encoding -Wno-reserved-user-defined-literal")
+endif()
+if (WIN32)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN)
+    if(MSVC)
+        add_compile_options(/utf-8)
+    endif()
+    include_directories(misc/windows)
+    set(EXTRA_LIBS ws2_32 winhttp)
+endif()
+
+set(PNG_LIB png_shared)
+CPMAddPackage(
+    NAME "zlib"
+    GIT_REPOSITORY "https://github.com/madler/zlib"
+    GIT_TAG "v1.3.2"
+)
+CPMAddPackage(
+    NAME "libpng"
+    GIT_REPOSITORY "https://github.com/pnggroup/libpng.git"
+    GIT_TAG "v1.6.55"
+    OPTIONS
+        "ZLIB_ROOT ${zlib_SOURCE_DIR}"
+        "ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR}"
+        "PNG_TOOLS OFF"
+        "PNG_TESTS OFF"
+)
+if(XP_TARGET)
+    # GLFW 3.4 dropped XP support; 3.3.10 is the last release that runs on XP
+    set(GLFW_TAG "3.3.10")
 else()
-    set(PNG_LIB png_shared)
-    CPMAddPackage(
-        NAME "zlib"
-        GIT_REPOSITORY "https://github.com/madler/zlib"
-        GIT_TAG "v1.3.2"
-    )
-    CPMAddPackage(
-        NAME "libpng"
-        GIT_REPOSITORY "https://github.com/pnggroup/libpng.git"
-        GIT_TAG "v1.6.55"
-        OPTIONS
-            "ZLIB_ROOT ${zlib_SOURCE_DIR}"
-            "ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR}"
-            "PNG_TOOLS OFF"
-            "PNG_TESTS OFF"
-    )
-    if(XP_TARGET)
-        # GLFW 3.4 dropped XP support; 3.3.10 is the last release that runs on XP
-        set(GLFW_TAG "3.3.10")
-    else()
-        set(GLFW_TAG "3.4")
-    endif()
-    CPMAddPackage(
-        NAME "glfw"
-        GIT_REPOSITORY "https://github.com/glfw/glfw.git"
-        GIT_TAG "${GLFW_TAG}"
-        EXCLUDE_FROM_ALL TRUE
-        OPTIONS
-            "GLFW_BUILD_EXAMPLES OFF"
-            "GLFW_BUILD_TESTS OFF"
-            "GLFW_BUILD_DOCS OFF"
-    )
+    set(GLFW_TAG "3.4")
 endif()
-# TODO: Clear this paths with *
+CPMAddPackage(
+    NAME "glfw"
+    GIT_REPOSITORY "https://github.com/glfw/glfw.git"
+    GIT_TAG "${GLFW_TAG}"
+    EXCLUDE_FROM_ALL TRUE
+    OPTIONS
+        "GLFW_BUILD_EXAMPLES OFF"
+        "GLFW_BUILD_TESTS OFF"
+        "GLFW_BUILD_DOCS OFF"
+)
+
+# Server — headless dedicated server (Windows).
 file(GLOB SERVER_SOURCES
-    "project/lib_projects/raknet/jni/RaknetSources/*.cpp"
+    "src/raknet/*.cpp"
     "src/NinecraftApp.cpp"
     "src/Performance.cpp"
     "src/SharedConstants.cpp"
@@ -257,28 +228,23 @@ file(GLOB CLIENT_SOURCES
     "src/main.cpp"
     "src/NinecraftApp.cpp"
     "src/AppPlatform_glfw.cpp"
-    "src/main.cpp"
 )
-if (${PLATFORM} STREQUAL "Desktop")
-    list(APPEND CLIENT_SOURCES glad/src/glad.c)
+list(APPEND CLIENT_SOURCES glad/src/glad.c)
+
+add_executable("${PROJECT_NAME}-server" ${SERVER_SOURCES})
+target_compile_definitions("${PROJECT_NAME}-server" PUBLIC "STANDALONE_SERVER" "SERVER_PROFILER")
+target_include_directories("${PROJECT_NAME}-server" PUBLIC
+    "${CMAKE_SOURCE_DIR}/glad/include/"
+    "${CMAKE_SOURCE_DIR}/src/"
+    "${CMAKE_SOURCE_DIR}/src/raknet/"
+)
+if (WIN32)
+    target_include_directories("${PROJECT_NAME}-server" PUBLIC "misc/windows")
+    target_link_libraries("${PROJECT_NAME}-server" ws2_32 winhttp winmm ${CMAKE_THREAD_LIBS_INIT})
+else()
+    target_link_libraries("${PROJECT_NAME}-server" ${CMAKE_THREAD_LIBS_INIT})
 endif()
-# Server — headless dedicated server, builds on Linux and Windows.
-# Skipped on Emscripten (no headless networking story there).
-if(NOT EMSCRIPTEN)
-    add_executable("${PROJECT_NAME}-server" ${SERVER_SOURCES})
-    target_compile_definitions("${PROJECT_NAME}-server" PUBLIC "STANDALONE_SERVER" "SERVER_PROFILER")
-    target_include_directories("${PROJECT_NAME}-server" PUBLIC
-        "${CMAKE_SOURCE_DIR}/glad/include/"
-        "${CMAKE_SOURCE_DIR}/src/"
-        "project/lib_projects/raknet/jni/RaknetSources"
-    )
-    if (WIN32)
-        target_include_directories("${PROJECT_NAME}-server" PUBLIC "misc/windows")
-        target_link_libraries("${PROJECT_NAME}-server" ws2_32 winhttp winmm ${CMAKE_THREAD_LIBS_INIT})
-    else()
-        target_link_libraries("${PROJECT_NAME}-server" ${CMAKE_THREAD_LIBS_INIT})
-    endif()
-endif()
+
 add_executable(${PROJECT_NAME} ${CLIENT_SOURCES})
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${PLATFORM_CPP})
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -287,45 +253,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     "${glfw_SOURCE_DIR}/include"
     "lib/include"
 )
-if(${PLATFORM} MATCHES "Web")
-    set(CMAKE_CXX_STANDARD 11)
-    # uuuh i hate it
-    set(EM_FLAGS "-pthread -sUSE_PTHREADS=1 -sUSE_LIBPNG=1 -sSHARED_MEMORY=1")
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EM_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EM_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${EM_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/data@/data")
-    target_compile_options(${PROJECT_NAME} PUBLIC
-        "-Os"
-        "-Wno-invalid-source-encoding"
-        "-Wno-narrowing"
-        "-Wno-deprecated-register"
-        "-Wno-reserved-user-defined-literal"
-    )
-    target_link_options(${PROJECT_NAME} PUBLIC
-        "-Os"
-        "-sALLOW_MEMORY_GROWTH=1"
-        "-sFORCE_FILESYSTEM=1"
-        "-sLEGACY_GL_EMULATION=1"
-        "-sGL_UNSAFE_OPTS=0"
-        "-sEMULATE_FUNCTION_POINTER_CASTS=1"
-        "-sALLOW_TABLE_GROWTH=1"
-        "-sEXPORTED_RUNTIME_METHODS=['FS','stringToUTF8','UTF8ToString','cwrap','ccall','HEAP8','HEAPU8','HEAP32','HEAPU32']"
-        "-sEXPORTED_FUNCTIONS=['_main']"
-    )
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        message("DEBUG MODE")
-        target_link_options(${PROJECT_NAME} PUBLIC
-            "-sASSERTIONS=2"
-            "-sSTACK_OVERFLOW_CHECK=2"
-            "-sSTACK_SIZE=5242880"
-            "-sGL_DEBUG=1"
-        )
-    endif()
-    target_compile_definitions(${PROJECT_NAME} PUBLIC "__EMSCRIPTEN__" "NO_SOUND" "NO_NETWORK")
-endif()
 # Client
-target_compile_definitions(${PROJECT_NAME} PUBLIC "OPENGL_ES" "NO_EGL" ${PLATFORM})
+target_compile_definitions(${PROJECT_NAME} PUBLIC "OPENGL_ES" "NO_EGL" "Desktop")
 target_link_libraries(${PROJECT_NAME} zlib ${PNG_LIB} dsound winmm glfw ${EXTRA_LIBS})
 if (OpenSSL_FOUND)
     target_link_libraries(${PROJECT_NAME} OpenSSL::SSL OpenSSL::Crypto)
@@ -339,18 +269,10 @@ if (NOT UNIX)
             COMMAND_EXPAND_LISTS
     )
 endif()
-if(NOT ${PLATFORM} MATCHES "Web")
-    add_custom_command(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/data" $<TARGET_FILE_DIR:${PROJECT_NAME}>/data
-    )
-else()
-    add_custom_command(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/misc/web/index.html" $<TARGET_FILE_DIR:${PROJECT_NAME}>
-    )
-endif()
+add_custom_command(
+    TARGET ${PROJECT_NAME}
+    POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/data" $<TARGET_FILE_DIR:${PROJECT_NAME}>/data
+)
 message(STATUS "Compiling with the flags:")
 message(STATUS "  PLATFORM=" ${PLATFORM_CPP})

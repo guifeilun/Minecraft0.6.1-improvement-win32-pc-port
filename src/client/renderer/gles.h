@@ -4,34 +4,17 @@
 #include "../../platform/log.h"
 #include "../Options.h"
 
-#if defined(__APPLE__)
-    #define GLES_SILENCE_DEPRECATION
-#endif
-
-// Android should always run OPENGL_ES
-#if defined(ANDROID) || defined(__APPLE__) || defined(RPI)
-    #define OPENGL_ES
-#endif
 #define GLES_SILENCE_DEPRECATION
-// Other systems might run it, if they #define OPENGL_ES
-// #if defined(OPENGL_ES) // || defined(ANDROID)
+// The desktop win32 build uses desktop OpenGL (GLAD).
 	#define USE_VBO
 	#define GL_QUADS 0x0007
-    #if defined(__APPLE__)
-        #import <OpenGLES/ES1/gl.h>
-        #import <OpenGLES/ES1/glext.h> 
-    #elif defined(ANDROID) || defined(__EMSCRIPTEN__)
-        #import <GLES/gl.h>
-        #import <GLES/glext.h>
-    #else
-        #include <glad/glad.h>
+    #include <glad/glad.h>
 
-		// https://github.com/programmer1o1/MinecraftPE-v0.6.1/blob/main/handheld/src/client/renderer/gles.h#L135-L138
-		#define glFogx(a,b)             glFogi(a,b)
-		#define glOrthof(a,b,c,d,e,f)   glOrtho(a,b,c,d,e,f)
-		#define glClearDepthf(x)        glClearDepth(x)
-		#define glDepthRangef(a,b)      glDepthRange(a,b)
-    #endif
+	// https://github.com/programmer1o1/MinecraftPE-v0.6.1/blob/main/handheld/src/client/renderer/gles.h#L135-L138
+	#define glFogx(a,b)             glFogi(a,b)
+	#define glOrthof(a,b,c,d,e,f)   glOrtho(a,b,c,d,e,f)
+	#define glClearDepthf(x)        glClearDepth(x)
+	#define glDepthRangef(a,b)      glDepthRange(a,b)
 // #else
 //     // Uglyness to fix redeclaration issues
 //     #ifdef WIN32
@@ -147,12 +130,6 @@ int glhUnProjectf(	float winx, float winy, float winz,
 //
 // Extensions
 //
-#ifdef WIN32	
-	#define glGetProcAddress(a) wglGetProcAddress(a)
-#else
-	#define glGetProcAddress(a) (void*(0))
-#endif
-
-
+#define glGetProcAddress(a) wglGetProcAddress(a)
 
 #endif /*NET_MINECRAFT_CLIENT_RENDERER__gles_H__ */

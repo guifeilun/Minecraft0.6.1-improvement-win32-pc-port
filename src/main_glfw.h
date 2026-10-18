@@ -13,9 +13,6 @@
 #include "platform/input/Mouse.h"
 #include "platform/input/Multitouch.h"
 #include "AppPlatform_glfw.h"
-#ifdef __EMSCRIPTEN__
-#include <emscripten/emscripten.h>
-#endif
 static App* g_app = 0;
 
 int transformKey(int glfwkey) {
@@ -139,15 +136,6 @@ int main(void) {
 #ifndef STANDALONE_SERVER
 	// Platform init.
 	appContext.platform = new AppPlatform_glfw();
-#if defined(__EMSCRIPTEN__)
-	EM_ASM(
-		FS.mkdir('/games');
-		FS.mkdir('/games/com.mojang');
-        FS.mkdir('/games/com.mojang/minecraftWorlds');
-        FS.mount(IDBFS, {}, '/games');
-        FS.syncfs(true, function (err) {});
-    );
-#endif
 
 	glfwSetErrorCallback(error_callback);
 
@@ -156,7 +144,6 @@ int main(void) {
 	}
 
 	glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
-#ifndef __EMSCRIPTEN__
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 	// Ask GLFW for OpenGL 1.1. The game uses fixed-function GL plus a few
 	// 1.5-era functions (VBOs) that GLAD resolves as extension entry points
@@ -169,11 +156,6 @@ int main(void) {
 	// behaviour — the lowered hint just gets you past the GLFW gate.
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-#else
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#endif
 
 	AppPlatform_glfw* platform = (AppPlatform_glfw*)appContext.platform;
 
@@ -191,10 +173,8 @@ int main(void) {
 	glfwSetWindowSizeCallback(platform->window, window_size_callback);
 
 	glfwMakeContextCurrent(platform->window);
-	#ifndef __EMSCRIPTEN__
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 	glfwSwapInterval(0);
-	#endif
 #endif
 
 	App* app = new MAIN_CLASS();
@@ -205,14 +185,10 @@ int main(void) {
 	g_app->init(appContext);
 	g_app->setSize(appContext.platform->getScreenWidth(), appContext.platform->getScreenHeight());
 
-#ifdef __EMSCRIPTEN__
-	emscripten_set_main_loop(loop, 0, 1);
-#else
 	// Main event loop
 	while(!glfwWindowShouldClose(platform->window) && !app->wantToQuit()) {
 		loop();
 	}
-#endif
 
 	delete app;
 

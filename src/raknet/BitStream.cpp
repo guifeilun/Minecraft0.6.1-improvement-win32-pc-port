@@ -24,22 +24,6 @@
 #include <memory.h>
 #include <cmath>
 #include <float.h>
-
-
-#else
-#include <arpa/inet.h>
-#include <memory.h>
-#if defined(ANDROID)
-#include <math.h>
-#else
-#include <cmath>
-#endif
-#include <float.h>
-#endif
-
-// MSWin uses _copysign, others use copysign...
-#ifndef _WIN32
-#define _copysign copysign
 #endif
 
 using namespace RakNet;

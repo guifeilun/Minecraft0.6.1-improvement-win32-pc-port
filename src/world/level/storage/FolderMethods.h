@@ -3,13 +3,7 @@
 
 #include "../../../platform/log.h"
 
-#ifdef WIN32
-	#include <io.h>
-#else
-int _mkdir(const char* name);
-int _access(const char* name, int mode);
-int _errno();
-#endif
+#include <io.h>
 
 bool exists(const char* name);
 bool createFolderIfNotExists(const char* name);

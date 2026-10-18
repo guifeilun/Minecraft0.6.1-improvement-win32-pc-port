@@ -1,15 +1,12 @@
 #ifndef FILE_H__
 #define FILE_H__
 
-bool DeleteDirectory(const std::string&, bool noRecycleBin = true);
+#include <windows.h>
+#include <tchar.h>
+#include <shellapi.h>
+#include <string>
 
-#ifdef WIN32
-    #include <windows.h>
-    #include <tchar.h>
-    #include <shellapi.h>
-    #include <string>
-
-bool DeleteDirectory(const std::string& dir, bool noRecycleBin /*true*/)
+bool DeleteDirectory(const std::string& dir, bool noRecycleBin = true)
 {
     int len = strlen(dir.c_str());
     //TCHAR *pszFrom = new TCHAR[len+2];
@@ -36,33 +33,5 @@ bool DeleteDirectory(const std::string& dir, bool noRecycleBin /*true*/)
     delete [] pszFrom;
     return (ret == 0);
 }
-#else
-	#include <cstdio>
-	#include <dirent.h>
-
-bool DeleteDirectory(const std::string& d, bool noRecycleBin /*true*/)
-{
-	const char* folder = d.c_str();
-
-	const size_t CMAX = 1024;
-	char fullPath[CMAX];
-	DIR* dir = opendir(folder);
-	if (!dir)
-		return false;
-
-	struct dirent *entry;
-	while ((entry = readdir(dir))) {
-		if (strcmp(".", entry->d_name) && strcmp("..", entry->d_name)) {
-			snprintf(fullPath, CMAX, "%s/%s", folder, entry->d_name);
-			remove(fullPath);
-		}
-	}
-
-	closedir(dir);
-
-	return remove(folder) == 0;
-}
-
-#endif /*(ELSE) WIN32*/
 
 #endif /*FILE_H__*/

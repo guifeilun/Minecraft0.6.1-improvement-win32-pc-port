@@ -4,12 +4,7 @@
 #include <string>
 #include <vector>
 
-#ifdef WIN32
-	#include <winsock2.h>
-#else
-	#include <sys/socket.h>
-	#include <netinet/in.h>
-#endif
+#include <winsock2.h>
 
 #include "../../world/PosTranslator.h"
 #include "../../world/Pos.h"

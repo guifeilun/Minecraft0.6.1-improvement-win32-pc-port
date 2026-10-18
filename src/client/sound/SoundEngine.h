@@ -3,13 +3,7 @@
 
 //package net.minecraft.client.sound;
 
-#if defined(ANDROID) && !defined(PRE_ANDROID23)
-	#include "../../platform/audio/SoundSystemSL.h"
-#elif (defined(__APPLE__) || defined(PLATFORM_DESKTOP)) && !defined(NO_SOUND)
-    #include "../../platform/audio/SoundSystemAL.h"
-#else
-	#include "../../platform/audio/SoundSystem.h"
-#endif
+#include "../../platform/audio/SoundSystemAL.h"
 #include "SoundRepository.h"
 #include "../../util/Random.h"
 
@@ -21,13 +15,7 @@ class SoundEngine
 {
     static const int SOUND_DISTANCE = 16;
 
-	#if defined(ANDROID) && !defined(PRE_ANDROID23) && !defined(RPI)
-		SoundSystemSL soundSystem;
-    #elif (defined(__APPLE__) || defined(PLATFORM_DESKTOP)) && !defined(NO_SOUND)
-        SoundSystemAL soundSystem;
-	#else
-	    SoundSystem soundSystem;
-	#endif
+	SoundSystemAL soundSystem;
 
 	Options* options;
 	int idCounter;

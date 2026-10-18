@@ -3,13 +3,7 @@
 #include "../../world/level/Level.h"
 #include "../../world/entity/Entity.h"
 
-#ifdef WIN32
-	#define SERR(x) (WSA ## x)
-#else
-	#define SERR(x) (x)
-    #include <errno.h>
-	#include <unistd.h>
-#endif
+#define SERR(x) (WSA ## x)
 
 #include "../RakNetInstance.h"
 #include "../packet/ChatPacket.h"
@@ -66,11 +60,7 @@ private:
 };
 
 static int getSocketError() {
-#ifdef WIN32
 	return WSAGetLastError();
-#else
-	return errno;
-#endif
 }
 
 static int t = 0;
@@ -121,11 +111,7 @@ void CommandServer::_close()
 {
 	if (inited) {
 		if (serverSocket > 0) {
-		#ifdef WIN32
 			closesocket(serverSocket);
-		#else
-			close(serverSocket);
-		#endif
 		}
 		inited = false;
 		serverSocket = 0;
@@ -649,15 +635,9 @@ bool setSocketBlocking(int socket, bool blocking) {
 		return false;
 	}
 
-#ifdef WIN32
 	unsigned long mode = blocking ? 0 : 1;
 	return (ioctlsocket(socket, FIONBIO, &mode) == 0) ? true : false;
-#else
-	int flags = fcntl(socket, F_GETFL, 0);
-	if (flags < 0) return false;
-	flags = blocking ? (flags & ~O_NONBLOCK) : (flags|O_NONBLOCK);
-	return (fcntl(socket, F_SETFL, flags) == 0) ? true : false;
-#endif
+}
 }
 
 int Readline(ConnectedClient* client, std::string& out, int maxlen) {

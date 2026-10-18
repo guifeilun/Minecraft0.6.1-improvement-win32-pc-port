@@ -129,9 +129,6 @@ public:
 			_area.include(&screenArea);
 			_area.exclude(&moveArea);
 			_area.exclude(&inventoryArea);
-#ifdef __APPLE__
-            _area.exclude(&pauseArea);
-#endif /*__APPLE__*/
 			//LOGI("Movearea: %f %f %f% f\n", moveArea._x0, moveArea._x1, moveArea._y0, moveArea._y1);
 
 			_model.clear();

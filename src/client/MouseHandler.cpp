@@ -1,11 +1,7 @@
 #include "MouseHandler.h"
 #include "player/input/ITurnInput.h"
 
-#ifdef RPI
-#include <SDL/SDL.h>
-#endif
-
-#if defined(PLATFORM_DESKTOP) || defined(PLATFORM_WEB)
+#if defined(PLATFORM_DESKTOP)
 #include <GLFW/glfw3.h>
 #endif
 
@@ -28,25 +24,13 @@ void MouseHandler::grab() {
 	xd = 0;
 	yd = 0;
 
-#if defined(RPI)
-	//LOGI("Grabbing input!\n");
-	SDL_WM_GrabInput(SDL_GRAB_ON);
-	SDL_ShowCursor(0);
-#endif
-
-#if defined(PLATFORM_DESKTOP) || defined(PLATFORM_WEB)
+#if defined(PLATFORM_DESKTOP)
 	glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 #endif
 }
 
 void MouseHandler::release() {
-#if defined(RPI)
-	//LOGI("Releasing input!\n");
-	SDL_WM_GrabInput(SDL_GRAB_OFF);
-	SDL_ShowCursor(1);
-#endif
-
-#if defined(PLATFORM_DESKTOP) || defined(PLATFORM_WEB)
+#if defined(PLATFORM_DESKTOP)
 	glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 #endif
 }

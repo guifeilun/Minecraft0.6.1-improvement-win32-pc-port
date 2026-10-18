@@ -36,17 +36,8 @@ const int rgbActive = 0xfff0f0f0;
 const int rgbInactive = 0xc0635558;
 const int rgbInactiveShadow = 0xc0aaaaaa;
 
-#ifdef __APPLE__
-	static const float BorderPixels = 4;
-	#ifdef DEMO_MODE
-		static const float BlockPixels = 22;
-	#else
-		static const float BlockPixels = 22;
-	#endif
-#else
-	static const float BorderPixels = 4;
-	static const float BlockPixels = 24;
-#endif
+static const float BorderPixels = 4;
+static const float BlockPixels = 24;
 static const int ItemSize = (int)(BlockPixels + 2*BorderPixels);
 
 static const int Bx = 10; // Border Frame width
@@ -143,11 +134,7 @@ void FurnaceScreen::setupPositions() {
 	const int realBx = (paneWidth - realWidth) / 2;
 
 	inventoryPaneRect = IntRectangle(realBx,
-#ifdef __APPLE__
-		26 + By - ((width==240)?1:0), realWidth, ((width==240)?1:0) + height-By-By-28);
-#else
 		26 + By, realWidth, height-By-By-28);
-#endif
 
 	// Right - Slots, description etc
 	{

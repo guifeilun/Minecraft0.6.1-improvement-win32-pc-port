@@ -14,14 +14,6 @@ class SoundRepository
 
 public:
     ~SoundRepository() {
-#ifdef __APPLE__
-        SoundMap::iterator it = map.begin();
-        for (; it != map.end(); ++it) {
-            SoundList& list = it->second;
-            for (unsigned int j = 0; j < list.size(); ++j)
-                list[j].destroy();
-        }
-#endif
     }
 	
     bool get(const std::string& name, SoundDesc& sound) {

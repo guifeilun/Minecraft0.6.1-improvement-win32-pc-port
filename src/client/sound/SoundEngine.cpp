@@ -33,7 +33,6 @@ void SoundEngine::init( Minecraft* mc, Options* options )
 		loadLibrary();
 	}
 
-#if !defined(PRE_ANDROID23) && !defined(__APPLE__) && !defined(RPI)
 	sounds.add("step.cloth", SA_cloth1);
 	sounds.add("step.cloth", SA_cloth2);
 	sounds.add("step.cloth", SA_cloth3);
@@ -146,14 +145,10 @@ void SoundEngine::init( Minecraft* mc, Options* options )
 	sounds.add("random.eat", SA_eat3);
 	sounds.add("random.fuse", SA_fuse);
 
-#endif
 }
 
 void SoundEngine::enable( bool status )
 {
-#if defined(__APPLE__)
-	soundSystem.enable(status);
-#endif
 }
 
 void SoundEngine::updateOptions()
@@ -190,46 +185,7 @@ float SoundEngine::_getVolumeMult( float x, float y, float z )
 	return out;
 }
 
-#if defined(PRE_ANDROID23)
-void SoundEngine::play(const std::string& name, float x, float y, float z, float volume, float pitch) {
-	//volume *= (2.0f * _getVolumeMult(x, y, z))
-	if ((volume *= options->getProgressValue(OPTIONS_SOUND_VOLUME)) <= 0) return;
 
-	volume *= _getVolumeMult(x, y, z);
-	mc->platform()->playSound(name, volume, pitch);
-}
-void SoundEngine::playUI(const std::string& name, float volume, float pitch) {
-	if ((volume *= options->getProgressValue(OPTIONS_SOUND_VOLUME)) <= 0) return;
-
-	//volume *= 2.0f;
-	mc->platform()->playSound(name, volume, pitch);
-}
-#elif defined(__APPLE__)
-void SoundEngine::play(const std::string& name, float x, float y, float z, float volume, float pitch) {
-	if ((volume *= options->getProgressValue(OPTIONS_SOUND_VOLUME)) <= 0) return;
-
-	volume = Mth::clamp(volume, 0.0f, 1.0f);
-
-	SoundDesc sound;
-	if (sounds.get(name, sound)) {
-		soundSystem.playAt(sound, x-_x, y-_y, z-_z, volume, pitch);
-	}
-}
-void SoundEngine::playUI(const std::string& name, float volume, float pitch) {
-	if ((volume *= options->getProgressValue(OPTIONS_SOUND_VOLUME)) <= 0) return;
-
-	volume = Mth::clamp(volume, 0.0f, 1.0f);
-	if (/*!loaded || */options->getProgressValue(OPTIONS_SOUND_VOLUME) == 0 || volume <= 0) return;
-
-	SoundDesc sound;
-	if (sounds.get(name, sound)) {
-		soundSystem.playAt(sound, 0, 0, 0, volume, pitch);
-	}
-}
-#elif defined(RPI)
-void SoundEngine::play(const std::string& name, float x, float y, float z, float volume, float pitch) {}
-void SoundEngine::playUI(const std::string& name, float volume, float pitch) {}
-#else
 void SoundEngine::play(const std::string& name, float x, float y, float z, float volume, float pitch) {
 	if ((volume *= options->getProgressValue(OPTIONS_SOUND_VOLUME)) <= 0) return;
 
@@ -254,4 +210,4 @@ void SoundEngine::playUI(const std::string& name, float volume, float pitch) {
 		soundSystem.playAt(sound, 0, 0, 0, volume, pitch);
 	}
 }
-#endif
+

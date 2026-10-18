@@ -39,21 +39,13 @@ void __gluMakeIdentityf(GLfloat m[16]) {
 
 void glInit()
 {
-#ifndef OPENGL_ES
-	
-	GLenum err = glewInit();
-	printf("Err: %d\n", err);
-#endif
+	// No-op: the win32 build already has an OpenGL context (GLFW/GLAD or EGL).
 }
 
 void anGenBuffers(GLsizei n, GLuint* buffers) {
-#ifdef __EMSCRIPTEN__
-    glGenBuffers(n, buffers);
-#else
     static GLuint k = 1;
     for (int i = 0; i < n; ++i)
         buffers[i] = ++k;
-#endif
 }
 
 #ifdef USE_VBO

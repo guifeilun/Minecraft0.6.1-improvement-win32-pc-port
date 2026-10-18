@@ -28,14 +28,8 @@
 #include "../../util/StringUtils.h"
 #include "client/Options.h"
 
-#if defined(_WIN32)
 #include <direct.h>
 #include <sys/stat.h>
-#else
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <errno.h>
-#endif
 
 #ifndef STANDALONE_SERVER
 #include "../gui/Screen.h"
@@ -189,41 +183,7 @@ static std::string getCapeUrlForUsername(const std::string& username) {
 #endif
 
 static bool ensureDirectoryExists(const std::string& path) {
-#if defined(_WIN32)
     return _mkdir(path.c_str()) == 0 || errno == EEXIST;
-#else
-    struct stat st;
-    if (stat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
-        return true;
-
-    std::string subPath;
-    size_t i = 0;
-    while (i < path.length()) {
-        i = path.find_first_of("/\\", i);
-        if (i == std::string::npos) {
-            subPath = path;
-        } else {
-            subPath = path.substr(0, i);
-        }
-
-        if (!subPath.empty()) {
-            if (stat(subPath.c_str(), &st) != 0) {
-                if (mkdir(subPath.c_str(), 0755) != 0 && errno != EEXIST)
-                    return false;
-            } else if (!S_ISDIR(st.st_mode)) {
-                return false;
-            }
-        }
-
-        if (i == std::string::npos)
-            break;
-        i += 1;
-    }
-
-    if (stat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
-        return true;
-    return mkdir(path.c_str(), 0755) == 0 || errno == EEXIST;
-#endif
 }
 
 static bool fileExists(const std::string& path) {
@@ -231,11 +191,7 @@ static bool fileExists(const std::string& path) {
     if (stat(path.c_str(), &st) != 0)
         return false;
 
-#if defined(_WIN32)
     return (st.st_mode & _S_IFREG) != 0;
-#else
-    return S_ISREG(st.st_mode);
-#endif
 }
 
 #ifndef STANDALONE_SERVER
@@ -885,7 +841,7 @@ void LocalPlayer::stopSleepInBed( bool forcefulWakeUp, bool updateLevelList, boo
 }
 
 void LocalPlayer::openTextEdit( TileEntity* tileEntity ) {
-#if !defined(STANDALONE_SERVER) && !defined(RPI)
+#if !defined(STANDALONE_SERVER)
 	if(tileEntity->type == TileEntityType::Sign)
 		minecraft->setScreen(new TextEditScreen((SignTileEntity*) tileEntity));
 #endif

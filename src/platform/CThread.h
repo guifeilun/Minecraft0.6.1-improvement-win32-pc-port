@@ -7,21 +7,9 @@
 #ifndef _OX_CORE_CTHREAD_H_
 #define _OX_CORE_CTHREAD_H_
 
-#ifdef WIN32
-	#include <windows.h>
-#endif
+#include <windows.h>
 
 typedef void *( * pthread_fn )( void * );
-
-#if defined(__linux__) || defined(ANDROID) || defined(__APPLE__) || defined(POSIX) || defined(__EMSCRIPTEN__)
-	#include <pthread.h>
-	#include <unistd.h>
-
-#endif
-#ifdef MACOSX
-	#include <CoreServices/CoreServices.h>
-	#include <unistd.h>
-#endif
 
 	class CThread
 	{
@@ -33,21 +21,9 @@ typedef void *( * pthread_fn )( void * );
 		static void sleep( const unsigned int millis );
 	
 	private:
-	#ifdef WIN32
 		LPTHREAD_START_ROUTINE		mp_threadFunc;
 		DWORD						m_threadID;
 		HANDLE						m_threadHandle;
-	#endif
-	#if defined(__linux__) || defined(ANDROID) || defined(__APPLE__) || defined(POSIX) || defined(__EMSCRIPTEN__)
-		pthread_fn					mp_threadFunc;
-		pthread_t					m_thread;
-		pthread_attr_t				m_attributes;
-	#endif
-	#ifdef MACOSX
-		TaskProc					mp_threadFunc;
-		MPTaskID					m_threadID;
-	#endif
-	
 	};
 
 

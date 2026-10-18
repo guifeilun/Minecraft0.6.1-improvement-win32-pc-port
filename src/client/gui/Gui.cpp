@@ -139,12 +139,7 @@ void Gui::render(float a, bool mouseFree, int xMouse, int yMouse) {
 			chatScrollOffset = 0;
 		}
 		renderChatMessages(screenHeight, max, isChatting, font);
-#if !defined(RPI)
 		renderOnSelectItemNameText(screenWidth, font, ySlot);
-#endif
-#if defined(RPI)
-		renderDebugInfo();
-#endif
 
 		if (Keyboard::isKeyDown(Keyboard::KEY_TAB)) {
 			renderPlayerList(font, screenWidth, screenHeight);
@@ -452,11 +447,7 @@ void Gui::onConfigChanged( const Config& c ) {
 	//
 	// Create outer feedback circle
 	//
-#ifdef ANDROID
 	const float mm = 50; //20
-#else
-	const float mm = 50; //20
-#endif
 	const float maxRadius = minecraft->pixelCalcUi.millimetersToPixels(mm);
 	const float radius = Mth::Min(80.0f/2, maxRadius);
 	//LOGI("radius, maxradius: %f, %f\n", radius, maxRadius);
@@ -518,9 +509,6 @@ void Gui::onConfigChanged( const Config& c ) {
 			}
 		}
 		_numSlots = num;
-#if defined(__APPLE__)
-		_numSlots = Mth::Min(7, _numSlots);
-#endif
 	} else {
 		_numSlots = Inventory::MAX_SELECTION_SIZE; // Xperia Play
 	}

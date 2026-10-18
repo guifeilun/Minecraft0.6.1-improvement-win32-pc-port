@@ -23,24 +23,6 @@ using namespace RakNet;
 
 SocketLayerOverride *SocketLayer::slo=0;
 
-#ifdef _WIN32
-#else
-#include <string.h> // memcpy
-#include <unistd.h>
-#include <fcntl.h>
-#include <arpa/inet.h>
-#include <errno.h>  // error numbers
-#include <stdio.h> // RAKNET_DEBUG_PRINTF
-#if !defined(ANDROID)
-#include <ifaddrs.h>
-#endif
-#include <netinet/in.h>
-#include <net/if.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-
-#endif
 
 
 
@@ -54,13 +36,9 @@ SocketLayerOverride *SocketLayer::slo=0;
 
 
 
-#if   defined(_WIN32)
+
 #include "WSAStartupSingleton.h"
-#include <ws2tcpip.h> // 'IP_DONTFRAGMENT' 'IP_TTL'
-#elif defined SN_TARGET_PSP2
-#else
-#include <unistd.h>
-#endif
+#include <ws2tcpip.h> // 'IP_DONTFRAGMENT' 'IP_TTL' 
 
 #include "RakSleep.h"
 #include <stdio.h>
@@ -174,9 +152,6 @@ bool SocketLayer::IsSocketFamilySupported(const char *hostAddress, unsigned shor
 	}
 	else
 	{
-#if (defined(__GNUC__) || defined(__GCCXML__)) && !defined(_WIN32)
-		printf("IsSocketFamilySupported failed. hostAddress=%s. %s\n", hostAddress, gai_strerror(error));
-#endif
 	}
 	return false;
 #endif
@@ -308,12 +283,6 @@ void SocketLayer::SetSocketOptions( SOCKET listenSocket)
 	// Not supported on console 2
 	sock_opt=1024*16;
 	setsockopt__(listenSocket, SOL_SOCKET, SO_SNDBUF, ( char * ) & sock_opt, sizeof ( sock_opt ) );
-
-#ifdef __APPLE__
-	// Preventing SEGPIPE on "broken" socket
-	int set = 1;
-	setsockopt__(listenSocket, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
-#endif
 
 	/*
 	#ifdef _WIN32
@@ -647,38 +616,6 @@ SOCKET SocketLayer::CreateBoundSocket_Old( unsigned short port, bool blockingSoc
 		RAKNET_DEBUG_PRINTF( "bind__(...) failed:Error code - %d\n%s", (unsigned int) dwIOError, (char*) messageBuffer );
 		//Free the buffer.
 		LocalFree( messageBuffer );
-#elif (defined(__GNUC__) || defined(__GCCXML__)  ) && !defined(_WIN32)
-		switch (ret)
-		{
-		case EBADF:
-			RAKNET_DEBUG_PRINTF("bind__(): sockfd is not a valid descriptor.\n"); break;
-
-		case ENOTSOCK:
-			RAKNET_DEBUG_PRINTF("bind__(): Argument is a descriptor for a file, not a socket.\n"); break;
-
-		case EINVAL:
-			RAKNET_DEBUG_PRINTF("bind__(): The addrlen is wrong, or the socket was not in the AF_UNIX family.\n"); break;
-		case EROFS:
-			RAKNET_DEBUG_PRINTF("bind__(): The socket inode would reside on a read-only file system.\n"); break;
-		case EFAULT:
-			RAKNET_DEBUG_PRINTF("bind__(): my_addr points outside the user's accessible address space.\n"); break;
-		case ENAMETOOLONG:
-			RAKNET_DEBUG_PRINTF("bind__(): my_addr is too long.\n"); break;
-		case ENOENT:
-			RAKNET_DEBUG_PRINTF("bind__(): The file does not exist.\n"); break;
-		case ENOMEM:
-			RAKNET_DEBUG_PRINTF("bind__(): Insufficient kernel memory was available.\n"); break;
-		case ENOTDIR:
-			RAKNET_DEBUG_PRINTF("bind__(): A component of the path prefix is not a directory.\n"); break;
-		case EACCES:
-			RAKNET_DEBUG_PRINTF("bind__(): Search permission is denied on a component of the path prefix.\n"); break;
-
-		case ELOOP:
-			RAKNET_DEBUG_PRINTF("bind__(): Too many symbolic links were encountered in resolving my_addr.\n"); break;
-
-		default:
-			RAKNET_DEBUG_PRINTF("Unknown bind__() error %i.\n", ret); break;
-		}
 #endif
 
 		return (SOCKET) -1;
@@ -756,38 +693,6 @@ SOCKET SocketLayer::CreateBoundSocket( unsigned short port, bool blockingSocket,
 	RAKNET_DEBUG_PRINTF( "bind__(...) failed:Error code - %d\n%s", (unsigned int) dwIOError, (char*) messageBuffer );
 	//Free the buffer.
 	LocalFree( messageBuffer );
-#elif defined(__GNUC__)  || defined(__GCCXML__) && !defined(_WIN32)
-	switch (ret)
-	{
-	case EBADF:
-		RAKNET_DEBUG_PRINTF("bind__(): sockfd is not a valid descriptor.\n"); break;
-
-	case ENOTSOCK:
-		RAKNET_DEBUG_PRINTF("bind__(): Argument is a descriptor for a file, not a socket.\n"); break;
-
-	case EINVAL:
-		RAKNET_DEBUG_PRINTF("bind__(): The addrlen is wrong, or the socket was not in the AF_UNIX family.\n"); break;
-	case EROFS:
-		RAKNET_DEBUG_PRINTF("bind__(): The socket inode would reside on a read-only file system.\n"); break;
-	case EFAULT:
-		RAKNET_DEBUG_PRINTF("bind__(): my_addr points outside the user's accessible address space.\n"); break;
-	case ENAMETOOLONG:
-		RAKNET_DEBUG_PRINTF("bind__(): my_addr is too long.\n"); break;
-	case ENOENT:
-		RAKNET_DEBUG_PRINTF("bind__(): The file does not exist.\n"); break;
-	case ENOMEM:
-		RAKNET_DEBUG_PRINTF("bind__(): Insufficient kernel memory was available.\n"); break;
-	case ENOTDIR:
-		RAKNET_DEBUG_PRINTF("bind__(): A component of the path prefix is not a directory.\n"); break;
-	case EACCES:
-		RAKNET_DEBUG_PRINTF("bind__(): Search permission is denied on a component of the path prefix.\n"); break;
-
-	case ELOOP:
-		RAKNET_DEBUG_PRINTF("bind__(): Too many symbolic links were encountered in resolving my_addr.\n"); break;
-
-	default:
-		RAKNET_DEBUG_PRINTF("Unknown bind__() error %i.\n", ret); break;
-	}
 #endif
 
 
@@ -1268,9 +1173,7 @@ int SocketLayer::SendTo( SOCKET s, const char *data, int length, SystemAddress &
 
 	int len=0;
 	RakAssert(length<=MAXIMUM_MTU_SIZE-UDP_HEADER_SIZE);
-#if   !defined(__S3E__)
 	RakAssert(systemAddress.address.addr4.sin_family!=AF_MAX);
-#endif
 
 	if (slo)
 	{

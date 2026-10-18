@@ -153,7 +153,6 @@
     <ClCompile Include="..\..\src\platform\CThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\raknet\_FindFirst.cpp">
       <Filter>Source Files\raknet</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\raknet\BitStream.cpp">
@@ -255,7 +254,6 @@
     <ClCompile Include="..\..\src\raknet\Itoa.cpp">
       <Filter>Source Files\raknet</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\raknet\LinuxStrings.cpp">
       <Filter>Source Files\raknet</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\raknet\LogCommandParser.cpp">
@@ -339,7 +337,6 @@
     <ClCompile Include="..\..\src\raknet\Rand.cpp">
       <Filter>Source Files\raknet</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\raknet\rdlmalloc.cpp">
       <Filter>Source Files\raknet</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\raknet\ReadyEvent.cpp">
@@ -747,9 +744,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\App.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\main_android.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\main_win32.h">

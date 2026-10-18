@@ -4,23 +4,10 @@
 #include <errno.h>
 #include <platform/log.h>
 
-#if defined(_WIN32)
-    #include <direct.h>
-#else
-    #include <sys/stat.h>
-    #include <sys/types.h>
-#endif
+#include <direct.h>
 
 OptionsFile::OptionsFile() {
-#ifdef __APPLE__
-	settingsPath = "./Documents/options.txt";
-#elif defined(ANDROID)
 	settingsPath = "options.txt";
-#elif defined(__EMSCRIPTEN__)
-    settingsPath = "/games/com.mojang/options.txt";
-#else
-	settingsPath = "options.txt";
-#endif
 }
 
 void OptionsFile::setOptionsPath(const std::string& path) {
@@ -43,11 +30,7 @@ void OptionsFile::save(const StringVector& settings) {
             for (size_t i = 0; i <= dir.size(); ++i) {
                 if (i == dir.size() || dir[i] == '/' || dir[i] == '\\') {
                     if (!toCreate.empty()) {
-#if defined(_WIN32)
                         _mkdir(toCreate.c_str());
-#else
-                        mkdir(toCreate.c_str(), 0755);
-#endif
                     }
                 }
                 if (i < dir.size())

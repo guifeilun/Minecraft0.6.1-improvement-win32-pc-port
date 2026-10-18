@@ -1,12 +1,7 @@
 #include "time.h"
 #include <cstring>
 
-#ifdef WIN32
-    #include <windows.h>
-#else
-	#include <sys/time.h>
-	#include <unistd.h>
-#endif
+#include <windows.h>
 
 // Ugly ass temporary solution;
 // since gettimeofday() returns seconds & microseconds since
@@ -14,22 +9,12 @@
 // would overflow if just using an int -> subtract the number
 // of seconds that had passed when starting the app before
 // doing any calculations.
-#ifdef WIN32
-	static long long getStartTime() {
-		LARGE_INTEGER ts;
-		QueryPerformanceCounter(&ts);
-		return ts.QuadPart;
-	}
-	static unsigned long long _t_start = getStartTime();
-
-#else
-	static int getStartTime() {
-		timeval now;
-		gettimeofday(&now, 0);
-		return now.tv_sec;
-	}
-	static unsigned int _t_start = getStartTime();
-#endif
+static long long getStartTime() {
+	LARGE_INTEGER ts;
+	QueryPerformanceCounter(&ts);
+	return ts.QuadPart;
+}
+static unsigned long long _t_start = getStartTime();
 
 #include <cstdio>
 
@@ -37,17 +22,10 @@
 /// This is allowed to be here, since getTimeS and getTimeMs both have t(0)
 /// as base (and obviously not good for an initial random seed)
 int getRawTimeS() {
-#ifdef WIN32
 	return (int)(GetTickCount() / 1000);
-#else
-	timeval now;
-	gettimeofday(&now, 0);
-	return (int)now.tv_sec;
-#endif
 }
 
 float getTimeS() {
-#ifdef WIN32
 	// If the game seems to go with different speeds, this might most
 	// possibly be the cause. QueryPerformanceCounter has indeed high
 	// resolution, but (imho) only guaranteed to be correct for (short)
@@ -56,11 +34,6 @@ float getTimeS() {
 	QueryPerformanceFrequency(&freq);
 	QueryPerformanceCounter(&ts);
 	return (ts.QuadPart - _t_start) / (float)freq.QuadPart;
-#else
-    timeval now;
-    gettimeofday(&now, 0);
-    return (float)(now.tv_sec - _t_start) + now.tv_usec / 1000000.0f;
-#endif
 }
 
 int getTimeMs() {
@@ -68,11 +41,7 @@ int getTimeMs() {
 }
 
 void sleepMs(int ms) {
-#ifdef WIN32
     Sleep(ms);
-#else
-	usleep(ms * 1000);
-#endif
 }
 
 #include <ctime>

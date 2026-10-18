@@ -4,25 +4,10 @@
 
 #include <stdio.h> // RAKNET_DEBUG_PRINTF
 #include "RakAssert.h"
-#if defined(ANDROID)
-#include <asm/io.h>
-#elif defined(_WIN32) || defined(__CYGWIN__)
 #include <io.h>
 
-
-// #elif !defined ( __APPLE__ ) && !defined ( __APPLE_CC__ ) && !defined ( __PPC__ ) && !defined ( __FreeBSD__ ) && !defined ( __S3E__ )
-//   #include <sys/io.h>
-#endif
-
-
-#ifdef _WIN32 
 // For mkdir
 #include <direct.h>
-
-
-#else
-#include <sys/stat.h>
-#endif
 
 //#include "SHA1.h"
 #include "DS_Queue.h"
@@ -40,20 +25,7 @@ using namespace RakNet;
 
 // alloca
 
-#if   defined(_WIN32)
 #include <malloc.h>
-
-
-#else
-#if !defined ( __FreeBSD__ )
-#include <alloca.h>
-#endif
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include "_FindFirst.h"
-#include <stdint.h> //defines intptr_t
-#endif
 
 #include "RakAlloca.h"
 
@@ -770,19 +742,11 @@ void FileList::GetCallbacks(DataStructures::List<FileListProgress*> &callbacks)
 
 bool FileList::FixEndingSlash(char *str)
 {
-#ifdef _WIN32
 	if (str[strlen(str)-1]!='/' && str[strlen(str)-1]!='\\')
 	{
 		strcat(str, "\\"); // Only \ works with system commands, used by AutopatcherClient
 		return true;
 	}
-#else
-	if (str[strlen(str)-1]!='\\' && str[strlen(str)-1]!='/')
-	{
-		strcat(str, "/"); // Only / works with Linux
-		return true;
-	}
-#endif
 
 	return false;
 }

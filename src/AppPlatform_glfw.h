@@ -20,10 +20,6 @@
 #include <shellapi.h>
 #endif
 
-#ifdef __EMSCRIPTEN__
-	#include <emscripten/html5.h>
-#endif
-
 static void png_funcReadFile(png_structp pngPtr, png_bytep data, png_size_t length) {
 	((std::istream*)png_get_io_ptr(pngPtr))->read((char*)data, length);
 }
@@ -107,24 +103,10 @@ public:
 	}
 
 	virtual int getScreenWidth() override { 
-		#ifdef __EMSCRIPTEN__
-			int w, h;
-			emscripten_get_canvas_element_size("canvas", &w, &h);
-
-			return w;
-		#endif
-
 		return 854; 
 	};
 
 	virtual int getScreenHeight() override { 
-		#ifdef __EMSCRIPTEN__
-			int w, h;
-			emscripten_get_canvas_element_size("canvas", &w, &h);
-
-			return h;
-		#endif
-
 		return 480; 
 	};
 
@@ -138,14 +120,7 @@ public:
 	}
 
 	virtual void openURL(const std::string& url) override {
-#ifdef _WIN32
 		ShellExecuteA(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
-#elif __linux__
-		std::string command = "xdg-open " + url;
-		system(command.c_str());
-#elif __EMSCRIPTEN__
-		emscripten_run_script(std::string("window.open('" + url + "', '_blank')").c_str());
-#endif
 	}
 
 	virtual void toggleFullscreen() override {

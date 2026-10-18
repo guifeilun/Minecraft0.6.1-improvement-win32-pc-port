@@ -64,29 +64,8 @@ RAK_THREAD_DECLARATION(UDTConnect);
 }
 #define REMOTE_SYSTEM_LOOKUP_HASH_MULTIPLE 8
 
-#if !defined ( __APPLE__ ) && !defined ( __APPLE_CC__ )
 #include <stdlib.h> // malloc
-#endif
 
-
-
-#if   defined(_WIN32)
-//
-#else
-/*
-#include <alloca.h> // Console 2
-#include <stdlib.h>
-extern bool _extern_Console2LoadModules(void);
-extern int _extern_Console2GetConnectionStatus(void);
-extern int _extern_Console2GetLobbyStatus(void);
-//extern bool Console2StartupFluff(unsigned int *);
-extern void Console2ShutdownFluff(void);
-//extern unsigned int Console2ActivateConnection(unsigned int, void *);
-//extern bool Console2BlockOnEstablished(void);
-extern void Console2GetIPAndPort(unsigned int, char *, unsigned short *, unsigned int );
-//extern void Console2DeactivateConnection(unsigned int, unsigned int);
-*/
-#endif
 
 
 static const int NUM_MTU_SIZES=3;
@@ -120,9 +99,7 @@ static const unsigned int MAX_OFFLINE_DATA_LENGTH=400; // I set this because I l
 
 // Used to distinguish between offline messages with data, and messages from the reliability layer
 // Should be different than any message that could result from messages from the reliability layer
-#if   !defined(__GNUC__)
 #pragma warning(disable:4309) // 'initializing' : truncation of constant value
-#endif
 // Make sure highest bit is 0, so isValid in DatagramHeaderFormat is false
 static const unsigned char OFFLINE_MESSAGE_DATA_ID[16]={0x00,0xFF,0xFF,0x00,0xFE,0xFE,0xFE,0xFE,0xFD,0xFD,0xFD,0xFD,0x12,0x34,0x56,0x78};
 
@@ -348,13 +325,7 @@ StartupResult RakPeer::Startup( unsigned short maxConnections, SocketDescriptor 
 	{
 
 
-#if   defined(_WIN32)
 		threadPriority=0;
-
-
-#else
-		threadPriority=1000;
-#endif
 	}
 
 
@@ -3369,11 +3340,7 @@ RakPeer::RemoteSystemStruct * RakPeer::AssignSystemAddressToRemoteSystemList( co
 							rpai.extraSocketOptions=rns->extraSocketOptions;
 							rpai.s=rns->s;
 							rpai.rakPeer=this;
-#ifdef _WIN32
 							int highPriority=THREAD_PRIORITY_ABOVE_NORMAL;
-#else
-							int highPriority=-10;
-#endif
 
 //#if !defined(_XBOX) && !defined(X360)
 							highPriority=0;

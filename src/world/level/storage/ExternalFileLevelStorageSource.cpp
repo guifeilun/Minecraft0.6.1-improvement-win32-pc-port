@@ -1,4 +1,4 @@
-#if !defined(DEMO_MODE) && !defined(APPLE_DEMO_PROMOTION)
+#if !defined(DEMO_MODE)
 
 #include "LevelData.h"
 #include "ExternalFileLevelStorageSource.h"
@@ -8,10 +8,6 @@
 #include "../../../util/StringUtils.h"
 #include <cstdio>
 #include <sys/types.h>
-
-#ifdef __APPLE__
-#include "MoveFolder.h"
-#endif
 
 static const char ILLEGAL_FILE_CHARACTERS[] = {
 	'/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<', '>', '|', '\"', ':'
@@ -152,11 +148,6 @@ void ExternalFileLevelStorageSource::renameLevel( const std::string& oldLevelId_
 
 	bool couldRename = false;
 	if (hasTempDirectory() && isTempFile) {
-#ifdef __APPLE__
-		std::string newFolder = basePath + "/" + levelId;
-		moveFolder(oldFolder, newFolder);
-        couldRename = (_access(newFolder.c_str(), 0) == 0);
-#endif
 	}
 
     couldRename = couldRename || rename(_renFULLPATH(oldLevelId_), _renFULLPATH(levelId)) == 0;

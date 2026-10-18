@@ -32,21 +32,14 @@ private:
 	void initGLStates();
     void restartServer();
 
-	void updateStats();
-
 	//void writeDemoFile();
 	//bool hasPlayedDemo();
 
-#ifndef ANDROID_PUBLISH
 	void testCreationAndDestruction();
 	void testJoiningAndDestruction();
-#endif /*ANDROID_PUBLISH*/
 
 	bool _verbose;
 	int _frames;
-	int _lastTickMs;
-
-	static bool _hasInitedStatics;
 };
 
 #endif//NINECRAFTAPP_H__

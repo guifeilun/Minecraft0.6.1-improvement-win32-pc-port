@@ -4,10 +4,6 @@
 #include "Export.h"
 #include "NativeTypes.h"
 #include "WindowsIncludes.h"
-#if defined(ANDROID) || defined(__S3E__)
-// __sync_fetch_and_add not supported apparently
-#include "SimpleMutex.h"
-#endif
 
 namespace RakNet
 {
@@ -24,15 +20,7 @@ public:
 	volatile uint32_t GetValue(void) const {return value;}
 
 protected:
-#ifdef _WIN32
 	volatile LONG value;
-#elif defined(ANDROID) || defined(__S3E__)
-	// __sync_fetch_and_add not supported apparently
-	SimpleMutex mutex;
-	uint32_t value;
-#else
-	volatile uint32_t value;
-#endif
 };
 
 };

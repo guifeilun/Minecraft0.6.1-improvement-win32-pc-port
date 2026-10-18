@@ -1,29 +1,9 @@
 #include "FolderMethods.h"
 #include <string>
 
-#ifndef WIN32
-
-#include <unistd.h>
-#include <errno.h>
-#include <sys/stat.h>
-
-int _mkdir( const char* name ) {
-	return mkdir(name, 0755);
-}
-
-int _access( const char* name, int mode ) {
-	return access(name, mode);
-}
-
-int _errno() {
-	return errno;
-}
-
-#else
-	#include <io.h>
-	#include <direct.h>
-	#include <windows.h>
-#endif
+#include <io.h>
+#include <direct.h>
+#include <windows.h>
 
 bool exists(const char* name) {
     return _access(name, 0) == 0;

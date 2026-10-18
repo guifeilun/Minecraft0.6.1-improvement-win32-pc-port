@@ -1,18 +1,12 @@
 #include "FileOperations.h"
 #if _RAKNET_SUPPORT_FileOperations==1
 #include "RakMemoryOverride.h"
-#include "_FindFirst.h" // For linux
+#include "_FindFirst.h"
 #include <stdio.h>
 #include <string.h>
-#ifdef _WIN32 
 // For mkdir
 #include <direct.h>
 #include <io.h>
-#else
-#include <sys/stat.h>
-#include <unistd.h>
-#include "_FindFirst.h"
-#endif
 #include "errno.h"
 
 #ifdef _MSC_VER
