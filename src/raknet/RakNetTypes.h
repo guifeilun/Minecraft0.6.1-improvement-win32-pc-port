@@ -9,7 +9,6 @@
 #ifndef __NETWORK_TYPES_H
 #define __NETWORK_TYPES_H
 
-#include <stdint.h>
 #include "RakNetDefines.h"
 #include "NativeTypes.h"
 #include "RakNetTime.h"
