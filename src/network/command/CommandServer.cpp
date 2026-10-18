@@ -638,7 +638,6 @@ bool setSocketBlocking(int socket, bool blocking) {
 	unsigned long mode = blocking ? 0 : 1;
 	return (ioctlsocket(socket, FIONBIO, &mode) == 0) ? true : false;
 }
-}
 
 int Readline(ConnectedClient* client, std::string& out, int maxlen) {
 	static char data[2048];
