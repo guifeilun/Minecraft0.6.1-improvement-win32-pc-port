@@ -223,6 +223,9 @@ protected:
 	double xc, yc, zc;
 
 public:
+	float getMoveForward() const { return yya; }
+	float getMoveStrafe() const { return xxa; }
+
 	// Cape position accessors (for renderers)
 	double getCapeX() const { return xCape; }
 	double getCapeY() const { return yCape; }

@@ -157,6 +157,13 @@ public:
 
 	float viewScale;
 
+	Entity* rider;
+	Entity* riding;
+
+	virtual bool startRiding(Entity* target);
+	virtual void stopRiding();
+	virtual void positionRider();
+
 	Level* level;
 	float xo, yo, zo;
 	float xd, yd, zd;

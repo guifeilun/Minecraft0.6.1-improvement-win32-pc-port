@@ -231,7 +231,10 @@ file(GLOB SERVER_SOURCES
     "src/client/player/input/KeyboardInput.cpp"
 
     "src/locale/I18n.cpp"
+<<<<<<< HEAD
 
+=======
+>>>>>>> 895fe9a (feat: add SpawnEggItem, boat, and fix build issues)
     "src/main_dedicated.cpp"
 
     "src/nbt/Tag.cpp"
