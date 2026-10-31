@@ -3,6 +3,8 @@
 #include "../level/tile/Tile.h"
 #include "ItemInstance.h"
 #include "FishingRodItem.h"
+#include "SpawnEggItem.h"
+#include "BoatItem.h"
 
 const std::string Item::ICON_DESCRIPTION_PREFIX("item.");
 Random Item::random;
@@ -157,7 +159,7 @@ Item* Item::netherQuartz = NULL;
 //Item* Item::record_02 = NULL;
 
 Item* Item::camera = NULL;
-
+Item* Item::spawnEgg = NULL;
 /*static*/
 void Item::initItems() {
 	static bool isInited = false;
@@ -259,7 +261,7 @@ void Item::initItems() {
 	Item::door_iron = (new DoorItem(74, Material::metal))->setIcon(12, 2)->setCategory(ItemCategory::Structures)->setDescriptionId("doorIron");
 	Item::redStone = (new TilePlanterItem(75, Tile::redStoneDust))->setIcon(8, 3)->setCategory(ItemCategory::Mechanisms)->setDescriptionId("redstone");
 	Item::snowBall = (new SnowballItem(76))->setIcon(14, 0)->setCategory(ItemCategory::Decorations)->setDescriptionId("snowball");
-	Item::boat = (new Item(77))->setMaxStackSize(1)->setIcon(8, 8)->setCategory(ItemCategory::Mechanisms)->setDescriptionId("boat");
+	Item::boat = (new BoatItem(77))->setMaxStackSize(1)->setIcon(8, 8)->setCategory(ItemCategory::Mechanisms)->setDescriptionId("boat");
 	Item::leather = (new Item(78))->setIcon(7, 6)->setCategory(ItemCategory::Tools)->setDescriptionId("leather");
 	Item::milk = (new Item(79))->setMaxStackSize(1)->setIcon(13, 4)->setCategory(ItemCategory::FoodArmor)->setDescriptionId("milk");
 	Item::brick = (new Item(80))->setIcon(6, 1)->setCategory(ItemCategory::Structures)->setDescriptionId("brick");
@@ -297,6 +299,7 @@ void Item::initItems() {
 	//Item::record_01 = (new RecordingItem(2000, "13"))->setIcon(0, 15)->setCategory(ItemCategory::Decorations)->setDescriptionId("record");
 	//Item::record_02 = (new RecordingItem(2001, "cat"))->setIcon(1, 15)->setCategory(ItemCategory::Decorations)->setDescriptionId("record");
 	Item::camera = (new CameraItem(200))->setIcon(2, 15)->setCategory(ItemCategory::Decorations)->setDescriptionId("camera");
+	Item::spawnEgg = (new SpawnEggItem(127))->setIcon(9, 9)->setCategory(ItemCategory::Tools)->setDescriptionId("spawnEgg");
 
 	for (int i = 256; i < MAX_ITEMS; ++i) {
 		if (items[i] && items[i]->category == -1)

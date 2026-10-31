@@ -105,7 +105,6 @@ file(GLOB SERVER_SOURCES
     "src/client/player/RemotePlayer.cpp"
     "src/client/player/input/KeyboardInput.cpp"
     "src/locale/I18n.cpp"
-    "src/main.cpp"
     "src/main_dedicated.cpp"
     "src/nbt/Tag.cpp"
     "src/network/ClientSideNetworkHandler.cpp"

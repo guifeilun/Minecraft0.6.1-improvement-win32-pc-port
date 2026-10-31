@@ -22,6 +22,7 @@ HumanoidModel(float g = 0, float yOffset = 0, int texW = 64, int texH = 32);
 	bool holdingLeftHand;
 	bool holdingRightHand;
 	bool sneaking;
+	bool riding;
 	bool bowAndArrow;
 };
 

@@ -477,6 +477,15 @@ void LocalPlayer::tick() {
 
 /*public*/
 void LocalPlayer::aiStep() {
+	if (this->riding != NULL) {
+		input->tick(this);
+		this->xxa = input->xa;
+		this->yya = input->ya;
+		if (input->sneaking) {
+		    this->stopRiding();
+		}
+		return;
+	}
 	jumpTriggerTime--;
 	ascendTriggerTime--;
 	descendTriggerTime--;

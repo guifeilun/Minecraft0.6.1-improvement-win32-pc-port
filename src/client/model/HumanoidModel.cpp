@@ -8,6 +8,7 @@ HumanoidModel::HumanoidModel( float g /*= 0*/, float yOffset /*= 0*/, int texW /
 :    holdingLeftHand(false),
 	holdingRightHand(false),
 	sneaking(false),
+	riding(false),
 	bowAndArrow(false),
 	head(0, 0),
 	hair(32, 0),
@@ -83,6 +84,7 @@ HumanoidModel::HumanoidModel( float g /*= 0*/, float yOffset /*= 0*/, int texW /
 
 void HumanoidModel::render(Entity* e, float time, float r, float bob, float yRot, float xRot, float scale )
 {
+	this->riding = (e != NULL && e->riding != NULL);
 	if(e != NULL && e->isMob()) {		
 		Mob* mob = (Mob*)(e);
 		ItemInstance* item = mob->getCarriedItem();

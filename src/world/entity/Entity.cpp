@@ -60,7 +60,9 @@ Entity::Entity( Level* level )
 	entityRendererId(ER_DEFAULT_RENDERER),
 	nextStep(1),
 	makeStepSound(true),
-	invisible(false)
+	invisible(false),
+	rider(NULL),
+	riding(NULL)
 {
 	_init();
 
@@ -423,6 +425,9 @@ int Entity::hashCode()
 
 void Entity::remove()
 {
+	if (rider != NULL) {
+		rider->stopRiding();
+	}
 	removed = true;
 }
 
@@ -955,4 +960,31 @@ void Entity::playStepSound( int xt, int yt, int zt, int t ) {
     } else if (!Tile::tiles[t]->material->isLiquid()) {
         level->playSound(this, soundType->getStepSound(), soundType->getVolume() * 0.25f, soundType->getPitch());
     }
+}
+
+bool Entity::startRiding(Entity* target) {
+    if (target == NULL || target == this) return false;
+    if (this->riding != NULL) return false;
+    if (target->rider != NULL && target->rider != this) return false;
+
+    this->riding = target;
+    target->rider = this;
+    this->noPhysics = true;
+    return true;
+}
+
+void Entity::stopRiding() {
+    if (this->riding == NULL) return;
+    Entity* vehicle = this->riding;
+    if (vehicle->rider == this) vehicle->rider = NULL;
+    this->riding = NULL;
+    this->noPhysics = false;
+
+    if (this->isPlayer()) {
+        this->setPos(vehicle->x, vehicle->y + 1.5f, vehicle->z);
+        this->yd = 0.0f;
+    }
+}
+
+void Entity::positionRider() {
 }

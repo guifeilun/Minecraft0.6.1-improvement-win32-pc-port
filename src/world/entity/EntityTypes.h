@@ -29,6 +29,7 @@ public:
 	static const int IdArrow	= 80;
 	static const int IdSnowball	= 81;
 	static const int IdThrownEgg= 82;
+	static const int IdBoat = 90;
 	static const int IdPainting = 83;
 };
 
