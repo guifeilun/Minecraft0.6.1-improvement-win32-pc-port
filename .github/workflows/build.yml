@@ -3,11 +3,6 @@ name: 构建游戏
 
 on:
   workflow_dispatch:
-  pull_request:
-  push:
-    branches:
-    - '**'
-    - '!no-build-**'
 
 env:
   BUILD_TYPE: Release
@@ -95,8 +90,7 @@ jobs:
         run: |
           cmake $GITHUB_WORKSPACE \
             -G Ninja \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
       - name: 构建
         working-directory: ${{github.workspace}}/build
@@ -183,7 +177,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        abi: [ arm64-v8a, armeabi-v7a ]
+        abi: [ arm64-v8a, armeabi-v7a, x86 ]
 
     env:
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
@@ -348,6 +342,7 @@ jobs:
         run: |
           mv minecraftpe-apk-arm64-v8a/minecraftpe-v8a-debug.apk minecraftpe-${{ steps.ref.outputs.hash }}-android-arm64-v8a.apk
           mv minecraftpe-apk-armeabi-v7a/minecraftpe-v7a-debug.apk minecraftpe-${{ steps.ref.outputs.hash }}-android-armeabi-v7a.apk
+          mv minecraftpe-apk-x86/minecraftpe-x86-debug.apk minecraftpe-${{ steps.ref.outputs.hash }}-android-x86.apk
 
       - name: 打包 Web
         uses: vimtor/action-zip@v1.2
@@ -379,4 +374,5 @@ jobs:
             ./minecraftpe-${{ steps.ref.outputs.hash }}-linux.zip
             ./minecraftpe-${{ steps.ref.outputs.hash }}-android-arm64-v8a.apk
             ./minecraftpe-${{ steps.ref.outputs.hash }}-android-armeabi-v7a.apk
+            ./minecraftpe-${{ steps.ref.outputs.hash }}-android-x86.apk
             ./minecraftpe-${{ steps.ref.outputs.hash }}-web.zip

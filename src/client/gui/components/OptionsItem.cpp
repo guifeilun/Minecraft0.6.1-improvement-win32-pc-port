@@ -69,7 +69,7 @@ void OptionsItem::render( Minecraft* minecraft, int xm, int ym ) {
 	if (m_optionId == OPTIONS_FOV) {
 		int value = minecraft->options.getIntValue(OPTIONS_FOV);
 		char buf[16];
-		std::snprintf(buf, sizeof(buf), "%d", value);
+		snprintf(buf, sizeof(buf), "%d", value);
 		text += ": " + std::string(buf);
 	}
 	if (m_optionId == OPTIONS_VIEW_DISTANCE) {

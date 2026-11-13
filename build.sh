@@ -9,7 +9,8 @@
 # ABI targeting:
 #   ./build.sh --abi arm64-v8a    # build for arm64 only (default)
 #   ./build.sh --abi armeabi-v7a  # build for ARMv7 only
-#   ./build.sh --abi all          # build for both ABIs (fat APK)
+#   ./build.sh --abi x86          # build for x86 only
+#   ./build.sh --abi all          # build for all ABIs (fat APK)
 # ============================================================
 
 # lets be strict cuz we are safe like that
@@ -34,7 +35,7 @@ ANDROID_BUILD_TOOLS_VERSION="${ANDROID_BUILD_TOOLS_VERSION:-}"
 ANDROID_PLATFORM_API="${ANDROID_PLATFORM_API:-}"
 
 # ABI selection: can be set via --abi flag or MATRIX_ABI env var.
-# Supported values: arm64-v8a, armeabi-v7a, all
+# Supported values: arm64-v8a, armeabi-v7a, x86, all
 # MATRIX_ABI takes precedence over the default but is overridden by --abi on the CLI.
 TARGET_ABI="${MATRIX_ABI:-arm64-v8a}"
 
@@ -147,7 +148,7 @@ Options:
   --no-cpp         Skip the NDK (C++) build step
   --no-java        Skip the Java build step
   --no-build       Skip the compile steps; just package + install
-  --abi <abi>      Target ABI: arm64-v8a (default), armeabi-v7a, or all
+  --abi <abi>      Target ABI: arm64-v8a (default), armeabi-v7a, x86, or all
                    Can also be set via MATRIX_ABI env var for CI matrix builds.
 EOF
   exit 1
@@ -155,11 +156,6 @@ EOF
 
 function log_step() {
   echo -e "\n==> $1"
-}
-
-function fail() {
-  echo "ERROR: $1" >&2
-  exit 1
 }
 
 function require_cmd() {
@@ -246,7 +242,7 @@ while [[ $# -gt 0 ]]; do
     --no-build) NO_BUILD=true ;;
     --abi)
       shift
-      [[ $# -gt 0 ]] || fail "--abi requires a value (arm64-v8a, armeabi-v7a, all)"
+      [[ $# -gt 0 ]] || fail "--abi requires a value (arm64-v8a, armeabi-v7a, x86, all)"
       TARGET_ABI="$1"
       ;;
     -h|--help) usage ;;
@@ -260,8 +256,8 @@ done
 
 # validate the ABI value now that all args are parsed
 case "$TARGET_ABI" in
-  arm64-v8a|armeabi-v7a|all) ;;
-  *) fail "Unknown ABI '$TARGET_ABI'. Supported values: arm64-v8a, armeabi-v7a, all" ;;
+  arm64-v8a|armeabi-v7a|x86|all) ;;
+  *) fail "Unknown ABI '$TARGET_ABI'. Supported values: arm64-v8a, armeabi-v7a, x86, all" ;;
 esac
 
 echo "  TARGET_ABI=$TARGET_ABI"
@@ -269,7 +265,8 @@ echo "  TARGET_ABI=$TARGET_ABI"
 # resolve APK output filenames now that TARGET_ABI is final.
 # arm64-v8a -> minecraftpe-v8a-debug.apk
 # armeabi-v7a -> minecraftpe-v7a-debug.apk
-# all -> minecraftpe-all-debug.apk  (fat APK containing both ABIs)
+# x86 -> minecraftpe-x86-debug.apk
+# all -> minecraftpe-all-debug.apk  (fat APK containing all ABIs)
 case "$TARGET_ABI" in
   arm64-v8a)   APK_SUFFIX="v8a" ;;
   armeabi-v7a) APK_SUFFIX="v7a" ;;
@@ -312,6 +309,7 @@ log_step "Bootstrap"
 ensure_dir "$BUILD_DIR"
 ensure_dir "$BUILD_DIR/lib/arm64-v8a"
 ensure_dir "$BUILD_DIR/lib/armeabi-v7a"
+ensure_dir "$BUILD_DIR/lib/x86"
 ensure_dir "$BUILD_DIR/gen"
 ensure_dir "$BUILD_DIR/stubs"
 
@@ -362,6 +360,7 @@ if [[ "$NO_CPP" == false && "$NO_BUILD" == false ]]; then
   if [[ "$TARGET_ABI" == "all" ]]; then
     build_ndk_abi "arm64-v8a"
     build_ndk_abi "armeabi-v7a"
+    build_ndk_abi "x86"
   else
     build_ndk_abi "$TARGET_ABI"
   fi
@@ -416,7 +415,7 @@ rm -f "$APK_UNSIGNED" "$APK_ALIGNED" "$APK_SIGNED"
 "$AAPT" package -f -M "$ANDROID_MANIFEST" -S "$ANDROID_RES_DIR" -I "$ANDROID_PLATFORM_DIR/android.jar" -F "$APK_UNSIGNED"
 
 # add classes.dex and native library/libraries into apk.
-# when building for "all" we pack both ABIs into the same APK so Android can
+# when building for "all" we pack every ABI into the same APK so Android can
 # pick the right one at install time (fat APK). for a single-ABI build we
 # only include the one .so that was actually compiled.
 pushd "$BUILD_DIR" >/dev/null
@@ -424,6 +423,7 @@ zip -q "$APK_UNSIGNED" "classes.dex"
 if [[ "$TARGET_ABI" == "all" ]]; then
   zip -q "$APK_UNSIGNED" "lib/arm64-v8a/libminecraftpe.so"
   zip -q "$APK_UNSIGNED" "lib/armeabi-v7a/libminecraftpe.so"
+  zip -q "$APK_UNSIGNED" "lib/x86/libminecraftpe.so"
 else
   zip -q "$APK_UNSIGNED" "lib/$TARGET_ABI/libminecraftpe.so"
 fi
