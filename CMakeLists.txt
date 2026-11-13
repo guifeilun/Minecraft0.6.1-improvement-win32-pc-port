@@ -429,7 +429,7 @@ endif()
 # The Win32 build links DirectSound; everything else goes through OpenAL.
 # The GLFW/desktop and Web builds create a plain GL context themselves, so
 # App.h's EGL surface path must be compiled out; Android/iOS keep real EGL.
-# NOTE: Windows and macOS use desktop OpenGL (via GLAD), NOT OpenGL ES.
+# NOTE: OPENGL_ES is handled by gles.h for Windows/Android/iOS.
 target_compile_definitions(${PROJECT_NAME} PUBLIC "NO_EGL")
 
 if(${PLATFORM} MATCHES "Web")

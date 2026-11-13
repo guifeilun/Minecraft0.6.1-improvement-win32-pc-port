@@ -10,7 +10,8 @@
 #endif
 
 // Android / iOS / Raspberry Pi always use OpenGL ES
-#if defined(ANDROID) || defined(RPI) || (defined(__APPLE__) && TARGET_OS_IPHONE)
+// Windows also relies on OPENGL_ES for its legacy renderer.
+#if defined(ANDROID) || defined(RPI) || defined(_WIN32) || (defined(__APPLE__) && TARGET_OS_IPHONE)
     #define OPENGL_ES
 #endif
 
