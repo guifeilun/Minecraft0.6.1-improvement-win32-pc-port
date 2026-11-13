@@ -12,7 +12,6 @@
 #define MAIN_CLASS NinecraftApp
 
 #ifndef STANDALONE_SERVER
-<<<<<<< HEAD
 	#if defined(PLATFORM_ANDROID)
 		#ifdef PRE_ANDROID23
 			#include "main_android_java.h"
@@ -25,11 +24,6 @@
 		#include "main_glfw.h"
 	#elif defined(WIN32)
 		// Native Win32 (Visual Studio project) build.
-=======
-	#if defined(PLATFORM_DESKTOP)
-		#include "main_glfw.h"
-	#elif defined(WIN32)
->>>>>>> 895fe9a (feat: add SpawnEggItem, boat, and fix build issues)
 		#include "main_win32.h"
 	#endif
 #endif

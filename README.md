@@ -5,7 +5,7 @@
 <!-- README-I18N:END -->
 
 A modified version based on [JackTulli/Minecraft-PE-0.6.1-Win32-port](https://github.com/JackTulli/Minecraft-PE-0.6.1-Win32-port), adding some features missing or unfinished in the original 0.6.1. Multi-platform builds are also completed (Windows / Linux / macOS / Android / Web).
-<<<<<<< HEAD
+
 ## What's Changed in This Version
 
 ### Infinite World

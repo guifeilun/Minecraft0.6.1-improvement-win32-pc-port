@@ -134,10 +134,6 @@ else()
 endif()
 
 # ---- Audio backend selection ----
-# Windows uses DirectSound (SoundSystemDX) and needs no OpenAL; every other
-# platform (Desktop Linux/macOS and Web) uses OpenAL (SoundSystemAL).
-# A system OpenAL is preferred (much faster than a source build); openal-soft
-# is built through CPM only when no system package is available.
 if(WIN32)
     set(HAVE_OPENAL FALSE)
 elseif(${PLATFORM} MATCHES "Web")
@@ -166,8 +162,6 @@ else()
     find_package(OpenAL QUIET)
     if(OPENAL_FOUND)
         set(HAVE_OPENAL TRUE)
-        # FindOpenAL exports plain variables rather than an imported target;
-        # provide one so the link line stays platform independent.
         if(NOT TARGET OpenAL::OpenAL)
             add_library(OpenAL::OpenAL UNKNOWN IMPORTED)
             set_target_properties(OpenAL::OpenAL PROPERTIES
@@ -199,15 +193,12 @@ else()
                 "ALSOFT_BACKEND_PORTAUDIO OFF"
                 "ALSOFT_BACKEND_SNDIO OFF"
         )
-        # openal-soft exports "OpenAL" (not OpenAL::OpenAL); add the alias the
-        # link line expects.
         if(TARGET OpenAL AND NOT TARGET OpenAL::OpenAL)
             add_library(OpenAL::OpenAL ALIAS OpenAL)
         endif()
     endif()
 endif()
 
-# TODO: Clear this paths with *
 file(GLOB SERVER_SOURCES
     "src/raknet/*.cpp"
     "src/NinecraftApp.cpp"
@@ -231,10 +222,7 @@ file(GLOB SERVER_SOURCES
     "src/client/player/input/KeyboardInput.cpp"
 
     "src/locale/I18n.cpp"
-<<<<<<< HEAD
 
-=======
->>>>>>> 895fe9a (feat: add SpawnEggItem, boat, and fix build issues)
     "src/main_dedicated.cpp"
 
     "src/nbt/Tag.cpp"
@@ -248,8 +236,6 @@ file(GLOB SERVER_SOURCES
 
     "src/platform/CThread.cpp"
     "src/platform/HttpClient.cpp"
-    # PngLoader.cpp is client‑only (textures); the headless server doesn't need
-    # libpng linkage or texture loading.
     "src/platform/time.cpp"
 
     "src/platform/input/Controller.cpp"
@@ -270,18 +256,12 @@ file(GLOB SERVER_SOURCES
     "src/world/Direction.cpp"
 
     "src/world/entity/*.cpp"
-
     "src/world/entity/ai/control/MoveControl.cpp"
-
     "src/world/entity/animal/*.cpp"
-
     "src/world/entity/item/*.cpp"
-
     "src/world/entity/monster/*.cpp"
-
     "src/world/entity/player/Inventory.cpp"
     "src/world/entity/player/Player.cpp"
-
     "src/world/entity/projectile/Arrow.cpp"
     "src/world/entity/projectile/Throwable.cpp"
 
@@ -384,8 +364,6 @@ if(${PLATFORM} STREQUAL "Desktop")
 endif()
 
 # ---- Audio backend selection ----
-# Windows: DirectSound (SoundSystemDX). Non-Windows: OpenAL (SoundSystemAL).
-# The correct header is picked in SoundEngine.h via #ifdef _WIN32.
 if(WIN32)
     list(APPEND CLIENT_SOURCES
         "src/platform/audio/SoundSystemDX.cpp"
@@ -429,10 +407,6 @@ if(WIN32)
     target_include_directories(${PROJECT_NAME} PUBLIC "misc/windows")
 endif()
 
-# The Win32 build links DirectSound; everything else goes through OpenAL.
-# The GLFW/desktop and Web builds create a plain GL context themselves, so
-# App.h's EGL surface path must be compiled out; Android/iOS keep real EGL.
-# NOTE: OPENGL_ES is handled by gles.h for Windows/Android/iOS.
 target_compile_definitions(${PROJECT_NAME} PUBLIC "NO_EGL")
 
 if(${PLATFORM} MATCHES "Web")
@@ -477,10 +451,8 @@ if(${PLATFORM} MATCHES "Web")
     target_compile_definitions(${PROJECT_NAME} PUBLIC "OPENGL_ES" "__EMSCRIPTEN__" "NO_SOUND" "NO_NETWORK")
 endif()
 
-# Client
 target_link_libraries(${PROJECT_NAME} zlib ${PNG_LIB} glfw ${EXTRA_LIBS})
 if(WIN32)
-    # DirectSound audio backend
     target_link_libraries(${PROJECT_NAME} dsound winmm)
 elseif(HAVE_OPENAL)
     target_link_libraries(${PROJECT_NAME} OpenAL::OpenAL)
