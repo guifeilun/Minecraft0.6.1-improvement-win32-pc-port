@@ -1,15 +1,15 @@
-# .github/workflows/build.yml
-name: 构建游戏
+name: Build Game
 
 on:
   workflow_dispatch:
   pull_request:
   push:
     branches:
-    - '**'
-    - '!no-build-**'
+    - '**'              # every branch
+    - '!no-build-**'    # unless marked as no-build
 
 env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
 
@@ -18,33 +18,35 @@ permissions:
 
 jobs:
   build-windows:
-    name: 构建 Windows
+    name: Build Windows
     runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: 设置缓存
+      - name: Setup caches
         uses: ./.github/actions/setup-cache
         with:
           host: linux
           target: win
-
-      - name: 安装 Ninja
+      
+      - name: Setup Ninja
         uses: ./.github/actions/setup-ninja
         with:
           host: linux
 
-      - name: 下载 llvm-mingw
+      - name: Download llvm-mingw
         run: |
           curl -L https://github.com/mstorsjo/llvm-mingw/releases/download/20260311/llvm-mingw-20260311-msvcrt-ubuntu-22.04-x86_64.tar.xz -o llvm-mingw.tar.xz
           tar -xf llvm-mingw.tar.xz
           mv llvm-mingw-* llvm-mingw
-
-      - name: 创建构建目录
+    
+      - name: Create Build Environment
+        # Some projects don't allow in-source building, so create a separate build directory
+        # We'll use this as our working directory for all subsequent commands
         run: cmake -E make_directory ${{github.workspace}}/build
 
-      - name: 配置 CMake
+      - name: Configure CMake
         working-directory: ${{github.workspace}}/build
         run: |
           cmake $GITHUB_WORKSPACE \
@@ -53,121 +55,62 @@ jobs:
             -DCMAKE_C_COMPILER=$GITHUB_WORKSPACE/llvm-mingw/bin/x86_64-w64-mingw32-clang \
             -DCMAKE_CXX_COMPILER=$GITHUB_WORKSPACE/llvm-mingw/bin/x86_64-w64-mingw32-clang++ \
             -DCMAKE_RC_COMPILER=$GITHUB_WORKSPACE/llvm-mingw/bin/x86_64-w64-mingw32-windres \
+            -DALSOFT_BACKEND_PIPEWIRE=OFF \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
-      - name: 构建
+      - name: Build
         working-directory: ${{github.workspace}}/build
         run: cmake --build . --config $BUILD_TYPE --target MinecraftPE --parallel
-
-      - name: 上传产物
+      
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mcpe-windows
           path: |
             ${{github.workspace}}/build/MinecraftPE.exe
             ${{github.workspace}}/build/libpng16.dll
+            ${{github.workspace}}/build/OpenAL32.dll
             ${{github.workspace}}/build/libz.dll
 
-  build-macos:
-    name: 构建 macOS
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: 设置缓存
-        uses: ./.github/actions/setup-cache
-        with:
-          host: macos
-          target: macos
-
-      - name: 安装 Ninja
-        uses: ./.github/actions/setup-ninja
-        with:
-          host: macos
-
-      - name: 创建构建目录
-        run: cmake -E make_directory ${{github.workspace}}/build
-
-      - name: 配置 CMake
-        shell: bash
-        working-directory: ${{github.workspace}}/build
-        run: |
-          cmake $GITHUB_WORKSPACE \
-            -G Ninja \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-
-      - name: 构建
-        working-directory: ${{github.workspace}}/build
-        shell: bash
-        run: cmake --build . --config $BUILD_TYPE --target MinecraftPE --parallel
-
-      - name: 上传产物
-        uses: actions/upload-artifact@v4
-        with:
-          name: mcpe-macos
-          path: |
-            ${{github.workspace}}/build/MinecraftPE
-            ${{github.workspace}}/build/data
-
-  build-ios:
-    name: 构建 iOS
-    runs-on: macos-latest
-
-    steps:
-      - name: 检出代码
-        uses: actions/checkout@main
-
-      - name: 构建
-        run: |
-          cd project/iosproj
-          xcodebuild -scheme minecraftpe -derivedDataPath build -destination 'generic/platform=iOS' CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
-          mkdir -p Payload
-          cp -R build/Build/Products/Debug-iphoneos/minecraftpe.app Payload/
-          zip -r minecraftpe.ipa Payload
-          rm -rf Payload
-
-      - name: 上传产物
-        uses: actions/upload-artifact@main
-        with:
-          name: minecraftpe-ios
-          path: project/iosproj/minecraftpe.ipa
-
   build-linux:
-    name: 构建 Linux
+    name: Build Linux
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: 设置缓存
+      - name: Setup caches
         uses: ./.github/actions/setup-cache
         with:
           host: linux
           target: linux
 
-      - name: 创建构建目录
+      - name: Create Build Environment
+        # Some projects don't allow in-source building, so create a separate build directory
+        # We'll use this as our working directory for all subsequent commands
         run: cmake -E make_directory ${{github.workspace}}/build
 
-      - name: 安装依赖
+      - name: Setup Environment
         run: |
           sudo apt-get update -qq
           sudo apt-get install gcc-multilib
           sudo apt-get install -y --no-install-recommends build-essential libgl-dev libwayland-dev xorg-dev libxkbcommon-dev
-
-      - name: 配置 CMake
+      
+      - name: Configure CMake
+        # Use a bash shell so we can use the same syntax for environment variable
+        # access regardless of the host operating system
         shell: bash
         working-directory: ${{github.workspace}}/build
         run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
-      - name: 构建
+      - name: Build
         working-directory: ${{github.workspace}}/build
         shell: bash
         run: |
           cmake --build . --config $BUILD_TYPE --target MinecraftPE --parallel
           cmake --build . --config $BUILD_TYPE --target MinecraftPE-server --parallel
-
-      - name: 上传产物
+      
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mcpe-linux
@@ -175,14 +118,15 @@ jobs:
             ${{github.workspace}}/build/MinecraftPE
             ${{github.workspace}}/build/MinecraftPE-server
 
-  build-android:
-    name: 构建 Android (${{ matrix.abi }})
+  build-android: # pray to god
+    name: Build Android (${{ matrix.abi }})
     runs-on: ubuntu-latest
 
     strategy:
+      # keep going with the other ABI if one fails so you at least get something useful
       fail-fast: false
       matrix:
-        abi: [ arm64-v8a, armeabi-v7a, x86 ]
+        abi: [ arm64-v8a, armeabi-v7a ]
 
     env:
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
@@ -190,20 +134,21 @@ jobs:
       ANDROID_PLATFORM_API: 36
       ANDROID_BUILD_TOOLS_VERSION: 36.0.0
       ADB: /bin/true
+      # build.sh reads MATRIX_ABI to decide which ABI to build when no --abi flag is passed
       MATRIX_ABI: ${{ matrix.abi }}
 
     steps:
-      - name: 检出代码
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 缓存 Android 命令行工具
+      - name: Cache Android command-line tools
         id: cache-android-tools
         uses: actions/cache@v3
         with:
           path: ${{ env.ANDROID_SDK_ROOT }}
           key: android-cmdline-tools-v36
 
-      - name: 安装 Android 命令行工具
+      - name: Setup Android command line tools
         if: steps.cache-android-tools.outputs.cache-hit != 'true'
         run: |
           if [ ! -d "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]; then
@@ -214,14 +159,15 @@ jobs:
           fi
           yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-${ANDROID_PLATFORM_API}" "build-tools;${ANDROID_BUILD_TOOLS_VERSION}"
 
-      - name: 缓存 Android NDK r14b
+
+      - name: Cache Android NDK r14b
         id: cache-android-ndk
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/android-ndk-r14b
           key: android-ndk-r14b
 
-      - name: 安装 Android NDK r14b
+      - name: Install Android NDK r14b
         if: steps.cache-android-ndk.outputs.cache-hit != 'true'
         run: |
           if [ ! -d "$ANDROID_NDK_PATH" ]; then
@@ -229,7 +175,7 @@ jobs:
             unzip -q ndk.zip -d "$GITHUB_WORKSPACE"
           fi
 
-      - name: 安装系统依赖
+      - name: Install system prerequisites
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends wget unzip curl git python3 libncurses6 libtinfo6
@@ -240,60 +186,75 @@ jobs:
             sudo ln -sf /lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5 || true
           fi
 
-      - name: 设置 Java 25
+      - name: Setup Java 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 25
 
-      - name: 运行 Android 构建脚本
+      - name: Validate environment
+        run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "ANDROID_NDK_PATH=$ANDROID_NDK_PATH"
+          echo "JAVA_HOME=$JAVA_HOME"
+          echo "MATRIX_ABI=$MATRIX_ABI"
+          $ANDROID_SDK_ROOT/platform-tools/adb version || true
+          java -version
+          javac -version
+
+      - name: Run Android build script
         run: |
           chmod +x ./build.sh
           ./build.sh
 
-      - name: 上传 APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
+          # artifact name is ABI-specific so both matrix legs can upload without clobbering each other
           name: minecraftpe-apk-${{ matrix.abi }}
           path: ${{ github.workspace }}/build-apk/minecraftpe-*-debug.apk
 
   build-web:
-    name: 构建 Web
+    name: Build Web
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: 设置缓存
+      - name: Setup caches
         uses: ./.github/actions/setup-cache
         with:
           host: linux
           target: linux
-
-      - name: 安装 Ninja
+    
+      - name: Setup Ninja
         uses: ./.github/actions/setup-ninja
         with:
           host: linux
 
-      - name: 安装 emsdk
+      - name: Setup emsdk
         uses: mymindstorm/setup-emsdk@v14
         with:
           version: 5.0.3
           actions-cache-folder: 'emsdk-cache'
 
-      - name: 创建构建目录
+      - name: Create Build Environment
+        # Some projects don't allow in-source building, so create a separate build directory
+        # We'll use this as our working directory for all subsequent commands
         run: cmake -E make_directory ${{github.workspace}}/build
 
-      - name: 配置 CMake
+      - name: Configure CMake
+        # Use a bash shell so we can use the same syntax for environment variable
+        # access regardless of the host operating system
         shell: bash
         working-directory: ${{github.workspace}}/build
         run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_TOOLCHAIN_FILE="$GITHUB_WORKSPACE/emsdk-cache/emsdk-main/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
 
-      - name: 构建
+      - name: Build
         working-directory: ${{github.workspace}}/build
         run: cmake --build . --config $BUILD_TYPE --target MinecraftPE --parallel
-
-      - name: 上传产物
+      
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mcpe-web
@@ -303,81 +264,80 @@ jobs:
             ${{github.workspace}}/build/MinecraftPE.data
 
   publish:
-    name: 发布
+    name: Publish
     runs-on: ubuntu-latest
-    needs: [ build-windows, build-macos, build-ios, build-linux, build-android, build-web ]
+    needs: [ build-windows, build-linux, build-android, build-web ]
+    if: github.ref == 'refs/heads/main'
     steps:
-      - name: 检出代码
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 声明版本变量
+      - name: Declare Version Variables
         id: ref
         run: |
           echo "version=$(cat VERSION | xargs)" >> $GITHUB_OUTPUT
           echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
 
-      - name: 下载产物
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
 
-      - name: 打包 Windows
+      - name: Zip Windows Artifacts
         uses: vimtor/action-zip@v1.2
         with:
-          files: mcpe-windows/MinecraftPE.exe mcpe-windows/libpng16.dll mcpe-windows/libz.dll
+          files: mcpe-windows/MinecraftPE.exe mcpe-windows/libpng16.dll mcpe-windows/OpenAL32.dll mcpe-windows/libz.dll
           dest: minecraftpe-${{ steps.ref.outputs.hash }}-windows.zip
 
-      - name: 打包 macOS
-        uses: vimtor/action-zip@v1.2
-        with:
-          files: mcpe-macos/MinecraftPE
-          dest: minecraftpe-${{ steps.ref.outputs.hash }}-macos.zip
-
-      - name: 打包 Linux
+      - name: Zip Linux Artifacts
         uses: vimtor/action-zip@v1.2
         with:
           files: mcpe-linux/MinecraftPE
           dest: minecraftpe-${{ steps.ref.outputs.hash }}-linux.zip
 
-      - name: 打包 Linux 服务端
+      - name: Zip Linux Server Artifacts
         uses: vimtor/action-zip@v1.2
         with:
           files: mcpe-linux/MinecraftPE-server
           dest: minecraftpe-server-${{ steps.ref.outputs.hash }}.zip
 
-      - name: 重命名 Android 产物
-        run: |
-          mv minecraftpe-apk-arm64-v8a/minecraftpe-v8a-debug.apk minecraftpe-${{ steps.ref.outputs.hash }}-android-arm64-v8a.apk
-          mv minecraftpe-apk-armeabi-v7a/minecraftpe-v7a-debug.apk minecraftpe-${{ steps.ref.outputs.hash }}-android-armeabi-v7a.apk
-          mv minecraftpe-apk-x86/minecraftpe-x86-debug.apk minecraftpe-${{ steps.ref.outputs.hash }}-android-x86.apk
+      - name: Zip Android arm64-v8a Artifact
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: minecraftpe-apk-arm64-v8a/minecraftpe-v8a-debug.apk
+          dest: minecraftpe-${{ steps.ref.outputs.hash }}-android-arm64-v8a.zip
 
-      - name: 打包 Web
+      - name: Zip Android armeabi-v7a Artifact
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: minecraftpe-apk-armeabi-v7a/minecraftpe-v7a-debug.apk
+          dest: minecraftpe-${{ steps.ref.outputs.hash }}-android-armeabi-v7a.zip
+
+      - name: Zip Web Artifact
         uses: vimtor/action-zip@v1.2
         with:
           files: mcpe-web/MinecraftPE.js mcpe-web/MinecraftPE.wasm mcpe-web/MinecraftPE.data misc/web/index.html
           dest: minecraftpe-${{ steps.ref.outputs.hash }}-web.zip
 
-      - name: 打包 data
+      - name: Zip Data
         uses: vimtor/action-zip@v1.2
         with:
           files: data
           recursive: false
           dest: data.zip
 
-      - name: 更新开发版本发布
+      - name: Update Development Release
         uses: andelf/nightly-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: dev
-          name: '开发版本'
+          name: 'Development Release'
           body: |
-            提交 ${{ github.sha }} 的 MinecraftPE 开发版本。
+            MinecraftPE development release for commit ${{ github.sha }}.
           files: |
             ./data.zip
-            ./minecraftpe-server-${{ steps.ref.outputs.hash }}.zip
             ./minecraftpe-${{ steps.ref.outputs.hash }}-windows.zip
-            ./minecraftpe-${{ steps.ref.outputs.hash }}-macos.zip
             ./minecraftpe-${{ steps.ref.outputs.hash }}-linux.zip
-            ./minecraftpe-${{ steps.ref.outputs.hash }}-android-arm64-v8a.apk
-            ./minecraftpe-${{ steps.ref.outputs.hash }}-android-armeabi-v7a.apk
-            ./minecraftpe-${{ steps.ref.outputs.hash }}-android-x86.apk
+            ./minecraftpe-server-${{ steps.ref.outputs.hash }}.zip
+            ./minecraftpe-${{ steps.ref.outputs.hash }}-android-arm64-v8a.zip
+            ./minecraftpe-${{ steps.ref.outputs.hash }}-android-armeabi-v7a.zip
             ./minecraftpe-${{ steps.ref.outputs.hash }}-web.zip
