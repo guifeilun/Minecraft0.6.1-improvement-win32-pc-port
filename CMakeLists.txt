@@ -42,7 +42,6 @@ endif()
 enum_option(PLATFORM "Desktop;Web" "Platform to build for.")
 
 find_package(Threads REQUIRED)
-find_package(OpenSSL)
 
 if (${PLATFORM} STREQUAL "Desktop")
     set(PLATFORM_CPP "PLATFORM_DESKTOP")
@@ -482,11 +481,6 @@ if(WIN32)
     target_link_libraries(${PROJECT_NAME} dsound winmm)
 elseif(HAVE_OPENAL)
     target_link_libraries(${PROJECT_NAME} OpenAL::OpenAL)
-endif()
-
-if (OpenSSL_FOUND)
-    target_link_libraries(${PROJECT_NAME} OpenSSL::SSL OpenSSL::Crypto)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC HTTPCLIENT_USE_OPENSSL)
 endif()
 
 if (NOT UNIX)

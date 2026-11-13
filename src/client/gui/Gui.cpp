@@ -1171,7 +1171,7 @@ void Gui::renderToolBar( float a, int ySlot, const int screenWidth ) {
 	_inventoryNeedsUpdate = false;
 
 
-	if (_openInventorySlot) {
+	if (minecraft->useTouchscreen()) {
 		blit(screenWidth / 2 + 10 * getNumSlots() - 20 + 4, ySlot + 6, 242, 252, 14, 4, 14, 4);
 	}
 
