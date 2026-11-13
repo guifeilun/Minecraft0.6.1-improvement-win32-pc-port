@@ -283,7 +283,7 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
                    ../../../src/world/item/BoatItem.cpp \
                    ../../../src/client/renderer/entity/BoatRenderer.cpp
 
-LOCAL_CFLAGS := -DANDROID -DPLATFORM_ANDROID -DPRE_ANDROID23 -Wno-narrowing $(LOCAL_CFLAGS)
+LOCAL_CFLAGS := -DANDROID -DPLATFORM_ANDROID -Wno-narrowing $(LOCAL_CFLAGS)
 LOCAL_CPPFLAGS := -std=c++14 -frtti
 LOCAL_CPPFLAGS += -frtti
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../src
