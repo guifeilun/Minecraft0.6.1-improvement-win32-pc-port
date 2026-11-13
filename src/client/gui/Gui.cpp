@@ -210,7 +210,7 @@ void Gui::handleClick(int button, int x, int y) {
 
 	int slot = getSlotIdAt(x, y);
 	if (slot != -1) {
-		if (_openInventorySlot && slot == (getNumSlots()-1)) {
+		if (minecraft->useTouchscreen() && slot == (getNumSlots()-1)) {
 			minecraft->screenChooser.setScreen(SCREEN_BLOCKSELECTION);
 		} else {
 			minecraft->player->inventory->selectSlot(slot);
@@ -548,7 +548,7 @@ void Gui::tickItemDrop()
 	static bool isCurrentlyActive = false;
 	isCurrentlyActive = false;
 
-	int slots = getNumSlots() - _openInventorySlot;
+	int slots = getNumSlots() - (minecraft->useTouchscreen() ? 1 : 0);
 
 	if (Mouse::isButtonDown(MouseAction::ACTION_LEFT)) {
 		int slot = getSlotIdAt(Mouse::getX(), Mouse::getY());
