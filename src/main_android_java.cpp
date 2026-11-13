@@ -262,3 +262,4 @@ JNIEXPORT void JNICALL
 Java_com_mojang_minecraftpe_MainActivity_nativeMouseMove(JNIEnv* env, jclass cls, jint pointerId, jfloat x, jfloat y) {
     Multitouch::feed(0, 0, x, y, pointerId);
 }
+}
