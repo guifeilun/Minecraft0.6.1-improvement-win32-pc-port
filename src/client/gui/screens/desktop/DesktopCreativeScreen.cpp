@@ -42,6 +42,7 @@ struct AuxRange { int id; int auxLo; int auxHi; };
 const AuxRange AUX_EXPAND[] = {
     {  35, 0, 15 },
     { 256 + 95, 0, 15 },
+    { 256 + 127, 0, 8 },
 };
 }
 

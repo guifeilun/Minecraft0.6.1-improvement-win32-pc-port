@@ -63,14 +63,12 @@ void StartMenuScreen::init()
 	tabButtons.push_back(bJoin);
 	tabButtons.push_back(bQuit);
 
-	#ifndef RPI
-		buttons.push_back(bOptions);
-		tabButtons.push_back(bOptions);
-	#endif
+	buttons.push_back(bOptions);
+	tabButtons.push_back(bOptions);
 
 	copyright = "\xffMojang AB";//. Do not distribute!";
 
-	// always show base version string, suffix was previously added for Android builds
+	// always show base version string
 	std::string versionString = Common::getGameVersionString();
 
 	std::string _username = minecraft->options.getStringValue(OPTIONS_USERNAME);
@@ -79,17 +77,9 @@ void StartMenuScreen::init()
 	username = "Username: " + _username;
 
 	#ifdef DEMO_MODE
-	#ifdef __APPLE__
-		version = versionString + " (Lite)";
-	#else
 		version = versionString + " (Demo)";
-	#endif
 	#else
-		#ifdef RPI
-			version = "v0.1.1 alpha";//(MCPE " + versionString + " compatible)";
-		#else
-			version = versionString;
-		#endif
+		version = versionString;
 	#endif
 }
 
@@ -123,7 +113,7 @@ void StartMenuScreen::buttonClicked(Button* button) {
 
 	if (button->id == bHost->id)
 	{
-        #if defined(DEMO_MODE) || defined(APPLE_DEMO_PROMOTION)
+		#if defined(DEMO_MODE)
 			minecraft->setScreen( new SimpleChooseLevelScreen("_DemoLevel") );
 		#else
 			minecraft->screenChooser.setScreen(SCREEN_SELECTWORLD);
@@ -153,11 +143,7 @@ void StartMenuScreen::render( int xm, int ym, float a )
 	// Show current username in the top-left corner
 	drawString(font, username, 2, 2, 0xffffffff);
 
-#if defined(RPI)
-	TextureId id = minecraft->textures->loadTexture("gui/pi_title.png");
-#else
 	TextureId id = minecraft->textures->loadTexture("gui/title.png");
-#endif
 	const TextureData* data = minecraft->textures->getTemporaryTextureData(id);
 
 	if (data) {
@@ -179,11 +165,6 @@ void StartMenuScreen::render( int xm, int ym, float a )
 		t.vertexUV(x-wh, y+0, blitOffset, 0, 0);
 		t.draw();
 	}
-
-#if defined(RPI)
-	if (Textures::isTextureIdValid(minecraft->textures->loadAndBindTexture("gui/logo/raknet_high_72.png")))
-		blit(0, height - 12, 0, 0, 43, 12, 256, 72+72);
-#endif
 
 	drawString(font, version, width - font->width(version) - 2, height - 10, 0xffcccccc);//0x666666);
 	drawString(font, copyright, 2, height - 20, 0xffffff);

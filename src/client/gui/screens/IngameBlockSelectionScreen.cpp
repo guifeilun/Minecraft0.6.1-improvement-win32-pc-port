@@ -17,11 +17,7 @@
 #include "../../Options.h"
 #include "../components/Button.h"
 
-#if defined(__APPLE__)
-    static const std::string demoVersionString("Not available in the Lite version");
-#else
-    static const std::string demoVersionString("Not available in the demo version");
-#endif
+static const std::string demoVersionString("Not available in the demo version");
 
 IngameBlockSelectionScreen::IngameBlockSelectionScreen() 
 :	selectedItem(0),
@@ -203,14 +199,8 @@ void IngameBlockSelectionScreen::keyPressed(int eventKey)
 	if (eventKey == o.getIntValue(OPTIONS_KEY_MENU_OK))
 		selectSlotAndClose();
 
-#ifdef RPI
-	if (eventKey == o.getIntValue(OPTIONS_KEY_MENU_CANCEL)
-		||	eventKey == Keyboard::KEY_ESCAPE)
-		minecraft->setScreen(NULL);
-#else
 	if (eventKey == o.getIntValue(OPTIONS_KEY_MENU_CANCEL))
 		minecraft->setScreen(NULL);
-#endif
 }
 
 //------------------------------------------------------------------------------

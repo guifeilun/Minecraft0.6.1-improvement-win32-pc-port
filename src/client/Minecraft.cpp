@@ -8,14 +8,6 @@
 #include <string>
 #include <cstdlib>
 
-
-#if defined(APPLE_DEMO_PROMOTION)
-#define NO_NETWORK
-#endif
-
-#if defined(RPI)
-#define CREATORMODE
-#endif
 #include "../network/RakNetInstance.h"
 #include "../network/ClientSideNetworkHandler.h"
 #include "../network/ServerSideNetworkHandler.h"
@@ -85,10 +77,6 @@
 #include "../world/entity/MobCategory.h"
 #include "../world/Difficulty.h"
 #include "../server/ServerLevel.h"
-
-#ifdef CREATORMODE
-#include "../server/CreatorLevel.h"
-#endif
 
 #include "../network/command/CommandServer.h"
 #include "gamemode/CreatorMode.h"
@@ -177,9 +165,6 @@ Minecraft::Minecraft() :
 #endif
 	width(1), height(1),
 	//_respawnPlayerTicks(-1),
-#ifdef __APPLE__
-	_isSuperFast(false),
-#endif
 	_powerVr(false),
 	commandPort(4711),
 	reserved_d1(0),reserved_d2(0),
@@ -187,11 +172,7 @@ Minecraft::Minecraft() :
 {
 	//#ifdef ANDROID
 
-#if defined(NO_NETWORK)
-	raknetInstance = new IRakNetInstance();
-#else
 	raknetInstance = new RakNetInstance();
-#endif
 #ifndef STANDALONE_SERVER
 	soundEngine = new SoundEngine(20.0f);
 	soundEngine->init(this, &options);
@@ -388,11 +369,7 @@ void Minecraft::selectLevel( const std::string& levelId, const std::string& leve
 	// world is generated as a Nether dimension instead of an Overworld.
 	DimensionFactory::s_forceNether = options.getBooleanValue(OPTIONS_FORCE_NETHER);
 
-#if defined(CREATORMODE)
-	level = new CreatorLevel(
-#else
 	level = new ServerLevel(
-#endif
 		storageSource->selectLevel(levelId, false),
 		levelName,
 		settings,
@@ -725,17 +702,12 @@ void Minecraft::tick(int nTick, int maxTick) {
 #ifndef STANDALONE_SERVER
 	textures->loadAndBindTexture("terrain.png");
 	if (!pause && !(screen && !screen->renderGameBehind())) {
-#if !defined(RPI)
-#ifdef __APPLE__
-		if (isSuperFast())
-#endif
 		{
 			if (nTick == maxTick) {
 				TIMER_POP_PUSH("textures");
 				textures->tick(true);
 			}
 		}
-#endif
 	}
 	TIMER_POP_PUSH("particles");
 	if (!pause) {
@@ -785,13 +757,8 @@ void Minecraft::tickInput() {
 		return;
 	}
 
-#ifdef RPI
-	bool mouseDiggable = true;
-	bool allowGuiClicks = !mouseGrabbed;
-#else
 	bool mouseDiggable = !gui.isInside(Mouse::getX(), Mouse::getY());
 	bool allowGuiClicks = true;
-#endif
 
 	TIMER_PUSH("mouse");
 	while (Mouse::next()) {
@@ -1159,10 +1126,6 @@ void Minecraft::handleBuildAction(BuildActionIntention* action) {
 			if (gameMode->useItemOn(player, level, item, x, y, z, face, hitResult.pos)) {
 				mayUse = false;
 				player->swing();
-#ifdef RPI
-			} else if (item && item->id == ((Item*)Item::sword_iron)->id) {
-				player->swing();
-#endif
 			}
 			if (item && item->count <= 0) {
 				player->inventory->clearSlot(player->inventory->selected);
@@ -1390,18 +1353,10 @@ void Minecraft::setSize(int w, int h) {
 		} else {
 			// auto compute from resolution
 			if (width >= 1000) {
-#ifdef __APPLE__
-				Gui::GuiScale = (width > 2000)? 8.0f : 4.0f;
-#else
 				Gui::GuiScale = 4.0f;
-#endif
 			}
 			else if (width >= 800) {
-#ifdef __APPLE__
-				Gui::GuiScale = 4.0f;
-#else
 				Gui::GuiScale = 3.0f;
-#endif
 			}
 			else if (width >= 400)
 				Gui::GuiScale = 2.0f;
@@ -1468,17 +1423,10 @@ void Minecraft::_reloadInput() {
 	if (useTouchHolder) {
 		inputHolder = new TouchInputHolder(this, &options);
 	} else {
-#if defined(ANDROID) || defined(__APPLE__) 
-		inputHolder = new CustomInputHolder(
-			new XperiaPlayInput(&options),
-			new ControllerTurnInput(2, ControllerTurnInput::MODE_DELTA),
-			new IBuildInput());
-#else
 		inputHolder = new CustomInputHolder(
 			new KeyboardInput(&options),
 			new MouseTurnInput(MouseTurnInput::MODE_DELTA, width/2, height/2),
 			new MouseBuildInput());
-#endif
 	}
 
 	mouseHandler.setTurnInput(inputHolder->getTurnInput());
@@ -1625,13 +1573,11 @@ void Minecraft::_levelGenerated()
 		netCallback->levelGenerated(level);
 	}
 
-#if defined(WIN32) || defined(RPI)
 	if (_commandServer) {
 		delete _commandServer;
 	}
 	_commandServer = new CommandServer(this);
 	_commandServer->init(commandPort);
-#endif
 
 	// Hack to (hopefully) get the players to show (note: in LevelListener
 	// instead, since adding yourself always generates a entityAdded)
@@ -1765,11 +1711,6 @@ void Minecraft::audioEngineOff() {
 
 void Minecraft::setIsCreativeMode(bool isCreative)
 {
-#ifdef CREATORMODE
-	delete gameMode;
-	gameMode = new CreatorMode(this);
-	_isCreativeMode = true;
-#else
 	if (!gameMode || isCreative != _isCreativeMode)
 	{
 		delete gameMode;
@@ -1777,7 +1718,6 @@ void Minecraft::setIsCreativeMode(bool isCreative)
 		else			gameMode = new SurvivalMode(this);
 		_isCreativeMode = isCreative;
 	}
-#endif
 	if (player)
 		gameMode->initAbilities(player->abilities);
 }
@@ -1813,11 +1753,7 @@ bool Minecraft::transformResolution(int* w, int* h)
 
 ICreator* Minecraft::getCreator()
 {
-#ifdef CREATORMODE
-	return ((CreatorMode*)gameMode)->getCreator();
-#else
 	return NULL;
-#endif
 }
 
 void Minecraft::optionUpdated(OptionId option, bool value ) {

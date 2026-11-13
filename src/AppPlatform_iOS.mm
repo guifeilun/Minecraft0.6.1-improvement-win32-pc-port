@@ -275,9 +275,7 @@ void AppPlatform_iOS::hideKeyboard() {
     [_viewController hideKeyboard];
 	super::hideKeyboard();
 }
-
-// this was originally void but i changed it to bool because void cant return values
-bool AppPlatform_iOS::isPowerVR() {
+void AppPlatform_iOS::isPowerVR() {
 	const char* s = (const char*)glGetString(GL_RENDERER);
 	if (!s) return false;
 	return strstr(s, "SGX") != NULL;

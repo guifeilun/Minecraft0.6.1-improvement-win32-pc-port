@@ -1,10 +1,12 @@
 #include "SoundSystemDX.h"
 
+#ifdef _WIN32
+
 #include "../../util/Mth.h"
-#include "../../world/phys/Vec3.h"
 #include "../../client/sound/Sound.h"
 #include "../log.h"
 #include <math.h>
+#include <string.h>
 
 SoundSystemDX::SoundSystemDX()
     : _dsound(NULL), _playedCnt(0), _rotation(-9999.9f), _available(false)
@@ -32,7 +34,9 @@ SoundSystemDX::~SoundSystemDX()
 bool SoundSystemDX::initDirectSound()
 {
     HRESULT hr = DirectSoundCreate8(NULL, &_dsound, NULL);
-    if (FAILED(hr)) return false;
+    if (FAILED(hr)) {
+        return false;
+    }
 
     HWND hwnd = GetActiveWindow();
     if (!hwnd) {
@@ -99,7 +103,9 @@ int SoundSystemDX::getFreeSourceIndex()
 
 bool SoundSystemDX::createBuffer(const SoundDesc& sound, LPDIRECTSOUNDBUFFER* outBuffer)
 {
-    if (!sound.isValid()) return false;
+    if (!sound.isValid()) {
+        return false;
+    }
 
     WAVEFORMATEX wf;
     ZeroMemory(&wf, sizeof(wf));
@@ -120,7 +126,9 @@ bool SoundSystemDX::createBuffer(const SoundDesc& sound, LPDIRECTSOUNDBUFFER* ou
 
     LPDIRECTSOUNDBUFFER tmpBuffer = NULL;
     HRESULT hr = _dsound->CreateSoundBuffer(&desc, &tmpBuffer, NULL);
-    if (FAILED(hr)) return false;
+    if (FAILED(hr)) {
+        return false;
+    }
 
     *outBuffer = tmpBuffer;
 
@@ -139,13 +147,18 @@ bool SoundSystemDX::createBuffer(const SoundDesc& sound, LPDIRECTSOUNDBUFFER* ou
     return true;
 }
 
-void SoundSystemDX::playAt(const SoundDesc& sound, float x, float y, float z, float volume, float pitch)
+void SoundSystemDX::playAt(const SoundDesc& sound, float x, float y, float z,
+                           float volume, float pitch)
 {
     if (!_available || !_dsound) return;
-    if (!sound.isValid()) return;
+    if (!sound.isValid()) {
+        return;
+    }
 
     int index = getFreeSourceIndex();
-    if (index < 0) return;
+    if (index < 0) {
+        return;
+    }
 
     LPDIRECTSOUNDBUFFER buffer = NULL;
     if (!createBuffer(sound, &buffer)) {
@@ -173,3 +186,5 @@ void SoundSystemDX::playAt(const SoundDesc& sound, float x, float y, float z, fl
         _buffers[index].inUse = false;
     }
 }
+
+#endif // _WIN32

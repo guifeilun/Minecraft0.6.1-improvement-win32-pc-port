@@ -84,17 +84,8 @@ const int rgbActive = 0xfff0f0f0;
 const int rgbInactive = 0xc0635558;
 const int rgbInactiveShadow = 0xc0aaaaaa;
 
-#ifdef __APPLE__
-	static const float BorderPixels = 3;
-	#ifdef DEMO_MODE
-		static const float BlockPixels = 22;
-	#else
-		static const float BlockPixels = 22;
-	#endif
-#else
-	static const float BorderPixels = 4;
-	static const float BlockPixels = 24;
-#endif
+static const float BorderPixels = 4;
+static const float BlockPixels = 24;
 static const int ItemSize = (int)(BlockPixels + 2*BorderPixels);
 
 static const int Bx = 10; // Border Frame width
@@ -430,11 +421,7 @@ void ChestScreen::setupPane()
 	const int realBx = (width/2 - realWidth) / 2;
     
 	IntRectangle rect(realBx,
-#ifdef __APPLE__
-		24 + By - ((width==240)?1:0), realWidth, ((width==240)?1:0) + height-By-By-24);
-#else
 		24 + By, realWidth, height-By-By-24);
-#endif
 	// IntRectangle(0, 0, 100, 100)
 	if (inventoryPane) delete inventoryPane;
 	inventoryPane = new Touch::InventoryPane(this, minecraft, rect, paneWidth, BorderPixels, minecraft->player->inventory->getContainerSize() - Inventory::MAX_SELECTION_SIZE, ItemSize, (int)BorderPixels);

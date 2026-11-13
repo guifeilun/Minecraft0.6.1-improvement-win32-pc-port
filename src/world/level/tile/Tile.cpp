@@ -38,11 +38,7 @@ const Tile::SoundType Tile::SOUND_METAL("stone", 1, 1.5f);
 const Tile::SoundType Tile::SOUND_GLASS("stone", "random.glass", 1, 1);
 const Tile::SoundType Tile::SOUND_CLOTH("cloth", 1, 1);
 
-#ifdef PRE_ANDROID23
-	const Tile::SoundType Tile::SOUND_SAND("sand", 0.45f, 1);
-#else
-	const Tile::SoundType Tile::SOUND_SAND("sand", "step.gravel", 1, 1);
-#endif
+const Tile::SoundType Tile::SOUND_SAND("sand", "step.gravel", 1, 1);
 
 const Tile::SoundType Tile::SOUND_SILENT("", 0, 0);
 

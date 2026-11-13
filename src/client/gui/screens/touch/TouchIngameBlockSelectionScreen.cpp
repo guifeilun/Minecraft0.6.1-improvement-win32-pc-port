@@ -23,23 +23,10 @@
 
 namespace Touch {
 
-#if defined(__APPLE__)
-    static const std::string demoVersionString("Not available in the Lite version");
-#else
-    static const std::string demoVersionString("Not available in the demo version");
-#endif
+static const std::string demoVersionString("Not available in the demo version");
 
-#ifdef __APPLE__
-    static const float BorderPixels = 4;
-    #ifdef DEMO_MODE
-        static const float BlockPixels = 22;
-    #else
-        static const float BlockPixels = 22;
-    #endif
-#else
-    static const float BorderPixels = 4;
-    static const float BlockPixels = 24;
-#endif
+static const float BorderPixels = 4;
+static const float BlockPixels = 24;
 
 static const int ItemSize = (int)(BlockPixels + 2*BorderPixels);
 
@@ -79,11 +66,7 @@ void IngameBlockSelectionScreen::init()
 	const int realBx = (width - realWidth) / 2;
 
 	IntRectangle rect(realBx,
-#ifdef __APPLE__
-		24 + By - ((width==240)?1:0), realWidth, ((width==240)?1:0) + height-By-By-20-24);
-#else
 		24 + By, realWidth, height-By-By-20-24);
-#endif
 
 	_blockList = new InventoryPane(this, minecraft, rect, width, BorderPixels, inventory->getContainerSize() - Inventory::MAX_SELECTION_SIZE, ItemSize, (int)BorderPixels);
 	_blockList->fillMarginX = realBx;
@@ -201,11 +184,7 @@ bool IngameBlockSelectionScreen::addItem(const InventoryPane* pane, int itemId)
 	inventory->moveToSelectionSlot(0, itemId, true);
 
 	inventory->selectSlot(0);
-#ifdef __APPLE__
-	minecraft->soundEngine->playUI("random.pop", 0.3f, 0.3f);//1.0f + 0.2f*(Mth::random()-Mth::random()));
-#else
-    minecraft->soundEngine->playUI("random.pop2", 1.0f, 0.3f);//1.0f + 0.2f*(Mth::random()-Mth::random()));
-#endif
+	minecraft->soundEngine->playUI("random.pop2", 1.0f, 0.3f);//1.0f + 0.2f*(Mth::random()-Mth::random()));
 
 	// Flash the selected gui item
 	minecraft->gui.flashSlot(inventory->selected);

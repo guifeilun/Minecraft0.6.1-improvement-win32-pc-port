@@ -4,7 +4,11 @@
 #include "SoundRepository.h"
 #include "../../util/Random.h"
 
-class SoundSystem;
+#ifdef _WIN32
+#include "../../platform/audio/SoundSystemDX.h"
+#else
+#include "../../platform/audio/SoundSystemAL.h"
+#endif
 
 class Minecraft;
 class Mob;
@@ -14,7 +18,11 @@ class SoundEngine
 {
     static const int SOUND_DISTANCE = 16;
 
-    SoundSystem* soundSystem;
+#ifdef _WIN32
+    SoundSystemDX soundSystem;
+#else
+    SoundSystemAL soundSystem;
+#endif
 
     Options* options;
     int idCounter;
@@ -49,4 +57,4 @@ private:
     Minecraft* mc;
 };
 
-#endif
+#endif /*NET_MINECRAFT_CLIENT_SOUND__SoundEngine_H__*/

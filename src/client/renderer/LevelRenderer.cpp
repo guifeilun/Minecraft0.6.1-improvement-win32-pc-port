@@ -198,10 +198,6 @@ void LevelRenderer::allChanged()
 		dist = (int)((float)dist * 0.8f);
 	LOGI("last: %d, power: %d\n", lastViewDistance, mc->isPowerVR());
 
-#if defined(RPI)
-	dist *= 0.6f;
-#endif
-
 	if (dist > 400) dist = 400;
 	/*
 	* if (Minecraft.FLYBY_MODE) { dist = 512 - CHUNK_SIZE * 2; }

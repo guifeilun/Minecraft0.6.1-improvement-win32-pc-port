@@ -177,7 +177,6 @@
     <ClCompile Include="..\..\src\raknet\HTTPConnection.cpp" />
     <ClCompile Include="..\..\src\raknet\IncrementalReadInterface.cpp" />
     <ClCompile Include="..\..\src\raknet\Itoa.cpp" />
-    <ClCompile Include="..\..\src\raknet\LinuxStrings.cpp" />
     <ClCompile Include="..\..\src\raknet\LocklessTypes.cpp" />
     <ClCompile Include="..\..\src\raknet\LogCommandParser.cpp" />
     <ClCompile Include="..\..\src\raknet\MessageFilter.cpp" />
@@ -206,7 +205,6 @@
     <ClCompile Include="..\..\src\raknet\RakThread.cpp" />
     <ClCompile Include="..\..\src\raknet\RakWString.cpp" />
     <ClCompile Include="..\..\src\raknet\Rand.cpp" />
-    <ClCompile Include="..\..\src\raknet\rdlmalloc.cpp" />
     <ClCompile Include="..\..\src\raknet\ReadyEvent.cpp" />
     <ClCompile Include="..\..\src\raknet\ReliabilityLayer.cpp" />
     <ClCompile Include="..\..\src\raknet\ReplicaManager3.cpp" />
@@ -235,7 +233,6 @@
     <ClCompile Include="..\..\src\raknet\VariableListDeltaTracker.cpp" />
     <ClCompile Include="..\..\src\raknet\VariadicSQLParser.cpp" />
     <ClCompile Include="..\..\src\raknet\WSAStartupSingleton.cpp" />
-    <ClCompile Include="..\..\src\raknet\_FindFirst.cpp" />
     <ClCompile Include="..\..\src\server\ServerLevel.cpp" />
     <ClCompile Include="..\..\src\server\ServerPlayer.cpp" />
     <ClCompile Include="..\..\src\SharedConstants.cpp" />
@@ -526,7 +523,6 @@
     <ClInclude Include="..\..\src\ErrorCodes.h" />
     <ClInclude Include="..\..\src\LicenseCodes.h" />
     <ClInclude Include="..\..\src\locale\I18n.h" />
-    <ClInclude Include="..\..\src\main_android.h" />
     <ClInclude Include="..\..\src\main_win32.h" />
     <ClInclude Include="..\..\src\nbt\ByteArrayTag.h" />
     <ClInclude Include="..\..\src\nbt\ByteTag.h" />
@@ -600,7 +596,6 @@
     <ClInclude Include="..\..\src\NinecraftApp.h" />
     <ClInclude Include="..\..\src\Performance.h" />
     <ClInclude Include="..\..\src\platform\audio\SoundSystem.h" />
-    <ClInclude Include="..\..\src\platform\audio\SoundSystemSL.h" />
     <ClInclude Include="..\..\src\platform\CThread.h" />
     <ClInclude Include="..\..\src\platform\file.h" />
     <ClInclude Include="..\..\src\platform\input\Controller.h" />
@@ -667,7 +662,6 @@
     <ClInclude Include="..\..\src\raknet\InternalPacket.h" />
     <ClInclude Include="..\..\src\raknet\Itoa.h" />
     <ClInclude Include="..\..\src\raknet\Kbhit.h" />
-    <ClInclude Include="..\..\src\raknet\LinuxStrings.h" />
     <ClInclude Include="..\..\src\raknet\LocklessTypes.h" />
     <ClInclude Include="..\..\src\raknet\LogCommandParser.h" />
     <ClInclude Include="..\..\src\raknet\MessageFilter.h" />
@@ -711,8 +705,6 @@
     <ClInclude Include="..\..\src\raknet\RakThread.h" />
     <ClInclude Include="..\..\src\raknet\RakWString.h" />
     <ClInclude Include="..\..\src\raknet\Rand.h" />
-    <ClInclude Include="..\..\src\raknet\rdlmalloc-options.h" />
-    <ClInclude Include="..\..\src\raknet\rdlmalloc.h" />
     <ClInclude Include="..\..\src\raknet\ReadyEvent.h" />
     <ClInclude Include="..\..\src\raknet\RefCountedObj.h" />
     <ClInclude Include="..\..\src\raknet\ReliabilityLayer.h" />
@@ -750,7 +742,6 @@
     <ClInclude Include="..\..\src\raknet\VariadicSQLParser.h" />
     <ClInclude Include="..\..\src\raknet\WindowsIncludes.h" />
     <ClInclude Include="..\..\src\raknet\WSAStartupSingleton.h" />
-    <ClInclude Include="..\..\src\raknet\_FindFirst.h" />
     <ClInclude Include="..\..\src\server\ServerLevel.h" />
     <ClInclude Include="..\..\src\server\ServerPlayer.h" />
     <ClInclude Include="..\..\src\SharedConstants.h" />

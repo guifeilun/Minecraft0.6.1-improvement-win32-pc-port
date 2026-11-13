@@ -2,6 +2,9 @@
 #define SoundSystemDX_H__
 
 #include "SoundSystem.h"
+
+#ifdef _WIN32
+
 #include <windows.h>
 #include <mmsystem.h>
 #include <dsound.h>
@@ -22,7 +25,8 @@ public:
     virtual void play(const std::string& name) {}
     virtual void pause(const std::string& name) {}
     virtual void stop(const std::string& name) {}
-    virtual void playAt(const SoundDesc& sound, float x, float y, float z, float volume, float pitch);
+    virtual void playAt(const SoundDesc& sound, float x, float y, float z,
+                        float volume, float pitch);
 
 private:
     static const int MAX_PLAYED = 12;
@@ -45,4 +49,16 @@ private:
     bool createBuffer(const SoundDesc& sound, LPDIRECTSOUNDBUFFER* outBuffer);
 };
 
-#endif
+#else
+
+class SoundSystemDX : public SoundSystem
+{
+public:
+    SoundSystemDX() {}
+    virtual ~SoundSystemDX() {}
+    virtual bool isAvailable() { return false; }
+};
+
+#endif // _WIN32
+
+#endif // SoundSystemDX_H__

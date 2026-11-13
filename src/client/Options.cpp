@@ -31,11 +31,7 @@ OptionInt guiScale("guiScale", 0, 0, 5);
 
 OptionString skin("skin", "Default");
 
-#ifdef RPI
-OptionString username("username", "StevePi");
-#else 
 OptionString username("username", "Steve");
-#endif
 
 OptionBool destroyVibration("destroyVibration", true);
 OptionBool isLeftHanded("isLeftHanded", false);
@@ -91,7 +87,7 @@ OptionInt menuStyle("menuStyle",0, 0, 2);
 // Java-style brightness/gamma. 0.0 = "Moody" (no boost, original ramp),
 // 1.0 = "Bright!" (lowest light level is lifted to ~0.5). Bucketed into
 // the standard Java labels by OptionsItem at render time.
-OptionFloat brightnessOpt("gamma", 0.5f, 0.0f, 1.0f);
+OptionFloat gammaOpt("gamma", 0.5f, 0.0f, 1.0f);
 
 OptionBool windowScale("windowScale", true);
 OptionString languageOpt("language", "en_US");
@@ -139,7 +135,7 @@ void Options::initTable() {
 	m_options[OPTIONS_MUSIC_VOLUME] = &musicVolume;
 	m_options[OPTIONS_SOUND_VOLUME] = &soundVolume;
 
-	#if defined(PLATFORM_DESKTOP) || defined(RPI)
+	#if defined(PLATFORM_DESKTOP)
 		float sensitivity = sensitivityOpt.get();
 		sensitivity *= 0.4f;
 		sensitivityOpt.set(sensitivity);
@@ -189,7 +185,7 @@ void Options::initTable() {
     m_options[OPTIONS_SERVER_VISIBLE] = &serverVisible;
 
 	m_options[OPTIONS_MENU_STYLE] = &menuStyle;
-	m_options[OPTIONS_BRIGHTNESS] = &brightnessOpt;
+	m_options[OPTIONS_BRIGHTNESS] = &gammaOpt;
 
     m_options[OPTIONS_KEY_FORWARD] = &keyForward;
     m_options[OPTIONS_KEY_LEFT] = &keyLeft;

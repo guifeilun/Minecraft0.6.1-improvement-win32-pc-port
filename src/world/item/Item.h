@@ -205,6 +205,7 @@ public:
     static Item* record_02;
 
 	static Item* camera;
+	static Item* spawnEgg;
 
 	static void initItems();
 	static void teardownItems();

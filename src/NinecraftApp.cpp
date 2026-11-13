@@ -1,10 +1,6 @@
 #include "NinecraftApp.h"
 //#include <EGL/egl.h>
 
-#ifdef RPI
-//#define NO_STORAGE
-#endif
-
 #include <errno.h>
 
 #include "platform/input/Mouse.h"
@@ -35,7 +31,7 @@
 
 //#include "world/entity/player/Inventory2.h"
 
-#if !defined(DEMO_MODE) && !defined(APPLE_DEMO_PROMOTION) && !defined(NO_STORAGE)
+#if !defined(DEMO_MODE) && !defined(NO_STORAGE)
 	#include "world/level/storage/ExternalFileLevelStorageSource.h"
 #else
 	#include "world/level/storage/MemoryLevelStorageSource.h"
@@ -50,16 +46,10 @@
 #include "client/renderer/EntityTileRenderer.h"
 #endif
 
-bool NinecraftApp::_hasInitedStatics = false;
-
 NinecraftApp::NinecraftApp()
 :   _verbose(true),
-	_lastTickMs(0),
 	_frames(0)
 {
-    #if defined(ANDROID) || defined(__APPLE__) || defined(RPI)
-        signal(SIGPIPE, SIG_IGN);
-    #endif
 }
 
 NinecraftApp::~NinecraftApp()
@@ -76,22 +66,12 @@ void NinecraftApp::init()
 	//writeDemoFile();
 	//#endif
 
-	// If we're running Android, only initialize
-	// the first time class is instanced
-	#ifdef ANDROID
-	if (!_hasInitedStatics) {
-		_hasInitedStatics = true;
-	#endif
-		Material::initMaterials();
-		MobCategory::initMobCategories();
-		Tile::initTiles();
-		Item::initItems();
-		Biome::initBiomes();
-		TileEntity::initTileEntities();
-
-	#ifdef ANDROID
-	}
-	#endif
+	Material::initMaterials();
+	MobCategory::initMobCategories();
+	Tile::initTiles();
+	Item::initItems();
+	Biome::initBiomes();
+	TileEntity::initTileEntities();
 
 #ifndef STANDALONE_SERVER
 	initGLStates();
@@ -104,7 +84,7 @@ void NinecraftApp::init()
 	}
 	Minecraft::init();
 
-#if !defined(DEMO_MODE) && !defined(APPLE_DEMO_PROMOTION) && !defined(NO_STORAGE)
+#if !defined(DEMO_MODE) && !defined(NO_STORAGE)
 	storageSource = new ExternalFileLevelStorageSource(externalStoragePath, externalCacheStoragePath);
 #else
 	storageSource = new MemoryLevelStorageSource();
@@ -126,17 +106,14 @@ void NinecraftApp::init()
 
 void NinecraftApp::teardown()
 {
-	// Note: Don't tear down statics if we run on Android
-	// (we might change this in the future)
-#ifndef ANDROID
 	Biome::teardownBiomes();
 	Item ::teardownItems();
 	Tile ::teardownTiles();
 	Material::teardownMaterials();
 	Recipes ::teardownRecipes();
 	TileEntity::teardownTileEntities();
-#endif
-#if defined(WIN32) && !defined(STANDALONE_SERVER)
+
+#if !defined(STANDALONE_SERVER)
 	ItemRenderer::teardown_static();
 	if (EntityTileRenderer::instance != NULL) {
 		delete EntityTileRenderer::instance;
@@ -153,10 +130,8 @@ void NinecraftApp::update()
 	// Generate Multitouch active pointer list
 	Multitouch::commit();
 
-#ifndef ANDROID_PUBLISH
 	//testCreationAndDestruction();
 	//testJoiningAndDestruction();
-#endif /*ANDROID_PUBLISH*/
 
 	Minecraft::update();
 
@@ -167,71 +142,6 @@ void NinecraftApp::update()
     if (level && raknetInstance->isProbablyBroken() && raknetInstance->isServer()) {
         restartServer();
     }
-
-#ifndef WIN32
-	updateStats();
-#endif
-}
-
-void NinecraftApp::updateStats()
-{
-#ifndef STANDALONE_SERVER
-	if (Options::debugGl)
-		LOGI("--------------------------------------------\n");
-
-	//*
-	int now = getTimeMs();
-	//int since = now - _lastTickMs;
-
-	if (now >= lastTime + 1000)
-	{
-		if (player) {
-			LOGI("%d fps   \t%3d chunk updates.   (%.2f, %.2f, %.2f)\n",
-				_frames, Chunk::updates, player->x, player->y, player->z);
-			Chunk::resetUpdates();
-
-			//static int _n = 0;
-			//if (++_n % 5 == -1) { // @note: -1
-			//	static char filename[256];
-			//	sprintf(filename, "%s/games/com.mojang/img_%.4d.jpg", externalStoragePath.c_str(), _n/5);
-			//	_context.platform->saveScreenshot(filename, width, height);
-			//}
-
-			LOGI("%s", levelRenderer->gatherStats1().c_str());
-			//printf("Texture swaps (this frame): %d\n", Textures::textureChanges);
-		} else {
-			LOGI("%d fps\n", _frames);
-		}
-
-		//const int* pointerIds;
-		//int pointerCount = Multitouch::getActivePointerIds(&pointerIds);
-		//if (pointerCount) {
-		//	std::string s = "Pointers (";
-		//	s += (char)(48 + pointerCount);
-		//	s += ": ";
-		//	for (int i = 0; i < pointerCount; ++i) {
-		//		s += (char)(48 + pointerIds[i]);
-		//		s += ", ";
-		//	}
-		//	LOGI("%s\n", s.c_str());
-		//}
-
-		lastTime = now;
-		_frames = 0;
-#ifdef GLDEBUG
-		while (1) {
-			int error = glGetError();
-			if (error == GL_NO_ERROR) break;
-
-			LOGI("#################### GL-ERROR: %d\t#####################\n", error);
-			LOGI("#################### GL-ERROR: %d\t#####################\n", error);
-			LOGI("#################### GL-ERROR: %d\t#####################\n", error);
-		}
-#endif
-	}
-	Textures::textureChanges = 0;
-	/**/
-#endif /* STANDALONE_SERVER */
 }
 
 void NinecraftApp::initGLStates()
@@ -248,14 +158,9 @@ void NinecraftApp::initGLStates()
 	glCullFace(GL_BACK);
 
 	glEnable2(GL_TEXTURE_2D);
-#ifndef _EMSCRIPTEN_
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-#endif
 	// Both updates isPowerVR flag in java and returns if the graphics chip is PowerVR SGX or not
 	_powerVr = platform()->isPowerVR();
-#ifdef __APPLE__
-    _isSuperFast = platform()->isSuperFast();
-#endif
 	//glLineWidth(4);
 #endif /* STANDALONE_SERVER */
 }
@@ -319,8 +224,6 @@ void NinecraftApp::onGraphicsReset()
 	Minecraft::onGraphicsReset();
 #endif
 }
-
-#ifndef ANDROID_PUBLISH
 
 static int _state = -1;
 static int _stateTicksLeft = 0;
@@ -400,8 +303,6 @@ void NinecraftApp::testJoiningAndDestruction()
 		_state = 0;
 	}
 }
-
-#endif /*ANDROID_PUBLISH*/
 
 /*
 void NinecraftApp::writeDemoFile() {

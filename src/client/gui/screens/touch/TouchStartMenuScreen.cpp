@@ -92,18 +92,10 @@ void StartMenuScreen::init()
 	username = "Username: " + _username;
 
 	#ifdef DEMO_MODE
-        #ifdef __APPLE__
-            version = versionString + " (Lite)";
-        #else
-            version = versionString + " (Demo)";
-        #endif
+		version = versionString + " (Demo)";
 	#else
 		version = versionString;
 	#endif
-    
-    #ifdef APPLE_DEMO_PROMOTION
-        version = versionString + " (Demo)";
-    #endif
 
 	bJoin.active = bHost.active = bOptions.active = true;
 }
@@ -134,7 +126,7 @@ void StartMenuScreen::buttonClicked(::Button* button) {
 
 	if (button->id == bHost.id)
 	{
-		#if defined(DEMO_MODE) || defined(APPLE_DEMO_PROMOTION)
+		#if defined(DEMO_MODE)
 			minecraft->setScreen( new SimpleChooseLevelScreen("_DemoLevel") );
 		#else
 			minecraft->screenChooser.setScreen(SCREEN_SELECTWORLD);
@@ -142,12 +134,8 @@ void StartMenuScreen::buttonClicked(::Button* button) {
 	}
 	if (button->id == bJoin.id)
 	{
-        #ifdef APPLE_DEMO_PROMOTION
-            minecraft->platform()->createUserInput(DialogDefinitions::DIALOG_DEMO_FEATURE_DISABLED);
-        #else
-            minecraft->locateMultiplayer();
-            minecraft->screenChooser.setScreen(SCREEN_JOINGAME);
-        #endif
+		minecraft->locateMultiplayer();
+		minecraft->screenChooser.setScreen(SCREEN_JOINGAME);
 	}
 	if (button->id == bOptions.id)
 	{
@@ -170,11 +158,7 @@ void StartMenuScreen::render( int xm, int ym, float a )
     
     glEnable2(GL_BLEND);
 
-#if defined(RPI)
-	TextureId id = minecraft->textures->loadTexture("gui/pi_title.png");
-#else
 	TextureId id = minecraft->textures->loadTexture("gui/title.png");
-#endif
 	const TextureData* data = minecraft->textures->getTemporaryTextureData(id);
 
 	if (data) {

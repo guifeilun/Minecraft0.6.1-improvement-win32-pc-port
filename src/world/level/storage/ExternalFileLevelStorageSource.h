@@ -1,4 +1,4 @@
-#if !defined(DEMO_MODE) && !defined(APPLE_DEMO_PROMOTION)
+#if !defined(DEMO_MODE)
 
 #ifndef NET_MINECRAFT_WORLD_LEVEL_STORAGE__ExternalFileLevelStorageSource_H__
 #define NET_MINECRAFT_WORLD_LEVEL_STORAGE__ExternalFileLevelStorageSource_H__

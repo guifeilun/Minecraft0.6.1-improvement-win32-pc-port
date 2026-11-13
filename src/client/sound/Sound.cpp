@@ -1,7 +1,5 @@
 #include "Sound.h"
 
-#if !defined(PRE_ANDROID23) && !defined(__APPLE__) && !defined(RPI)
-
 #include "data/cloth1.pcm"
 #include "data/cloth2.pcm"
 #include "data/cloth3.pcm"
@@ -222,5 +220,3 @@ SoundDesc SA_eat1((char*)PCM_eat1);
 SoundDesc SA_eat2((char*)PCM_eat2);
 SoundDesc SA_eat3((char*)PCM_eat3);
 SoundDesc SA_fuse((char*)PCM_fuse);
-
-#endif /*!PRE_ANDROID23 && !__APPLE__*/

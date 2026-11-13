@@ -76,11 +76,6 @@ void JoinByIPScreen::init()
 	buttons.push_back(&bHeader);
     
     textBoxes.push_back(&tIP);
-#ifdef ANDROID
-	tabButtons.push_back(&bJoin);
-	tabButtons.push_back(&bBack);
-    tabButtons.push_back(&bHeader);
-#endif
 
 	tIP.text = minecraft->options.getStringValue(OPTIONS_LAST_IP);
 }

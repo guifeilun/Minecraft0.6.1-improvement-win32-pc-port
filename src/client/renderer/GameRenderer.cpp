@@ -94,10 +94,6 @@ void renderCursor(float x, float y, Minecraft* minecraft) {
 /*private*/
 void GameRenderer::setupCamera(float a, int eye) {
 	renderDistance = (float) (16 * 16 >> (mc->options.getIntValue(OPTIONS_VIEW_DISTANCE)));
-#if defined(ANDROID)
-	if (mc->isPowerVR() && mc->options.getIntValue(OPTIONS_VIEW_DISTANCE) <= 2)
-		renderDistance *= 0.8f;
-#endif
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity2();
@@ -961,10 +957,6 @@ void GameRenderer::onGraphicsReset()
 
 void GameRenderer::saveMatrices()
 {
-#if defined(RPI)
-	return;
-#endif
-
 	static bool saved = false;
 	//if (saved) return;
 

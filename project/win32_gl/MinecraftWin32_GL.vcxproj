@@ -201,7 +201,6 @@
     <ClCompile Include="..\..\src\raknet\HTTPConnection.cpp" />
     <ClCompile Include="..\..\src\raknet\IncrementalReadInterface.cpp" />
     <ClCompile Include="..\..\src\raknet\Itoa.cpp" />
-    <ClCompile Include="..\..\src\raknet\LinuxStrings.cpp" />
     <ClCompile Include="..\..\src\raknet\LogCommandParser.cpp" />
     <ClCompile Include="..\..\src\raknet\MessageFilter.cpp" />
     <ClCompile Include="..\..\src\raknet\NatPunchthroughClient.cpp" />
@@ -229,7 +228,6 @@
     <ClCompile Include="..\..\src\raknet\RakThread.cpp" />
     <ClCompile Include="..\..\src\raknet\RakWString.cpp" />
     <ClCompile Include="..\..\src\raknet\Rand.cpp" />
-    <ClCompile Include="..\..\src\raknet\rdlmalloc.cpp" />
     <ClCompile Include="..\..\src\raknet\ReadyEvent.cpp" />
     <ClCompile Include="..\..\src\raknet\ReliabilityLayer.cpp" />
     <ClCompile Include="..\..\src\raknet\ReplicaManager3.cpp" />
@@ -258,7 +256,6 @@
     <ClCompile Include="..\..\src\raknet\VariableListDeltaTracker.cpp" />
     <ClCompile Include="..\..\src\raknet\VariadicSQLParser.cpp" />
     <ClCompile Include="..\..\src\raknet\WSAStartupSingleton.cpp" />
-    <ClCompile Include="..\..\src\raknet\_FindFirst.cpp" />
     <ClCompile Include="..\..\src\util\DataIO.cpp" />
     <ClCompile Include="..\..\src\util\Mth.cpp" />
     <ClCompile Include="..\..\src\util\PerfRenderer.cpp" />
@@ -386,7 +383,6 @@
     <ClInclude Include="..\..\src\client\renderer\VertecDecl.h" />
     <ClInclude Include="..\..\src\client\Timer.h" />
     <ClInclude Include="..\..\src\client\User.h" />
-    <ClInclude Include="..\..\src\main_android.h" />
     <ClInclude Include="..\..\src\main_win32.h" />
     <ClInclude Include="..\..\src\NinecraftApp.h" />
     <ClInclude Include="..\..\src\Performance.h" />

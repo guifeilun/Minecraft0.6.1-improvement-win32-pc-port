@@ -52,10 +52,11 @@ public:
     
 	virtual StringVector getOptionStrings();
 
-    virtual bool isPowerVR();
+    virtual bool isPowerVR() { return false; }
     virtual bool isSuperFast();
     virtual void showKeyboard();
     virtual void hideKeyboard();
+	virtual void isPowerVR();
 private:
     
     std::string _basePath;

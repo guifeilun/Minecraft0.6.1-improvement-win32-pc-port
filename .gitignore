@@ -1,6 +1,6 @@
 # Build outputs
 build-xp/
-build/
+build-win32/
 *.obj
 *.exe
 *.dll

@@ -226,6 +226,7 @@ static bool ensureDirectoryExists(const std::string& path) {
 #endif
 }
 
+
 static bool fileExists(const std::string& path) {
     struct stat st;
     if (stat(path.c_str(), &st) != 0)
@@ -885,7 +886,7 @@ void LocalPlayer::stopSleepInBed( bool forcefulWakeUp, bool updateLevelList, boo
 }
 
 void LocalPlayer::openTextEdit( TileEntity* tileEntity ) {
-#if !defined(STANDALONE_SERVER) && !defined(RPI)
+#if !defined(STANDALONE_SERVER)
 	if(tileEntity->type == TileEntityType::Sign)
 		minecraft->setScreen(new TextEditScreen((SignTileEntity*) tileEntity));
 #endif

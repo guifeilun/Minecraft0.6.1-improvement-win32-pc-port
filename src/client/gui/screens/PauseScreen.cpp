@@ -85,7 +85,6 @@ void PauseScreen::init() {
 	// If Back wasn't pressed, set up additional items (more than Quit to menu
 	// and Back to game) here
 
-#if !defined(APPLE_DEMO_PROMOTION) && !defined(RPI)
 	if (true || !wasBackPaused) {
 		if (minecraft->raknetInstance) {
 			if (minecraft->raknetInstance->isServer()) {
@@ -99,7 +98,6 @@ void PauseScreen::init() {
 			}
 		}
 	}
-#endif
 	//	buttons.push_back(bThirdPerson);
 
 	for (unsigned int i = 0; i < buttons.size(); ++i) {
@@ -143,10 +141,6 @@ void PauseScreen::setupPositions() {
 
 		bQuit->x = (width - bQuit->width) / 2;
 		bQuit->y = yBase + 32 * 3;
-
-#if APPLE_DEMO_PROMOTION
-		bQuit->y += 16;
-#endif
 
 		bQuitAndSaveLocally->x = bServerVisibility->x = (width - bQuitAndSaveLocally->width) / 2;
 		bQuitAndSaveLocally->y = bServerVisibility->y = yBase + 32 * 4;

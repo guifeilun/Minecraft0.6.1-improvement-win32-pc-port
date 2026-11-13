@@ -275,6 +275,7 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
                    ../../../src/util/ServerProfiler.cpp \
                    ../../../src/world/entity/FishingHook.cpp \
                    ../../../src/world/item/FishingRodItem.cpp \
+                   ../../../src/world/item/SpawnEggItem.cpp \
                    ../../../src/world/level/dimension/NetherDimension.cpp \
                    ../../../src/world/level/levelgen/NetherLevelSource.cpp \
                    ../../../src/world/level/tile/PortalTile.cpp \

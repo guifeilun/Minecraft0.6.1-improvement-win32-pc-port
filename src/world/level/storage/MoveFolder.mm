@@ -1,4 +1,3 @@
-#import <Foundation/Foundation.h>
 #include "MoveFolder.h"
 
 void moveFolder(const std::string& src, const std::string& dst) {

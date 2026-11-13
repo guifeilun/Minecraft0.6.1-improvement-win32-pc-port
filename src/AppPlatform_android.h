@@ -9,7 +9,6 @@
 #include <cmath>
 #include <exception>
 #include <android/native_activity.h>
-#include <android/asset_manager.h>
 class JVMAttacher {
 public:
     JVMAttacher(JavaVM* vm)
@@ -96,8 +95,7 @@ public:
 		_hasSetPowerVR(false),
 		_nativeActivity(0),
 
-		_methodGetKeyFromKeyCode(0),
-		_methodListAssets(0)
+		_methodGetKeyFromKeyCode(0)
     {
     }
 
@@ -105,6 +103,9 @@ public:
     int getScreenHeight() { return _screenHeight; }
     void setScreenDimensions(int w, int h) { _screenWidth = w; _screenHeight = h; }
 
+    // Note, this has to be called from the main thread (e.g. do it from JNI_onLoad)
+    // Somewhere between calling this, and calling the AppPlatform methods,
+    // this->instance will be assigned by its creator
     int init(JavaVM* vm) {
         if (_isInited)
             return -1;
@@ -117,6 +118,7 @@ public:
             return -2;
         }
 
+        // Get Class reference
         const char* interface_path = "com/mojang/minecraftpe/MainActivity";
         jclass clazz = NULL;
         if( (clazz = env->FindClass( interface_path )) == 0 ) {
@@ -124,6 +126,7 @@ public:
         }
         _activityClass = (jclass)env->NewGlobalRef(clazz);
 
+        // Save all the method IDs
         _methodSaveScreenshot = env->GetStaticMethodID( _activityClass, "saveScreenshot", "(Ljava/lang/String;II[I)V");
         _postScreenshotToFacebook = env->GetMethodID( _activityClass, "postScreenshotToFacebook", "(Ljava/lang/String;II[I)V");
         _getImageData = env->GetMethodID( _activityClass, "getImageData", "(Ljava/lang/String;)[I");
@@ -148,8 +151,8 @@ public:
 
 		_methodGetPixelsPerMillimeter = env->GetMethodID( _activityClass, "getPixelsPerMillimeter", "()F");
 		_methodGetPlatformStringVar = env->GetMethodID( _activityClass, "getPlatformStringVar", "(I)Ljava/lang/String;");
+		// custom helper to launch external URLs
 		_methodOpenURL = env->GetMethodID(_activityClass, "openURL", "(Ljava/lang/String;)V");
-		_methodListAssets = env->GetMethodID(_activityClass, "listAssets", "(Ljava/lang/String;)[Ljava/lang/String;");
 
 		_classWindow = (jclass)env->NewGlobalRef(env->FindClass("android/view/Window"));
 		_classContext = (jclass)env->NewGlobalRef(env->FindClass("android/content/Context"));
@@ -170,12 +173,19 @@ public:
             env->ExceptionDescribe();
         }
 
+ //       LOGI("Class: %d\n. Methods: %d,%d\n", _activityClass,
+   //         _methodSaveScreenshot,
+     //       _postScreenshotToFacebook);
+
         _vm = vm;
         _isInited = true;
 
         return JNI_VERSION_1_4;
     }
 
+    // Stuff that should only be written once, e.g. device specs
+    // @note: This is called after instance is set, BUT this will
+    //        be rewritten later on anyway
     int initConsts() {
 
         LOGI("initConsts: start\n");
@@ -265,6 +275,7 @@ public:
                 length = 1023;
             static char buf[1024];
 
+            // Only supporting 7 bit chars, right now
             const char* str = env->GetStringUTFChars(s, 0);
             strncpy(buf, str, 1023);
             buf[1023] = 0;
@@ -287,18 +298,25 @@ public:
         if (!pixels)
             return;
 
+        // Create the OpenGL "screenshot"
         glReadPixels(0, 0, glWidth, glHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
         convertOpenGlToAndroidPixels(glWidth, glHeight, pixels);
 
+        // Tell Android to save the screenshot
         jintArray jPixels = env->NewIntArray(numPixels);
         if (jPixels != NULL)
         {
             jobject gpixRef = env->NewGlobalRef(jPixels);
             env->SetIntArrayRegion(jPixels, 0, numPixels, (int*)pixels);
+//                env->CallVoidMethod(    instance,
+//                                        _postScreenshotToFacebook,
+//                                        env->NewStringUTF(filename.c_str()),
+//                                        glWidth, glHeight, jPixels);
             env->CallStaticVoidMethod(  _activityClass,
                                         _methodSaveScreenshot,
                                         env->NewStringUTF(filename.c_str()),
                                         glWidth, glHeight, jPixels);
+            // Teardown
             env->DeleteGlobalRef(gpixRef);
             delete[] pixels;
         }
@@ -309,6 +327,7 @@ public:
     }
 
     void convertOpenGlToAndroidPixels(int w, int h, unsigned int* pixels) {
+        // Making the conversion in-place
         for (int y = 0; y < h/2; ++y)
         for (int x = 0; x < w;  ++x) {
             const int i0 = y * w + x;
@@ -318,6 +337,7 @@ public:
             pixels[i0] = rgbToBgr(p1);
             pixels[i1] = rgbToBgr(p0);
         }
+        // Handle the middle row, if any
         if (h & 1) {
             const int start = w * h/2;
             const int stop = start + w;
@@ -331,10 +351,14 @@ public:
     virtual void playSound(const std::string& filename, float volume, float pitch) {
         if (!_isInited || !_methodPlaySound) return;
 
+        //static Stopwatch w;
+        //w.start();
         JVMAttacher ta(_vm);
         JNIEnv* env = ta.getEnv();
 
         env->CallVoidMethod(instance, _methodPlaySound, env->NewStringUTF(filename.c_str()), volume, pitch);
+        //w.stop();
+        //w.printEvery(1, "playSound-java");
     }
 
     virtual void uploadPlatformDependentData(int id, void* data) {
@@ -366,6 +390,7 @@ public:
         jsize len = env->GetArrayLength(arr);
         int numPixels = len-2;
 
+        // pixels = [width, height, p_0, p_1, ..., p_numPixels-1]
         int* pixels = new int[numPixels];
         jint* body = env->GetIntArrayElements(arr, 0);
 
@@ -373,11 +398,16 @@ public:
         int h = body[1];
         memcpy(pixels, &body[2], numPixels * sizeof(int));
 
+        // Convert pixels
         for (int i = 0; i < numPixels; ++i)
             pixels[i] = rgbToBgr(pixels[i]);
 
-        env->ReleaseIntArrayElements(arr, body, 0);
+        //LOGI("Read-Image-Data: Decided file size to be: %d x %d (len %d)\n", w, h, len);
 
+        env->ReleaseIntArrayElements(arr, body, 0);
+  //      LOGI("loadtexture: 9\n");
+
+        // Set the result
         TextureData out;
         out.w = w;
         out.h = h;
@@ -386,7 +416,7 @@ public:
         return out;
     }
 
-	BinaryBlob readAssetFile(const std::string& filename) override {
+	BinaryBlob readAssetFile(const std::string& filename) {
 		if (!_isInited) return BinaryBlob();
 		if (!_readAssetFile) return BinaryBlob();
 
@@ -406,50 +436,6 @@ public:
 
 		env->ReleaseByteArrayElements(arr, body, 0);
 		return blob;
-	}
-
-	StringVector listLanguageCodes() override {
-		StringVector codes;
-		if (!_isInited) return codes;
-
-		// Path 1: ANativeActivity available (main_android.cpp)
-		if (_nativeActivity) {
-			AAssetManager* mgr = _nativeActivity->assetManager;
-			if (mgr) {
-				AAssetDir* dir = AAssetManager_openDir(mgr, "lang");
-				if (dir) {
-					const char* name;
-					while ((name = AAssetDir_getNextFileName(dir)) != NULL) {
-						std::string n(name);
-						if (n.size() > 5 && n.compare(n.size() - 5, 5, ".lang") == 0)
-							codes.push_back(n.substr(0, n.size() - 5));
-					}
-					AAssetDir_close(dir);
-				}
-			}
-		}
-
-		// Path 2: JNI fallback (main_android_java.cpp, _nativeActivity is NULL)
-		if (codes.empty() && _methodListAssets) {
-			JVMAttacher ta(_vm);
-			JNIEnv* env = ta.getEnv();
-			jobjectArray arr = (jobjectArray)env->CallObjectMethod(
-				instance, _methodListAssets, env->NewStringUTF("lang"));
-			if (arr) {
-				jsize len = env->GetArrayLength(arr);
-				for (jsize i = 0; i < len; ++i) {
-					jstring s = (jstring)env->GetObjectArrayElement(arr, i);
-					const char* str = env->GetStringUTFChars(s, 0);
-					std::string n(str);
-					env->ReleaseStringUTFChars(s, str);
-					env->DeleteLocalRef(s);
-					if (n.size() > 5 && n.compare(n.size() - 5, 5, ".lang") == 0)
-						codes.push_back(n.substr(0, n.size() - 5));
-				}
-				env->DeleteLocalRef(arr);
-			}
-		}
-		return codes;
 	}
 
 	std::string getDateString(int s) {
@@ -483,7 +469,7 @@ public:
 		env->ReleaseStringUTFChars(stringVar, str);
 		return out;
 	}
-
+	// Opens a webpage using an Android intent.  Called from native code.
 	virtual void openURL(const std::string& url) {
 		if (!_isInited || !_methodOpenURL) return;
 		JVMAttacher ta(_vm);
@@ -590,10 +576,12 @@ public:
 			_methodGetDecorView);
 
 		if (bShow) {
+			// Runs lInputMethodManager.showSoftInput(...).
 			jboolean lResult = env->CallBooleanMethod(
 				lInputMethodManager, _methodShowSoftInput,
 				lDecorView, lFlags);
 		} else {
+			// Runs lWindow.getViewToken()
 			jobject lBinder = env->CallObjectMethod(lDecorView,
 				_methodGetWindowToken);
 			jboolean lRes = env->CallBooleanMethod(
@@ -640,8 +628,7 @@ private:
 	jmethodID _methodIsNetworkEnabled;
 
 	jmethodID _methodGetPlatformStringVar;
-	jmethodID _methodOpenURL;
-	jmethodID _methodListAssets;
+	jmethodID _methodOpenURL; // new JNI method for launching browser
 
 	jclass _classWindow;
 	jclass _classContext;

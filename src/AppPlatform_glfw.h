@@ -22,8 +22,8 @@
 #include <dirent.h>
 #endif
 
-#ifdef __EMSCRIPTEN__
-	#include <emscripten/html5.h>
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/html5.h>
 #endif
 
 static void png_funcReadFile(png_structp pngPtr, png_bytep data, png_size_t length) {
@@ -173,29 +173,31 @@ public:
 #ifdef _WIN32
 		WIN32_FIND_DATAA findData;
 		HANDLE hFind = FindFirstFileA("data/lang/*.lang", &findData);
-		if (hFind != INVALID_HANDLE_VALUE) {
-			do {
-				std::string name = findData.cFileName;
-				size_t dot = name.find_last_of('.');
-				if (dot != std::string::npos) {
-					codes.push_back(name.substr(0, dot));
-				}
-			} while (FindNextFileA(hFind, &findData));
-			FindClose(hFind);
+		if (hFind == INVALID_HANDLE_VALUE) {
+			return codes;
 		}
+		do {
+			std::string name = findData.cFileName;
+			size_t dot = name.find_last_of('.');
+			if (dot != std::string::npos) {
+				codes.push_back(name.substr(0, dot));
+			}
+		} while (FindNextFileA(hFind, &findData));
+		FindClose(hFind);
 #else
 		DIR* dir = opendir("data/lang");
-		if (dir) {
-			struct dirent* ent;
-			while ((ent = readdir(dir)) != NULL) {
-				std::string name = ent->d_name;
-				size_t dot = name.find_last_of('.');
-				if (dot != std::string::npos && name.compare(dot, 5, ".lang") == 0) {
-					codes.push_back(name.substr(0, dot));
-				}
-			}
-			closedir(dir);
+		if (!dir) {
+			return codes;
 		}
+		struct dirent* entry;
+		while ((entry = readdir(dir)) != NULL) {
+			std::string name = entry->d_name;
+			size_t dot = name.find_last_of('.');
+			if (dot != std::string::npos && name.substr(dot) == ".lang") {
+				codes.push_back(name.substr(0, dot));
+			}
+		}
+		closedir(dir);
 #endif
 		return codes;
 	}

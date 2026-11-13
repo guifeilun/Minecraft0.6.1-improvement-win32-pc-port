@@ -7,20 +7,8 @@ class Biome;
 class Level;
 class LevelChunk;
 
-#if 1 || USE_MAP
-	#include <map>
-	typedef std::map<int, LevelChunk*> ChunkMap;
-#else
-	#if defined(__APPLE__)
-		#include <ext/hash_map>
-		namespace std {
-			using namespace __gnu_cxx;
-		}
-	#else
-		#include <hash_map>
-	#endif
-	typedef std::hash_map<int, LevelChunk*> ChunkMap;
-#endif
+#include <map>
+typedef std::map<int, LevelChunk*> ChunkMap;
 
 
 #include "../chunk/ChunkSource.h"

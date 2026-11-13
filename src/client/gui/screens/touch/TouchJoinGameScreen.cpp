@@ -86,12 +86,6 @@ void JoinGameScreen::init()
 
 	minecraft->raknetInstance->clearServerList();
 	gamesList = new AvailableGamesList(minecraft, width, height);
-
-#ifdef ANDROID
-	//tabButtons.push_back(&bJoin);
-	tabButtons.push_back(&bBack);
-	tabButtons.push_back(&bJoinByIp);
-#endif
 }
 
 void JoinGameScreen::setupPositions() {
