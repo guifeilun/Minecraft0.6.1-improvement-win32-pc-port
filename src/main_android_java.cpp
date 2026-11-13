@@ -252,20 +252,13 @@ Java_com_mojang_minecraftpe_MainActivity_nativeHandleBack(JNIEnv* env, jclass cl
 //
 JNIEXPORT void JNICALL
 Java_com_mojang_minecraftpe_MainActivity_nativeMouseDown(JNIEnv* env, jclass cls, jint pointerId, jint buttonId, jfloat x, jfloat y) {
-    //LOGI("@nativeMouseDown: %f %f\n", x, y);
-    mouseDown(1, x, y);
-    pointerDown(pointerId, x, y);
+    Multitouch::feed(1, buttonId, x, y, pointerId);
 }
 JNIEXPORT void JNICALL
 Java_com_mojang_minecraftpe_MainActivity_nativeMouseUp(JNIEnv* env, jclass cls, jint pointerId, jint buttonId, jfloat x, jfloat y) {
-    //LOGI("@nativeMouseUp: %f %f\n", x, y);
-    mouseUp(1, x, y);
-    pointerUp(pointerId, x, y);
+    Multitouch::feed(0, buttonId, x, y, pointerId);
 }
 JNIEXPORT void JNICALL
 Java_com_mojang_minecraftpe_MainActivity_nativeMouseMove(JNIEnv* env, jclass cls, jint pointerId, jfloat x, jfloat y) {
-    //LOGI("@nativeMouseMove: %f %f\n", x, y);
-    mouseMove(x, y);
-    pointerMove(pointerId, x, y);
-}
+    Multitouch::feed(0, 0, x, y, pointerId);
 }
