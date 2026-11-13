@@ -8,6 +8,7 @@
 #include "platform/input/Multitouch.h"
 #include <unistd.h>
 #include <pthread.h>
+#include <cerrno>
 
 // Horrible, I know. / A
 #ifndef MAIN_CLASS

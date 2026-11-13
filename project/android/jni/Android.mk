@@ -6,7 +6,6 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := minecraftpe
 LOCAL_SRC_FILES := ../../../src/main.cpp \
-                   ../../../src/main_android_java.cpp \
                    ../../../src/platform/audio/SoundSystemSL.cpp \
                    ../../../src/platform/input/Controller.cpp \
                    ../../../src/platform/input/Keyboard.cpp \
@@ -279,10 +278,11 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
                    ../../../src/world/level/dimension/NetherDimension.cpp \
                    ../../../src/world/level/levelgen/NetherLevelSource.cpp \
                    ../../../src/world/level/tile/PortalTile.cpp \
-                   ../../../src/world/level/tile/SandTile.cpp
+                   ../../../src/world/level/tile/SandTile.cpp \
                    ../../../src/world/entity/Boat.cpp \
                    ../../../src/world/item/BoatItem.cpp \
-                   ../../../src/client/renderer/entity/BoatRenderer.cpp \
+                   ../../../src/client/renderer/entity/BoatRenderer.cpp
+
 LOCAL_CFLAGS := -DANDROID -DPLATFORM_ANDROID -DPRE_ANDROID23 -Wno-narrowing $(LOCAL_CFLAGS)
 LOCAL_CPPFLAGS := -std=c++14 -frtti
 LOCAL_CPPFLAGS += -frtti
