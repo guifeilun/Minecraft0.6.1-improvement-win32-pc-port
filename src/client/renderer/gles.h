@@ -4,19 +4,20 @@
 #include "../../platform/log.h"
 #include "../Options.h"
 
-// Android / iOS / Raspberry Pi always use OpenGL ES
-#if defined(ANDROID) || defined(__APPLE__) || defined(RPI)
-    #define OPENGL_ES
+#if defined(__APPLE__)
+    #include <TargetConditionals.h>
+    #define GLES_SILENCE_DEPRECATION
 #endif
 
-#if defined(__APPLE__)
-    #define GLES_SILENCE_DEPRECATION
+// Android / iOS / Raspberry Pi always use OpenGL ES
+#if defined(ANDROID) || defined(RPI) || (defined(__APPLE__) && TARGET_OS_IPHONE)
+    #define OPENGL_ES
 #endif
 
 // Other platforms may use OpenGL ES too, otherwise desktop OpenGL (GLAD) is used.
 	#define USE_VBO
 	#define GL_QUADS 0x0007
-    #if defined(__APPLE__)
+    #if defined(__APPLE__) && TARGET_OS_IPHONE
         #import <OpenGLES/ES1/gl.h>
         #import <OpenGLES/ES1/glext.h>
     #elif defined(ANDROID) || defined(__EMSCRIPTEN__) || defined(RPI)

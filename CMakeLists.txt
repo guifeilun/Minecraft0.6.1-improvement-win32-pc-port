@@ -430,7 +430,8 @@ endif()
 # The Win32 build links DirectSound; everything else goes through OpenAL.
 # The GLFW/desktop and Web builds create a plain GL context themselves, so
 # App.h's EGL surface path must be compiled out; Android/iOS keep real EGL.
-target_compile_definitions(${PROJECT_NAME} PUBLIC "OPENGL_ES" "NO_EGL")
+# NOTE: Windows and macOS use desktop OpenGL (via GLAD), NOT OpenGL ES.
+target_compile_definitions(${PROJECT_NAME} PUBLIC "NO_EGL")
 
 if(${PLATFORM} MATCHES "Web")
     set(CMAKE_CXX_STANDARD 11)
@@ -471,7 +472,7 @@ if(${PLATFORM} MATCHES "Web")
         )
     endif()
 
-    target_compile_definitions(${PROJECT_NAME} PUBLIC "__EMSCRIPTEN__" "NO_SOUND" "NO_NETWORK")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "OPENGL_ES" "__EMSCRIPTEN__" "NO_SOUND" "NO_NETWORK")
 endif()
 
 # Client
