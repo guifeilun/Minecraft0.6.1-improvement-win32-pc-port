@@ -4,6 +4,7 @@
 #include "ItemInstance.h"
 #include "FishingRodItem.h"
 #include "SpawnEggItem.h"
+#include "BoatItem.h"
 
 const std::string Item::ICON_DESCRIPTION_PREFIX("item.");
 Random Item::random;
@@ -260,7 +261,7 @@ void Item::initItems() {
 	Item::door_iron = (new DoorItem(74, Material::metal))->setIcon(12, 2)->setCategory(ItemCategory::Structures)->setDescriptionId("doorIron");
 	Item::redStone = (new TilePlanterItem(75, Tile::redStoneDust))->setIcon(8, 3)->setCategory(ItemCategory::Mechanisms)->setDescriptionId("redstone");
 	Item::snowBall = (new SnowballItem(76))->setIcon(14, 0)->setCategory(ItemCategory::Decorations)->setDescriptionId("snowball");
-	Item::boat = (new Item(77))->setMaxStackSize(1)->setIcon(8, 8)->setCategory(ItemCategory::Mechanisms)->setDescriptionId("boat");
+	Item::boat = (new BoatItem(77))->setMaxStackSize(1)->setIcon(8, 8)->setCategory(ItemCategory::Mechanisms)->setDescriptionId("boat");
 	Item::leather = (new Item(78))->setIcon(7, 6)->setCategory(ItemCategory::Tools)->setDescriptionId("leather");
 	Item::milk = (new Item(79))->setMaxStackSize(1)->setIcon(13, 4)->setCategory(ItemCategory::FoodArmor)->setDescriptionId("milk");
 	Item::brick = (new Item(80))->setIcon(6, 1)->setCategory(ItemCategory::Structures)->setDescriptionId("brick");

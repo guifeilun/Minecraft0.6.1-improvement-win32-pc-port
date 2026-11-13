@@ -32,6 +32,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
@@ -41,6 +42,7 @@ import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -55,14 +57,26 @@ public class MainActivity extends NativeActivity {
 	private boolean _isTouchscreen = true;
 	private int _viewDistance = 2;
 	
-	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	getOptionStrings(); // Updates settings
+    	getOptionStrings();
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         super.onCreate(savedInstanceState);
         nativeRegisterThis();
+
+        getWindow().getDecorView().setFocusable(true);
+        getWindow().getDecorView().setFocusableInTouchMode(true);
+        getWindow().getDecorView().requestFocus();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            try {
+                getWindow().getDecorView().setPointerIcon(
+                    android.view.PointerIcon.getSystemIcon(this, android.view.PointerIcon.TYPE_ARROW));
+            } catch (Exception e) {
+            }
+        }
     }
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
     	Log.w("MCPE", event.toString());
@@ -71,6 +85,7 @@ public class MainActivity extends NativeActivity {
     	}
 		return super.dispatchKeyEvent(event);
     }
+
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -79,10 +94,41 @@ public class MainActivity extends NativeActivity {
         }
         return super.onKeyUp(keyCode, event);
     }
+
     @Override
     public void onBackPressed() {
     	Log.w("MCPE", "Java - onBackPressed");
     	return;
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    	Log.w("MCPE", "onKeyDown: " + keyCode);
+        if (keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+            if (event.getSource() == InputDevice.SOURCE_MOUSE) {
+                return true;
+            }
+        }
+    	return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0) {
+            if (event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
+                return true; 
+            } else if (event.getAction() == MotionEvent.ACTION_SCROLL) {
+                return true;
+            }
+        }
+        return super.onGenericMotionEvent(event);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getSource() == InputDevice.SOURCE_MOUSE) {
+        }
+        return super.onTouchEvent(event);
     }
 
     private void createAlertDialog(boolean hasOkButton, boolean hasCancelButton, boolean preventBackKey) {
@@ -93,7 +139,6 @@ public class MainActivity extends NativeActivity {
     		builder.setCancelable(false);
 
     	builder.setOnCancelListener(new OnCancelListener() {
-			//@Override 
 			public void onCancel(DialogInterface dialog) {
 				onDialogCanceled();
 			}
@@ -117,8 +162,6 @@ public class MainActivity extends NativeActivity {
     
     public boolean supportsTouchscreen() {
     	return isXperiaPlay();
-    	//if (isXperiaPlay()) return false;
-    	//return true;
     }
 
 	static public boolean isXperiaPlay() {
@@ -136,31 +179,18 @@ public class MainActivity extends NativeActivity {
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-    	// TODO Auto-generated method stub
-    	//System.out.println("Focus has changed. Has Focus? " + hasFocus);
     	super.onWindowFocusChanged(hasFocus);
     }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-    	// TODO Auto-generated method stub
-    	//System.out.println("KeyDown: " + keyCode);
-    	Log.w("MCPE", "onKeyDown: " + keyCode);
-    	return super.onKeyDown(keyCode, event);
-    }
     public int getKeyFromKeyCode(int keyCode, int metaState, int deviceId) {
     	return InputDevice.getDevice(deviceId).getKeyCharacterMap().get(keyCode, metaState);
     }
+    
     static public void saveScreenshot(String filename, int w, int h, int[] pixels) {
     	Bitmap bitmap = Bitmap.createBitmap(pixels, w, h, Bitmap.Config.ARGB_8888);
-
-    	//System.out.println("Save screenshot: " + filename);
-    	
     	try {
 	        FileOutputStream fos = new FileOutputStream(filename);
 	        bitmap.compress(CompressFormat.JPEG, 85, fos);
-	    	//System.out.println("Compression completed!");
-
 	        try {
                 fos.flush();
 	        } catch (IOException e) {
@@ -213,7 +243,7 @@ public class MainActivity extends NativeActivity {
     	AssetManager assets = getAssets();
 
         try {
-        	/*String[] filenames = */assets.list("images");
+        	assets.list("images");
         } catch (IOException e) {
         	System.err.println("getImageData: Could not list directory");
         	return null;
@@ -245,16 +275,17 @@ public class MainActivity extends NativeActivity {
     	System.out.println("getwidth: " + out);
     	return out;
     }
+    
     public int getScreenHeight() {
     	Display display = ((WindowManager)this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
     	int out = Math.min(display.getWidth(), display.getHeight());
     	System.out.println("getheight: " + out);
     	return out;
     }
+    
     public float getPixelsPerMillimeter() {
     	 DisplayMetrics metrics = new DisplayMetrics();
     	 getWindowManager().getDefaultDisplay().getMetrics(metrics);
-    	 //System.err.println("metrics: " + metrics.xdpi + ", " + metrics.ydpi);
     	 return (metrics.xdpi + metrics.ydpi) * 0.5f / 25.4f;
     }
 
@@ -271,9 +302,7 @@ public class MainActivity extends NativeActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent data) {
-
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	if (requestCode == DialogDefinitions.DIALOG_MAINMENU_OPTIONS) {
     		_userInputStatus = 1;
     	}
@@ -285,13 +314,12 @@ public class MainActivity extends NativeActivity {
     }
 
     public void displayDialog(int dialogId) {
-
     	if (dialogId == DialogDefinitions.DIALOG_CREATE_NEW_WORLD) {
     		chooseDialog(R.layout.create_new_world,
     			new int[] { R.id.editText_worldName,
     						R.id.editText_worldSeed,
     						R.id.button_gameMode},
-    			false, // Don't prevent back key
+    			false,
     			R.id.button_createworld_create,
     			R.id.button_createworld_cancel
     		); 
@@ -310,12 +338,15 @@ public class MainActivity extends NativeActivity {
     void chooseDialog(final int layoutId, final int[] viewIds) {
     	chooseDialog(layoutId, viewIds, true);
     }
+    
     void chooseDialog(final int layoutId, final int[] viewIds, final boolean hasCancelButton) {
     	chooseDialog(layoutId, viewIds, hasCancelButton, true);
     }
+    
     void chooseDialog(final int layoutId, final int[] viewIds, final boolean hasCancelButton, final boolean preventBackKey) {
     	chooseDialog(layoutId, viewIds, preventBackKey, 0, hasCancelButton? 0 : -1);
     }
+    
     void chooseDialog(final int layoutId, final int[] viewIds, final boolean preventBackKey, final int okButtonId, final int cancelButtonId) {
     	_userInputValues.clear();
 
@@ -339,7 +370,6 @@ public class MainActivity extends NativeActivity {
                     			{ public void onClick(View v) { if (mDialog != null) mDialog.cancel(); onDialogCanceled(); }});
                     }
 
-                    //mDialog.setO
                     MainActivity.this.mDialog.setView(view);
 
                     if (viewIds != null)
@@ -358,7 +388,6 @@ public class MainActivity extends NativeActivity {
     	        MainActivity.this.mDialog.show();
     	        MainActivity.this.mDialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
     	        MainActivity.this.mDialog.getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.MATCH_PARENT);
-    	        //MainActivity.this.getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
     	    }
     	});
     }
@@ -373,18 +402,9 @@ public class MainActivity extends NativeActivity {
 
     	int n = 0;
     	for (Map.Entry<String, ?> e : m.entrySet()) {
-    		// @todo: Would be nice if the disabled settings could be stripped out here
-
     		String key   = e.getKey();
     		String value = e.getValue().toString(); 
 
-    		//
-    		// Feel free to modify key or value!
-    		//
-    		// This can be used to correct differences between the different
-    		// platforms, such as Android not supporting floating point
-    		// ranges for Sliders/SeekBars: {0..100} - TRANSFORM -> {0..1}
-    		//
     		if (key.equals(MainMenuOptionsActivity.Controls_UseTouchscreen))
     			_isTouchscreen = !isXperiaPlay() || (Boolean) e.getValue(); 
 
@@ -403,12 +423,8 @@ public class MainActivity extends NativeActivity {
 
     		tmpOut[n++] = key;
     		tmpOut[n++] = value;
-
-    		//System.out.println("Key: " + e.getKey());
-    		//System.out.println("Val: " + e.getValue().toString() + " (" + e.getValue().getClass().getName() + ")\n");
     	}
 
-    	// Copy over the enabled preferences
     	String[] out = new String[n];
     	for (int i = 0; i < n; ++i)
     		out[i] = tmpOut[i];
@@ -425,29 +441,23 @@ public class MainActivity extends NativeActivity {
 
     public boolean isNetworkEnabled(boolean onlyWifiAllowed) {
     	return true;
-    	/*
-	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-	    NetworkInfo info = onlyWifiAllowed? cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
-	    								:	cm.getActiveNetworkInfo();
-	  //(info.getState() == NetworkInfo.State.CONNECTED || info.getState() == NetworkInfo.State.CONNECTING));
-	    return (info != null && info.isConnectedOrConnecting());
-    	 */
     }
     
     private Bundle data;
     private int _userInputStatus = -1;
     private String[] _userInputText = null;
     private ArrayList<StringValue> _userInputValues = new ArrayList<StringValue>();
+    
     public void initiateUserInput(int id) {
     	_userInputText = null;
     	_userInputStatus = -1;
     }
+    
     public int getUserInputStatus() { return _userInputStatus; }
     public String[] getUserInputString() { return _userInputText; }
     
     private AlertDialog mDialog;
     private final DateFormat DateFormat = new SimpleDateFormat();
-//    public EditText mTextInputWidget;
     
     public void vibrate(int milliSeconds) {
     	Vibrator v = (Vibrator)this.getSystemService(VIBRATOR_SERVICE);
@@ -470,9 +480,8 @@ public class MainActivity extends NativeActivity {
 	    InputMethodManager inputManager = (InputMethodManager)getSystemService("input_method");
         View focused = this.getCurrentFocus();
         if (focused != null) {
-            boolean result = inputManager.showSoftInput(focused, InputMethodManager.SHOW_IMPLICIT);
+            inputManager.showSoftInput(focused, InputMethodManager.SHOW_IMPLICIT);
         } else {
-            // fallback: try to show using decor view token
             View decor = getWindow().getDecorView();
             if (decor != null) {
                 inputManager.showSoftInput(decor, InputMethodManager.SHOW_IMPLICIT);
@@ -481,27 +490,22 @@ public class MainActivity extends NativeActivity {
     }
 
     protected void onPause() {
-    	//System.out.println("onPause");
     	super.onPause();
     }
 
     protected void onStop() {
-    	//System.out.println("onStop");
     	nativeStopThis();
     	super.onStop();
     }
+    
     protected void onDestroy() {
     	System.out.println("onDestroy");
-
     	nativeUnregisterThis();
     	super.onDestroy();
     }
 
     protected boolean isDemo() { return false; }
     
-    //
-    // Native interface
-    //
     native void nativeRegisterThis(); 
     native void nativeUnregisterThis();
     native void nativeStopThis();
@@ -511,7 +515,6 @@ public class MainActivity extends NativeActivity {
     }
 }
 
-// see client/gui/screens/DialogDefinitions.h
 class DialogDefinitions {
 	static final int DIALOG_CREATE_NEW_WORLD = 1;
 	static final int DIALOG_NEW_CHAT_MESSAGE = 2;
